@@ -1,0 +1,22 @@
+{
+  "version": "5.2",
+  "steps": [
+    {
+      "tag": "CreateEnum",
+      "enum": {
+        "name": "UserStatus",
+        "values": ["PENDING_APPROVAL", "ACTIVE", "DISABLED"]
+      }
+    },
+    {
+      "tag": "AlterColumnDefault",
+      "table": "users",
+      "column": "status",
+      "default": {
+        "name": "users_status_default",
+        "value": "'PENDING_APPROVAL'::\"UserStatus\""
+      }
+    }
+  ],
+  "datamodel": "placeholder"
+}

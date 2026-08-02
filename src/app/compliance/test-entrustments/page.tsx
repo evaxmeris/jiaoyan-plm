@@ -1,0 +1,215 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import Pagination from '@/components/Pagination'
+import { useToast } from '@/components/Toast'
+import ConfirmDialog from '@/components/ConfirmDialog'
+
+const PAGE_SIZE = 20
+
+const TYPES: Record<string, string> = {
+  MICROBIAL: '微生物检测', PHYSICAL: '理化检测', STABILITY: '稳定性试验',
+  SAFETY: '安全性检测', EFFICACY: '功效测评', CHALLENGE: '防腐挑战', PACKAGING: '包材相容性'
+}
+
+const defaultForm = { type: 'MICROBIAL', institution: '', productDesignId: '', sampleBatch: '', applyDate: '', cost: '', remark: '' }
+
+export default function TestEntrustmentsPage() {
+  const [items, setItems] = useState<any[]>([])
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState(defaultForm)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const router = useRouter()
+  const { showToast } = useToast()
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    const [iRes, pRes] = await Promise.all([fetch('/api/compliance/test-entrustments'), fetch('/api/rnd/products')])
+    const iData = await iRes.json()
+    if (!iRes.ok) throw new Error(iData.error || '加载检测失败')
+    setItems(iData.testEntrustments || [])
+    const pData = await pRes.json()
+    if (!pRes.ok) throw new Error(pData.error || '加载产品失败')
+    setProducts(pData.data || pData.productDesigns || pData.products || [])
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { setPage(1) }, [search])
+
+  const filteredItems = items.filter((i: any) =>
+    !search || i.product?.name?.toLowerCase().includes(search.toLowerCase()) ||
+    i.institution?.toLowerCase().includes(search.toLowerCase()) ||
+    (TYPES[i.type] || '').includes(search)
+  )
+  const totalPages = Math.ceil(filteredItems.length / PAGE_SIZE)
+  const paginatedItems = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const openCreate = () => {
+    setEditingId(null)
+    setForm(defaultForm)
+    setShowForm(true)
+  }
+
+  const openEdit = (item: any) => {
+    setEditingId(item.id)
+    setForm({
+      type: item.type || 'MICROBIAL',
+      institution: item.institution || '',
+      productDesignId: item.productDesignId || '',
+      sampleBatch: item.sampleBatch || '',
+      applyDate: item.applyDate ? item.applyDate.slice(0, 10) : '',
+      cost: item.cost?.toString() || '',
+      remark: item.remark || '',
+    })
+    setShowForm(true)
+  }
+
+  const handleSave = async () => {
+    const url = editingId ? `/api/compliance/test-entrustments/${editingId}` : '/api/compliance/test-entrustments'
+    const method = editingId ? 'PUT' : 'POST'
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        cost: form.cost ? parseFloat(form.cost) : null,
+        applyDate: form.applyDate || null,
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      showToast('error', err.error || (editingId ? '更新失败' : '创建失败'))
+      return
+    }
+    setShowForm(false)
+    setEditingId(null)
+    fetchData()
+  }
+
+  const handleDelete = (id: string) => {
+    setConfirmDeleteId(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return
+    const res = await fetch(`/api/compliance/test-entrustments/${confirmDeleteId}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json()
+      showToast('error', err.error || '删除失败')
+    }
+    setConfirmDeleteId(null)
+    fetchData()
+  }
+
+  const updateStatus = async (id: string, data: any) => {
+    const res = await fetch(`/api/compliance/test-entrustments/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    if (!res.ok) {
+      const err = await res.json()
+      showToast('error', err.error || '操作失败')
+      return
+    }
+    fetchData()
+  }
+
+  const badge = (s: string) => {
+    const c: Record<string, string> = { PENDING: 'bg-yellow-100 text-yellow-700', IN_PROGRESS: 'bg-blue-100 text-blue-700', COMPLETED: 'bg-green-100 text-green-700' }
+    return <span className={`px-2 py-0.5 rounded text-xs font-medium ${c[s] || ''}`}>{s === 'PENDING' ? '待送检' : s === 'IN_PROGRESS' ? '检测中' : '已完成'}</span>
+  }
+  const resultBadge = (r: string) => {
+    const c: Record<string, string> = { PENDING: 'text-yellow-600', PASS: 'text-green-600', FAIL: 'text-red-600' }
+    return <span className={`text-xs font-medium ${c[r] || ''}`}>{r === 'PASS' ? '✅ 通过' : r === 'FAIL' ? '❌ 不通过' : '待出'}</span>
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)]">
+      <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.push('/compliance')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
+            <h1 className="text-xl font-bold text-[var(--color-text)]">检测委托</h1>
+          </div>
+          <button onClick={openCreate} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm">+ 送检</button>
+        </div>
+      </header>
+      <main className="w-full mx-auto px-4 md:px-6 py-6 fade-in">
+        {/* 搜索框 */}
+        <div className="mb-4">
+          <input type="text" placeholder="搜索产品名称 / 检测机构..." value={search}
+            onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" />
+        </div>
+
+        {showForm && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
+            <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
+              <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑检测' : '新建检测'}</h2>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><label className="block text-[var(--color-text-secondary)] mb-1">检测类型</label><select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">{Object.entries(TYPES).map(([k,v]) => <option key={k} value={k}>{v}</option>)}</select></div>
+                <div><label className="block text-[var(--color-text-secondary)] mb-1">检测机构 *</label><input type="text" value={form.institution} onChange={e => setForm({...form, institution: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                <div><label className="block text-[var(--color-text-secondary)] mb-1">关联产品</label><select value={form.productDesignId} onChange={e => setForm({...form, productDesignId: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"><option value="">不关联</option>{products.map((p:any) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+                <div><label className="block text-[var(--color-text-secondary)] mb-1">样品批次</label><input type="text" value={form.sampleBatch} onChange={e => setForm({...form, sampleBatch: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                <div><label className="block text-[var(--color-text-secondary)] mb-1">送检日期</label><input type="date" value={form.applyDate} onChange={e => setForm({...form, applyDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                <div><label className="block text-[var(--color-text-secondary)] mb-1">费用(元)</label><input type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><textarea value={form.remark} onChange={e => setForm({...form, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
+              </div>
+              <div className="flex gap-2 mt-4 justify-end">
+                <button onClick={() => { setShowForm(false); setEditingId(null) }} className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">取消</button>
+                <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm" disabled={!form.institution}>{editingId ? '保存修改' : '送检'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {loading ? <div className="space-y-3 p-4">{[1,2,3].map(i => <div key={i} className="flex gap-4"><div className="skeleton h-4 w-32" /><div className="skeleton h-4 w-24" /><div className="skeleton h-4 w-20" /></div>)}</div> : items.length === 0 ? <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg><div className="empty-state-title">暂无检测记录</div><div className="empty-state-desc">点击右上角"送检"开始</div></div> : (
+          <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="bg-[var(--color-bg)] border-b">
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">类型</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">产品</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">机构</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">结果</th>
+                <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+              </tr></thead>
+              <tbody>{paginatedItems.map((i: any) => (
+                <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
+                  <td className="px-4 py-3">{TYPES[i.type] || i.type}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">{i.product?.name || '-'}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">{i.institution}</td>
+                  <td className="px-4 py-3">{badge(i.status)}</td>
+                  <td className="px-4 py-3">{resultBadge(i.result)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex gap-1 justify-end flex-wrap">
+                      {i.status === 'PENDING' && <button onClick={() => updateStatus(i.id, { status: 'IN_PROGRESS' })} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">开始检测</button>}
+                      {i.status === 'IN_PROGRESS' && <button onClick={() => updateStatus(i.id, { status: 'COMPLETED', result: 'PASS' })} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">通过</button>}
+                      <button onClick={() => openEdit(i)} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">编辑</button>
+                      <button onClick={() => handleDelete(i.id)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">删除</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          </div>
+        )}
+      </main>
+
+      {/* 删除确认 */}
+      {confirmDeleteId && (
+        <ConfirmDialog
+          open={true}
+          title="确认删除"
+          message="确定要删除此检测记录吗？此操作不可撤销。"
+          confirmLabel="删除"
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmDeleteId(null)}
+        />
+      )}
+    </div>
+  )
+}

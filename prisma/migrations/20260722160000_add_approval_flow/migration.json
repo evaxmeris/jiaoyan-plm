@@ -1,0 +1,9 @@
+{
+  "version": "5.2",
+  "steps": [
+    {
+      "tag": "CreateTable",
+      "table": "approval_flows"
+    }
+  ]
+}

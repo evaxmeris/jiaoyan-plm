@@ -1,0 +1,281 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/Toast'
+import ConfirmDialog from '@/components/ConfirmDialog'
+
+const CATEGORIES = [
+  { value: 'LAB_SUPPLIES', label: '实验用品', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  { value: 'EQUIPMENT', label: '设备', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  { value: 'OFFICE_SUPPLIES', label: '办公用品', color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400' },
+  { value: 'GIFTS', label: '礼品', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' },
+  { value: 'OTHER', label: '其他', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+]
+
+function getCategoryInfo(category: string) {
+  return CATEGORIES.find(c => c.value === category) || CATEGORIES[CATEGORIES.length - 1]
+}
+
+export default function InventoryPage() {
+  const [activeTab, setActiveTab] = useState<'raw' | 'supply'>('raw')
+  const router = useRouter()
+  const { showToast } = useToast()
+
+  // 原料库存相关
+  const [items, setItems] = useState<any[]>([])
+  const [materials, setMaterials] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState({ rawMaterialId: '', batchNo: '', quantity: '', receiptDate: '', supplier: '', coaUrl: '', remark: '' })
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+  // 物资库存相关
+  const [supplies, setSupplies] = useState<any[]>([])
+
+  const defaultForm = { rawMaterialId: '', batchNo: '', quantity: '', receiptDate: '', supplier: '', coaUrl: '', remark: '' }
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    if (activeTab === 'raw') {
+      const [iRes, mRes] = await Promise.all([
+        fetch(`/api/supply/inventory?q=${search}`),
+        fetch('/api/rnd/materials?q='),
+      ])
+      const iData = await iRes.json()
+      if (!iRes.ok) throw new Error(iData.error || '加载库存失败')
+      setItems(iData.items || [])
+      const mData = await mRes.json()
+      if (!mRes.ok) throw new Error(mData.error || '加载原料失败')
+      setMaterials(mData.rawMaterials || [])
+    } else {
+      const res = await fetch(`/api/supply/supplies?q=${search}`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '加载物资失败')
+      setSupplies(data.data || data.supplies || [])
+    }
+    setLoading(false)
+  }, [search, activeTab])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const openCreate = () => {
+    setEditingId(null)
+    setForm({ ...defaultForm })
+    setShowForm(true)
+  }
+
+  const openEdit = (item: any) => {
+    setEditingId(item.id)
+    setForm({
+      rawMaterialId: item.rawMaterialId || '',
+      batchNo: item.batchNo || '',
+      quantity: item.quantity?.toString() || '',
+      receiptDate: item.receiptDate ? item.receiptDate.slice(0, 10) : '',
+      supplier: item.supplier || '',
+      coaUrl: item.coaUrl || '',
+      remark: item.remark || '',
+    })
+    setShowForm(true)
+  }
+
+  const handleSave = async () => {
+    const url = editingId ? `/api/supply/inventory/${editingId}` : '/api/supply/inventory'
+    const method = editingId ? 'PUT' : 'POST'
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    if (res.ok) {
+      setShowForm(false)
+      setEditingId(null)
+      fetchData()
+    } else {
+      const err = await res.json()
+      showToast('error', err.error || (editingId ? '更新失败' : '入库失败'))
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    setConfirmDeleteId(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return
+    const res = await fetch(`/api/supply/inventory/${confirmDeleteId}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json()
+      showToast('error', err.error || '删除失败')
+    }
+    setConfirmDeleteId(null)
+    fetchData()
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)]">
+      <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.push('/supply')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
+            <h1 className="text-xl font-bold text-[var(--color-text)]">库存管理</h1>
+          </div>
+          {activeTab === 'raw' && (
+            <button onClick={openCreate} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm">+ 入库</button>
+          )}
+        </div>
+      </header>
+
+      {/* Tab切换 */}
+      <div className="w-full mx-auto px-4 md:px-6 pt-4">
+        <div className="flex gap-1 bg-[var(--color-card)] rounded-lg p-1 border w-fit">
+          <button
+            onClick={() => setActiveTab('raw')}
+            className={`px-4 py-2 text-sm rounded-md transition-colors ${activeTab === 'raw' ? 'bg-emerald-600 text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]'}`}
+          >
+            原料库存
+          </button>
+          <button
+            onClick={() => setActiveTab('supply')}
+            className={`px-4 py-2 text-sm rounded-md transition-colors ${activeTab === 'supply' ? 'bg-emerald-600 text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]'}`}
+          >
+            物资库存
+          </button>
+        </div>
+      </div>
+
+      <main className="w-full mx-auto px-4 md:px-6 py-6 fade-in">
+        <div className="mb-4">
+          <input type="text" placeholder={activeTab === 'raw' ? '搜索批次号 / 供应商...' : '搜索物资名称...'} value={search}
+            onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg text-sm" />
+        </div>
+
+        {/* 原料库存 Tab */}
+        {activeTab === 'raw' && (
+          <>
+            {showForm && (
+              <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
+                <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
+                  <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑库存批次' : '原料入库'}</h2>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">原料 *</label>
+                      <select value={form.rawMaterialId} onChange={e => setForm({...form, rawMaterialId: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">
+                        <option value="">选择原料</option>
+                        {materials.map((m: any) => <option key={m.id} value={m.id}>{m.nameCn}</option>)}
+                      </select>
+                    </div>
+                    <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商批次号 *</label><input type="text" value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                    <div><label className="block text-[var(--color-text-secondary)] mb-1">数量 *</label><input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                    <div><label className="block text-[var(--color-text-secondary)] mb-1">入库日期 *</label><input type="date" value={form.receiptDate} onChange={e => setForm({...form, receiptDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                    <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商</label><input type="text" value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><textarea value={form.remark} onChange={e => setForm({...form, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
+                  </div>
+                  <div className="flex gap-2 mt-4 justify-end">
+                    <button onClick={() => { setShowForm(false); setEditingId(null) }} className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">取消</button>
+                    <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm" disabled={!form.rawMaterialId || !form.batchNo}>
+                      {editingId ? '保存修改' : '入库'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {loading ? <div className="space-y-3 p-4">{[1,2,3].map(i => <div key={i} className="flex gap-4"><div className="skeleton h-4 w-32" /><div className="skeleton h-4 w-24" /><div className="skeleton h-4 w-20" /></div>)}</div> : items.length === 0 ? (
+              <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg><div className="empty-state-title">暂无库存记录</div><div className="empty-state-desc">点击右上角"入库"添加库存</div></div>
+            ) : (
+              <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="bg-[var(--color-bg)] border-b">
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">原料</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">内部批次</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商批次</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">数量</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">入库日期</th>
+                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  </tr></thead>
+                  <tbody>
+                    {items.map((i: any) => (
+                      <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
+                        <td className="px-4 py-3 font-medium">{i.rawMaterial?.nameCn || '-'}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono">{i.internalBatch}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{i.batchNo}</td>
+                        <td className="px-4 py-3 text-right">{i.quantity}{i.rawMaterial?.unit || ''}</td>
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)]">{i.supplier}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{new Date(i.receiptDate).toLocaleDateString('zh-CN')}</td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button onClick={() => openEdit(i)} className="px-2 py-1 text-xs border rounded text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]">编辑</button>
+                            <button onClick={() => handleDelete(i.id)} className="px-2 py-1 text-xs border rounded text-red-500 hover:bg-red-50">删除</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* 物资库存 Tab */}
+        {activeTab === 'supply' && (
+          <>
+            {loading ? <div className="space-y-3 p-4">{[1,2,3].map(i => <div key={i} className="flex gap-4"><div className="skeleton h-4 w-32" /><div className="skeleton h-4 w-24" /><div className="skeleton h-4 w-20" /></div>)}</div> : supplies.length === 0 ? (
+              <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg><div className="empty-state-title">暂无物资库存</div><div className="empty-state-desc">前往 <a href="/supply/supplies" className="text-emerald-600 underline">物资管理</a> 添加</div></div>
+            ) : (
+              <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="bg-[var(--color-bg)] border-b">
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">名称</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">分类</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">规格</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">库存</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">最低库存</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商</th>
+                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  </tr></thead>
+                  <tbody>
+                    {supplies.map((s: any) => {
+                      const catInfo = getCategoryInfo(s.category)
+                      const isLowStock = s.minStock > 0 && s.currentStock < s.minStock
+                      return (
+                        <tr key={s.id} className={`border-b last:border-0 hover:bg-[var(--color-bg)] ${isLowStock ? 'bg-red-50 dark:bg-red-900/10' : ''}`}>
+                          <td className="px-4 py-3 font-medium">{s.name}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${catInfo.color}`}>{catInfo.label}</span>
+                          </td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)]">{s.specification || '-'}</td>
+                          <td className={`px-4 py-3 text-right font-mono ${isLowStock ? 'text-red-600 font-bold' : ''}`}>
+                            {s.currentStock}{s.unit}
+                            {isLowStock && <span className="ml-1 text-xs text-red-500">⚠️</span>}
+                          </td>
+                          <td className="px-4 py-3 text-right text-[var(--color-text-secondary)]">{s.minStock > 0 ? `${s.minStock}${s.unit}` : '-'}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)]">{s.supplier || '-'}</td>
+                          <td className="px-4 py-3 text-center">
+                            <button onClick={() => router.push('/supply/supplies')} className="px-2 py-1 text-xs border rounded text-emerald-600 hover:bg-emerald-50">管理</button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        title="确认删除"
+        message="确定要删除此库存批次记录吗？此操作不可撤销。"
+        confirmLabel="删除"
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
+    </div>
+  )
+}

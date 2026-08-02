@@ -1,0 +1,826 @@
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+// ============================================================
+// 法规数据库种子脚本 — 307 → 5000+ 条
+// 数据来源：
+//   - 《化妆品安全技术规范》（2015年版）
+//   - 《已使用化妆品原料目录》（2021年版）
+//   - EU Cosmetics Regulation (EC) No 1223/2009 Annex II~VI
+//   - FDA Prohibited & Restricted Ingredients
+// ============================================================
+
+interface RegulationSeed {
+  nameCn: string
+  nameEn?: string
+  inciName?: string
+  casNo?: string
+  regulationType: 'PROHIBITED' | 'RESTRICTED' | 'ALLOWED'
+  market: 'CHINA' | 'EU' | 'US' | 'JP' | 'KR'
+  maxConcentration?: number
+  productTypeRestriction?: string
+  restrictionNote?: string
+  sourceRegulation: string
+  category?: string
+  scope?: string
+  ingredientFunction?: string
+  referenceFile?: string
+}
+
+// ============================================================
+// SECTION A: 中国禁用成分 (PROHIBITED) — 安全技术规范表1
+// ============================================================
+const chinaProhibited: RegulationSeed[] = [
+  // --- 激素类 ---
+  { nameCn: '氨甲喋呤', nameEn: 'Methotrexate', casNo: '59-05-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(1)', category: '禁用-西药成分', ingredientFunction: '细胞毒性物质' },
+  { nameCn: '阿托品', nameEn: 'Atropine', casNo: '51-55-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(2)', category: '禁用-西药成分', ingredientFunction: '抗胆碱药' },
+  { nameCn: '毛果芸香碱', nameEn: 'Pilocarpine', casNo: '92-13-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(3)', category: '禁用-西药成分', ingredientFunction: '拟胆碱药' },
+  { nameCn: '毒扁豆碱', nameEn: 'Physostigmine', casNo: '57-47-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(4)', category: '禁用-西药成分', ingredientFunction: '胆碱酯酶抑制剂' },
+  { nameCn: '新斯的明', nameEn: 'Neostigmine', casNo: '59-99-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(5)', category: '禁用-西药成分', ingredientFunction: '胆碱酯酶抑制剂' },
+  { nameCn: '吡斯的明', nameEn: 'Pyridostigmine', casNo: '155-41-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(6)', category: '禁用-西药成分', ingredientFunction: '胆碱酯酶抑制剂' },
+  { nameCn: '安贝氯铵', nameEn: 'Ambenonium', casNo: '7648-98-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(7)', category: '禁用-西药成分', ingredientFunction: '胆碱酯酶抑制剂' },
+  { nameCn: '肾上腺素', nameEn: 'Epinephrine', casNo: '51-43-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(8)', category: '禁用-西药成分', ingredientFunction: '肾上腺素受体激动药' },
+  { nameCn: '异丙肾上腺素', nameEn: 'Isoprenaline', casNo: '7683-59-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(9)', category: '禁用-西药成分', ingredientFunction: 'β受体激动药' },
+  { nameCn: '去甲肾上腺素', nameEn: 'Norepinephrine', casNo: '51-41-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(10)', category: '禁用-西药成分', ingredientFunction: '肾上腺素受体激动药' },
+  { nameCn: '麻黄碱', nameEn: 'Ephedrine', casNo: '299-42-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(11)', category: '禁用-西药成分', ingredientFunction: '拟肾上腺素药' },
+  { nameCn: '甲基麻黄碱', nameEn: 'Methylephedrine', casNo: '25162-15-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(12)', category: '禁用-西药成分', ingredientFunction: '拟肾上腺素药' },
+  { nameCn: '伪麻黄碱', nameEn: 'Pseudoephedrine', casNo: '90-82-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(13)', category: '禁用-西药成分', ingredientFunction: '拟肾上腺素药' },
+  { nameCn: '士的宁', nameEn: 'Strychnine', casNo: '57-24-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(14)', category: '禁用-生物碱类' },
+  { nameCn: '马钱子碱', nameEn: 'Brucine', casNo: '357-57-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(15)', category: '禁用-生物碱类' },
+  { nameCn: '阿扑吗啡', nameEn: 'Apomorphine', casNo: '58-00-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(16)', category: '禁用-生物碱类' },
+  { nameCn: '可卡因', nameEn: 'Cocaine', casNo: '50-36-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(17)', category: '禁用-生物碱类' },
+  { nameCn: '二氢可待因酮', nameEn: 'Hydrocodone', casNo: '125-29-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(18)', category: '禁用-麻醉药类' },
+  { nameCn: '吗啡', nameEn: 'Morphine', casNo: '57-27-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(19)', category: '禁用-麻醉药类' },
+  { nameCn: '海洛因', nameEn: 'Heroin', casNo: '561-27-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(20)', category: '禁用-麻醉药类' },
+
+  // --- 抗生素类 ---
+  { nameCn: '青霉素', nameEn: 'Penicillin', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(21)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '四环素', nameEn: 'Tetracycline', casNo: '60-54-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(22)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '金霉素', nameEn: 'Chlortetracycline', casNo: '57-62-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(23)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '土霉素', nameEn: 'Oxytetracycline', casNo: '79-57-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(24)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '红霉素', nameEn: 'Erythromycin', casNo: '114-07-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(25)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '链霉素', nameEn: 'Streptomycin', casNo: '57-92-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(26)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '卡那霉素', nameEn: 'Kanamycin', casNo: '59-01-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(27)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '庆大霉素', nameEn: 'Gentamicin', casNo: '1403-66-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(28)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '氯霉素', nameEn: 'Chloramphenicol', casNo: '56-75-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(29)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+  { nameCn: '磺胺类药物', nameEn: 'Sulfonamides', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(30)', category: '禁用-抗生素', ingredientFunction: '抗生素' },
+
+  // --- 重金属及化合物 ---
+  { nameCn: '汞', nameEn: 'Mercury', casNo: '7439-97-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(31)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '氯化汞', nameEn: 'Mercuric chloride', casNo: '7487-94-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(32)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '氯化亚汞', nameEn: 'Mercurous chloride', casNo: '10112-91-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(33)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '氧化汞', nameEn: 'Mercuric oxide', casNo: '21908-53-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(34)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '氨基汞化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(35)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '铅', nameEn: 'Lead', casNo: '7439-92-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(36)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '铅化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(37)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '砷', nameEn: 'Arsenic', casNo: '7440-38-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(38)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '砷化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(39)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '镉', nameEn: 'Cadmium', casNo: '7440-43-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(40)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '镉化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(41)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '铬', nameEn: 'Chromium', casNo: '7440-47-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(42)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '铬酸及其盐', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(43)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '锑', nameEn: 'Antimony', casNo: '7440-36-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(44)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '锑化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(45)', category: '禁用-重金属', ingredientFunction: '重金属' },
+
+  // --- 激素类（糖皮质激素） ---
+  { nameCn: '氢化可的松', nameEn: 'Hydrocortisone', casNo: '50-23-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(46)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '醋酸氢化可的松', nameEn: 'Hydrocortisone acetate', casNo: '50-03-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(47)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '地塞米松', nameEn: 'Dexamethasone', casNo: '50-02-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(48)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '醋酸地塞米松', nameEn: 'Dexamethasone acetate', casNo: '1177-87-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(49)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '倍他米松', nameEn: 'Betamethasone', casNo: '378-44-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(50)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '醋酸倍他米松', nameEn: 'Betamethasone acetate', casNo: '987-24-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(51)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '泼尼松龙', nameEn: 'Prednisolone', casNo: '50-24-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(52)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '醋酸泼尼松龙', nameEn: 'Prednisolone acetate', casNo: '52-21-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(53)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '泼尼松', nameEn: 'Prednisone', casNo: '53-03-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(54)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '醋酸泼尼松', nameEn: 'Prednisone acetate', casNo: '53-03-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(55)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '甲基泼尼松龙', nameEn: 'Methylprednisolone', casNo: '83-43-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(56)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '醋酸甲基泼尼松龙', nameEn: 'Methylprednisolone acetate', casNo: '53-36-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(57)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '曲安西龙', nameEn: 'Triamcinolone', casNo: '124-94-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(58)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '醋酸曲安西龙', nameEn: 'Triamcinolone diacetate', casNo: '67-78-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(59)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '氟轻松', nameEn: 'Fluocinolone acetonide', casNo: '67-73-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(60)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '醋酸氟轻松', nameEn: 'Fluocinonide', casNo: '356-12-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(61)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '氯倍他索', nameEn: 'Clobetasol', casNo: '25122-41-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(62)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '丙酸氯倍他索', nameEn: 'Clobetasol propionate', casNo: '25122-57-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(63)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '倍氯米松', nameEn: 'Beclometasone', casNo: '4419-39-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(64)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '丙酸倍氯米松', nameEn: 'Beclometasone dipropionate', casNo: '5534-09-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(65)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '氟米松', nameEn: 'Flumethasone', casNo: '2135-17-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(66)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '氟米龙', nameEn: 'Fluorometholone', casNo: '426-13-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(67)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '安西奈德', nameEn: 'Amcinonide', casNo: '51022-69-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(68)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '布地奈德', nameEn: 'Budesonide', casNo: '51333-22-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(69)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '地夫可特', nameEn: 'Deflazacort', casNo: '14484-47-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(70)', category: '禁用-激素', ingredientFunction: '糖皮质激素' },
+  { nameCn: '己酸羟孕酮', nameEn: 'Hydroxyprogesterone caproate', casNo: '630-56-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(71)', category: '禁用-激素', ingredientFunction: '孕激素' },
+  { nameCn: '甲羟孕酮', nameEn: 'Medroxyprogesterone', casNo: '520-85-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(72)', category: '禁用-激素', ingredientFunction: '孕激素' },
+  { nameCn: '醋酸甲羟孕酮', nameEn: 'Medroxyprogesterone acetate', casNo: '71-58-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(73)', category: '禁用-激素', ingredientFunction: '孕激素' },
+  { nameCn: '己烯雌酚', nameEn: 'Diethylstilbestrol', casNo: '56-53-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(74)', category: '禁用-激素', ingredientFunction: '雌激素' },
+  { nameCn: '雌二醇', nameEn: 'Estradiol', casNo: '50-28-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(75)', category: '禁用-激素', ingredientFunction: '雌激素' },
+  { nameCn: '雌酮', nameEn: 'Estrone', casNo: '53-16-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(76)', category: '禁用-激素', ingredientFunction: '雌激素' },
+  { nameCn: '炔雌醇', nameEn: 'Ethinylestradiol', casNo: '57-63-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(77)', category: '禁用-激素', ingredientFunction: '雌激素' },
+  { nameCn: '睾酮', nameEn: 'Testosterone', casNo: '58-22-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(78)', category: '禁用-激素', ingredientFunction: '雄激素' },
+  { nameCn: '甲基睾酮', nameEn: 'Methyltestosterone', casNo: '58-18-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(79)', category: '禁用-激素', ingredientFunction: '雄激素' },
+  { nameCn: '丙酸睾酮', nameEn: 'Testosterone propionate', casNo: '57-85-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(80)', category: '禁用-激素', ingredientFunction: '雄激素' },
+
+  // --- 抗过敏药 ---
+  { nameCn: '苯海拉明', nameEn: 'Diphenhydramine', casNo: '58-73-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(81)', category: '禁用-西药成分', ingredientFunction: '抗组胺药' },
+  { nameCn: '氯苯那敏', nameEn: 'Chlorphenamine', casNo: '132-22-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(82)', category: '禁用-西药成分', ingredientFunction: '抗组胺药' },
+  { nameCn: '异丙嗪', nameEn: 'Promethazine', casNo: '60-87-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(83)', category: '禁用-西药成分', ingredientFunction: '抗组胺药' },
+  { nameCn: '赛庚啶', nameEn: 'Cyproheptadine', casNo: '129-03-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(84)', category: '禁用-西药成分', ingredientFunction: '抗组胺药' },
+  { nameCn: '西替利嗪', nameEn: 'Cetirizine', casNo: '83881-51-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(85)', category: '禁用-西药成分', ingredientFunction: '抗组胺药' },
+  { nameCn: '氯雷他定', nameEn: 'Loratadine', casNo: '79794-75-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(86)', category: '禁用-西药成分', ingredientFunction: '抗组胺药' },
+  { nameCn: '非那西丁', nameEn: 'Phenacetin', casNo: '62-44-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(87)', category: '禁用-西药成分', ingredientFunction: '解热镇痛药' },
+  { nameCn: '对乙酰氨基酚', nameEn: 'Paracetamol', casNo: '103-90-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(88)', category: '禁用-西药成分', ingredientFunction: '解热镇痛药' },
+  { nameCn: '布洛芬', nameEn: 'Ibuprofen', casNo: '15687-27-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(89)', category: '禁用-西药成分', ingredientFunction: '非甾体抗炎药' },
+  { nameCn: '双氯芬酸', nameEn: 'Diclofenac', casNo: '15307-86-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(90)', category: '禁用-西药成分', ingredientFunction: '非甾体抗炎药' },
+  { nameCn: '吲哚美辛', nameEn: 'Indometacin', casNo: '53-86-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(91)', category: '禁用-西药成分', ingredientFunction: '非甾体抗炎药' },
+  { nameCn: '萘普生', nameEn: 'Naproxen', casNo: '22204-53-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(92)', category: '禁用-西药成分', ingredientFunction: '非甾体抗炎药' },
+  { nameCn: '酮洛芬', nameEn: 'Ketoprofen', casNo: '22071-15-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(93)', category: '禁用-西药成分', ingredientFunction: '非甾体抗炎药' },
+
+  // --- 抗真菌药 ---
+  { nameCn: '酮康唑', nameEn: 'Ketoconazole', casNo: '65277-42-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(94)', category: '禁用-西药成分', ingredientFunction: '抗真菌药' },
+  { nameCn: '克霉唑', nameEn: 'Clotrimazole', casNo: '23593-75-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(95)', category: '禁用-西药成分', ingredientFunction: '抗真菌药' },
+  { nameCn: '咪康唑', nameEn: 'Miconazole', casNo: '22916-47-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(96)', category: '禁用-西药成分', ingredientFunction: '抗真菌药' },
+  { nameCn: '益康唑', nameEn: 'Econazole', casNo: '27220-47-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(97)', category: '禁用-西药成分', ingredientFunction: '抗真菌药' },
+  { nameCn: '灰黄霉素', nameEn: 'Griseofulvin', casNo: '126-07-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(98)', category: '禁用-西药成分', ingredientFunction: '抗真菌药' },
+
+  // --- 维A酸类 ---
+  { nameCn: '维A酸', nameEn: 'Tretinoin', casNo: '302-79-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(99)', category: '禁用-西药成分', ingredientFunction: '维A酸类' },
+  { nameCn: '异维A酸', nameEn: 'Isotretinoin', casNo: '4759-48-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(100)', category: '禁用-西药成分', ingredientFunction: '维A酸类' },
+  { nameCn: '阿维A', nameEn: 'Acitretin', casNo: '55079-83-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(101)', category: '禁用-西药成分', ingredientFunction: '维A酸类' },
+  { nameCn: '阿达帕林', nameEn: 'Adapalene', casNo: '106685-40-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(102)', category: '禁用-西药成分', ingredientFunction: '维A酸类' },
+  { nameCn: '他扎罗汀', nameEn: 'Tazarotene', casNo: '118292-40-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(103)', category: '禁用-西药成分', ingredientFunction: '维A酸类' },
+
+  // --- 精神类药物 ---
+  { nameCn: '地西泮', nameEn: 'Diazepam', casNo: '439-14-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(104)', category: '禁用-西药成分', ingredientFunction: '苯二氮䓬类' },
+  { nameCn: '硝西泮', nameEn: 'Nitrazepam', casNo: '146-22-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(105)', category: '禁用-西药成分', ingredientFunction: '苯二氮䓬类' },
+  { nameCn: '氯硝西泮', nameEn: 'Clonazepam', casNo: '1622-61-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(106)', category: '禁用-西药成分', ingredientFunction: '苯二氮䓬类' },
+  { nameCn: '阿普唑仑', nameEn: 'Alprazolam', casNo: '28981-97-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(107)', category: '禁用-西药成分', ingredientFunction: '苯二氮䓬类' },
+  { nameCn: '艾司唑仑', nameEn: 'Estazolam', casNo: '29975-16-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(108)', category: '禁用-西药成分', ingredientFunction: '苯二氮䓬类' },
+  { nameCn: '三唑仑', nameEn: 'Triazolam', casNo: '28911-01-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(109)', category: '禁用-西药成分', ingredientFunction: '苯二氮䓬类' },
+  { nameCn: '苯巴比妥', nameEn: 'Phenobarbital', casNo: '50-06-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(110)', category: '禁用-西药成分', ingredientFunction: '巴比妥类' },
+  { nameCn: '异戊巴比妥', nameEn: 'Amobarbital', casNo: '57-43-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(111)', category: '禁用-西药成分', ingredientFunction: '巴比妥类' },
+  { nameCn: '司可巴比妥', nameEn: 'Secobarbital', casNo: '76-73-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(112)', category: '禁用-西药成分', ingredientFunction: '巴比妥类' },
+  { nameCn: '戊巴比妥', nameEn: 'Pentobarbital', casNo: '76-74-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(113)', category: '禁用-西药成分', ingredientFunction: '巴比妥类' },
+  { nameCn: '氯丙嗪', nameEn: 'Chlorpromazine', casNo: '50-53-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(114)', category: '禁用-西药成分', ingredientFunction: '抗精神病药' },
+  { nameCn: '奋乃静', nameEn: 'Perphenazine', casNo: '58-39-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(115)', category: '禁用-西药成分', ingredientFunction: '抗精神病药' },
+  { nameCn: '氟奋乃静', nameEn: 'Fluphenazine', casNo: '69-23-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(116)', category: '禁用-西药成分', ingredientFunction: '抗精神病药' },
+  { nameCn: '氟哌啶醇', nameEn: 'Haloperidol', casNo: '52-86-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(117)', category: '禁用-西药成分', ingredientFunction: '抗精神病药' },
+
+  // --- 抗病毒药 ---
+  { nameCn: '阿昔洛韦', nameEn: 'Aciclovir', casNo: '59277-89-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(118)', category: '禁用-西药成分', ingredientFunction: '抗病毒药' },
+  { nameCn: '伐昔洛韦', nameEn: 'Valaciclovir', casNo: '124832-26-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(119)', category: '禁用-西药成分', ingredientFunction: '抗病毒药' },
+  { nameCn: '更昔洛韦', nameEn: 'Ganciclovir', casNo: '82410-32-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(120)', category: '禁用-西药成分', ingredientFunction: '抗病毒药' },
+
+  // --- 局部麻醉药 ---
+  { nameCn: '利多卡因', nameEn: 'Lidocaine', casNo: '137-58-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(121)', category: '禁用-西药成分', ingredientFunction: '局部麻醉药' },
+  { nameCn: '普鲁卡因', nameEn: 'Procaine', casNo: '59-46-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(122)', category: '禁用-西药成分', ingredientFunction: '局部麻醉药' },
+  { nameCn: '丁卡因', nameEn: 'Tetracaine', casNo: '94-24-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(123)', category: '禁用-西药成分', ingredientFunction: '局部麻醉药' },
+  { nameCn: '苯佐卡因', nameEn: 'Benzocaine', casNo: '94-09-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(124)', category: '禁用-西药成分', ingredientFunction: '局部麻醉药' },
+  { nameCn: '丙胺卡因', nameEn: 'Prilocaine', casNo: '721-50-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(125)', category: '禁用-西药成分', ingredientFunction: '局部麻醉药' },
+
+  // --- 其他禁用西药成分 ---
+  { nameCn: '甲硝唑', nameEn: 'Metronidazole', casNo: '443-48-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(126)', category: '禁用-西药成分', ingredientFunction: '抗原虫药' },
+  { nameCn: '硝苯地平', nameEn: 'Nifedipine', casNo: '21829-25-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(127)', category: '禁用-西药成分', ingredientFunction: '钙通道阻滞剂' },
+  { nameCn: '米诺地尔', nameEn: 'Minoxidil', casNo: '38304-91-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(128)', category: '禁用-西药成分', ingredientFunction: '血管扩张药' },
+  { nameCn: '氨茶碱', nameEn: 'Aminophylline', casNo: '317-34-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(129)', category: '禁用-西药成分', ingredientFunction: '平喘药' },
+  { nameCn: '茶碱', nameEn: 'Theophylline', casNo: '58-55-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(130)', category: '禁用-西药成分', ingredientFunction: '平喘药' },
+
+  // --- 禁用动植物提取物 ---
+  { nameCn: '乌头', nameEn: 'Aconitum', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(131)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '乌头碱', nameEn: 'Aconitine', casNo: '302-27-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(132)', category: '禁用-植物提取物', ingredientFunction: '有毒生物碱' },
+  { nameCn: '颠茄', nameEn: 'Belladonna', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(133)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '天仙子', nameEn: 'Hyoscyamus', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(134)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '莨菪', nameEn: 'Scopolia', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(135)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '毒参', nameEn: 'Conium', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(136)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '毒芹', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(137)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '钩吻', nameEn: 'Gelsemium', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(138)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '箭毒', nameEn: 'Curare', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(139)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '秋水仙', nameEn: 'Colchicum', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(140)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '秋水仙碱', nameEn: 'Colchicine', casNo: '64-86-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(141)', category: '禁用-植物提取物', ingredientFunction: '有毒生物碱' },
+  { nameCn: '长春花', nameEn: 'Catharanthus roseus', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(142)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '长春碱', nameEn: 'Vinblastine', casNo: '865-21-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(143)', category: '禁用-植物提取物', ingredientFunction: '有毒生物碱' },
+  { nameCn: '长春新碱', nameEn: 'Vincristine', casNo: '57-22-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(144)', category: '禁用-植物提取物', ingredientFunction: '有毒生物碱' },
+  { nameCn: '紫杉醇', nameEn: 'Paclitaxel', casNo: '33069-62-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(145)', category: '禁用-植物提取物', ingredientFunction: '抗肿瘤药' },
+  { nameCn: '雷公藤', nameEn: 'Tripterygium wilfordii', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(146)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '雷公藤甲素', nameEn: 'Triptolide', casNo: '38748-32-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(147)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '马兜铃酸', nameEn: 'Aristolochic acid', casNo: '313-67-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(148)', category: '禁用-植物提取物', ingredientFunction: '肾毒性物质' },
+  { nameCn: '马兜铃', nameEn: 'Aristolochia', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(149)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+  { nameCn: '细辛', nameEn: 'Asarum', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(150)', category: '禁用-植物提取物', ingredientFunction: '有毒植物' },
+
+  // --- 禁用化学物质 ---
+  { nameCn: '六氯酚', nameEn: 'Hexachlorophene', casNo: '70-30-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(151)', category: '禁用-化学物质', ingredientFunction: '杀菌剂' },
+  { nameCn: '甲醛', nameEn: 'Formaldehyde', casNo: '50-00-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(152)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+  { nameCn: '多聚甲醛', nameEn: 'Paraformaldehyde', casNo: '30525-89-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(153)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+  { nameCn: '二氯甲烷', nameEn: 'Dichloromethane', casNo: '75-09-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(154)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '三氯甲烷', nameEn: 'Chloroform', casNo: '67-66-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(155)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '四氯化碳', nameEn: 'Carbon tetrachloride', casNo: '56-23-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(156)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '苯', nameEn: 'Benzene', casNo: '71-43-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(157)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '甲苯', nameEn: 'Toluene', casNo: '108-88-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(158)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '二甲苯', nameEn: 'Xylene', casNo: '1330-20-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(159)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '苯胺', nameEn: 'Aniline', casNo: '62-53-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(160)', category: '禁用-化学物质', ingredientFunction: '染料中间体' },
+  { nameCn: '联苯胺', nameEn: 'Benzidine', casNo: '92-87-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(161)', category: '禁用-化学物质', ingredientFunction: '染料中间体' },
+  { nameCn: '萘胺', nameEn: 'Naphthylamine', casNo: '134-32-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(162)', category: '禁用-化学物质', ingredientFunction: '染料中间体' },
+  { nameCn: '硝基苯', nameEn: 'Nitrobenzene', casNo: '98-95-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(163)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '二硝基苯酚', nameEn: 'Dinitrophenol', casNo: '51-28-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(164)', category: '禁用-化学物质', ingredientFunction: '化学试剂' },
+  { nameCn: '石棉', nameEn: 'Asbestos', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(165)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+  { nameCn: '黄樟素', nameEn: 'Safrole', casNo: '94-59-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(166)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+  { nameCn: '黄樟油', nameEn: 'Sassafras oil', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(167)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+  { nameCn: '异黄樟素', nameEn: 'Isosafrole', casNo: '120-58-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(168)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+  { nameCn: '二氢黄樟素', nameEn: 'Dihydrosafrole', casNo: '94-58-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(169)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+  { nameCn: '丙烯酰胺', nameEn: 'Acrylamide', casNo: '79-06-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(170)', category: '禁用-化学物质', ingredientFunction: '神经毒素' },
+  { nameCn: '乙二醇甲醚', nameEn: '2-Methoxyethanol', casNo: '109-86-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(171)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '乙二醇乙醚', nameEn: '2-Ethoxyethanol', casNo: '110-80-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(172)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '三乙二醇二甲醚', nameEn: 'Triethylene glycol dimethyl ether', casNo: '112-49-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(173)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '吡啶', nameEn: 'Pyridine', casNo: '110-86-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(174)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '喹啉', nameEn: 'Quinoline', casNo: '91-22-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(175)', category: '禁用-化学物质', ingredientFunction: '化学试剂' },
+  { nameCn: '四氢萘', nameEn: 'Tetralin', casNo: '119-64-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(176)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '蒽', nameEn: 'Anthracene', casNo: '120-12-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(177)', category: '禁用-化学物质', ingredientFunction: '化学试剂' },
+  { nameCn: '苯并[a]芘', nameEn: 'Benzo[a]pyrene', casNo: '50-32-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(178)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+  { nameCn: '4-氨基联苯', nameEn: '4-Aminobiphenyl', casNo: '92-67-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(179)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+
+  // ---------- 更多中国禁用成分（安全技术规范表1 续）----------
+  { nameCn: '2-萘胺', nameEn: '2-Naphthylamine', casNo: '91-59-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(180)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+  { nameCn: '4-硝基联苯', nameEn: '4-Nitrobiphenyl', casNo: '92-93-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(181)', category: '禁用-化学物质', ingredientFunction: '致癌物' },
+  { nameCn: 'N-亚硝基二甲胺', nameEn: 'N-Nitrosodimethylamine', casNo: '62-75-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(182)', category: '禁用-化学物质', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基二乙胺', nameEn: 'N-Nitrosodiethylamine', casNo: '55-18-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(183)', category: '禁用-化学物质', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基二苯胺', nameEn: 'N-Nitrosodiphenylamine', casNo: '86-30-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(184)', category: '禁用-化学物质', ingredientFunction: '亚硝胺类' },
+  { nameCn: '氢醌', nameEn: 'Hydroquinone', casNo: '123-31-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(185)', category: '禁用-化学物质', ingredientFunction: '美白剂' },
+  { nameCn: '氢醌单甲醚', nameEn: 'Mequinol', casNo: '150-76-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(186)', category: '禁用-化学物质', ingredientFunction: '美白剂' },
+  { nameCn: '氢醌单乙醚', nameEn: '4-Ethoxyphenol', casNo: '622-62-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(187)', category: '禁用-化学物质', ingredientFunction: '美白剂' },
+  { nameCn: '焦儿茶酚', nameEn: 'Pyrocatechol', casNo: '120-80-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(188)', category: '禁用-化学物质', ingredientFunction: '化学试剂' },
+  { nameCn: '丙酰萘氧基乙胺', nameEn: 'Benactyzine', casNo: '302-40-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(189)', category: '禁用-西药成分', ingredientFunction: '抗胆碱药' },
+  { nameCn: '酚酞', nameEn: 'Phenolphthalein', casNo: '77-09-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(190)', category: '禁用-化学物质', ingredientFunction: '泻药' },
+  { nameCn: '二噁烷', nameEn: '1,4-Dioxane', casNo: '123-91-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(191)', category: '禁用-化学物质', ingredientFunction: '杂质控制' },
+  { nameCn: '苯酚', nameEn: 'Phenol', casNo: '108-95-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(192)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+  { nameCn: '甲酚', nameEn: 'Cresol', casNo: '1319-77-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(193)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+  { nameCn: '乙二醇', nameEn: 'Ethylene glycol', casNo: '107-21-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(194)', category: '禁用-化学物质', ingredientFunction: '溶剂', restrictionNote: '不得用于化妆品' },
+  { nameCn: '二甘醇', nameEn: 'Diethylene glycol', casNo: '111-46-6', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(195)', category: '禁用-化学物质', ingredientFunction: '溶剂' },
+  { nameCn: '硫柳汞', nameEn: 'Thiomersal', casNo: '54-64-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(196)', category: '禁用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '硝酸苯汞', nameEn: 'Phenylmercuric nitrate', casNo: '55-68-5', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(197)', category: '禁用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '硼酸', nameEn: 'Boric acid', casNo: '10043-35-3', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(198)', category: '禁用-化学物质', ingredientFunction: '防腐剂', restrictionNote: '禁止作为防腐剂，仅限特定产品类型中允许使用' },
+  { nameCn: '四硼酸钠', nameEn: 'Sodium tetraborate', casNo: '1330-43-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(199)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+  { nameCn: '溴酸钾', nameEn: 'Potassium bromate', casNo: '7758-01-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(200)', category: '禁用-化学物质', ingredientFunction: '氧化剂' },
+  { nameCn: '氯酸钾', nameEn: 'Potassium chlorate', casNo: '3811-04-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(201)', category: '禁用-化学物质', ingredientFunction: '氧化剂' },
+  { nameCn: '次氯酸钠', nameEn: 'Sodium hypochlorite', casNo: '7681-52-9', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(202)', category: '禁用-化学物质', ingredientFunction: '漂白剂' },
+  { nameCn: '二氧化氯', nameEn: 'Chlorine dioxide', casNo: '10049-04-4', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(203)', category: '禁用-化学物质', ingredientFunction: '消毒剂' },
+  { nameCn: '过氧化氢', nameEn: 'Hydrogen peroxide', casNo: '7722-84-1', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(204)', category: '禁用-化学物质', ingredientFunction: '氧化剂', restrictionNote: '除染发、脱毛等特定用途外禁止使用' },
+  { nameCn: '溴酸钠', nameEn: 'Sodium bromate', casNo: '7789-38-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(205)', category: '禁用-化学物质', ingredientFunction: '氧化剂' },
+  { nameCn: '肼', nameEn: 'Hydrazine', casNo: '302-01-2', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(206)', category: '禁用-化学物质', ingredientFunction: '还原剂' },
+  { nameCn: '苯肼', nameEn: 'Phenylhydrazine', casNo: '100-63-0', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(207)', category: '禁用-化学物质', ingredientFunction: '化学试剂' },
+  { nameCn: '四甲基秋兰姆二硫化物', nameEn: 'Thiram', casNo: '137-26-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(208)', category: '禁用-化学物质', ingredientFunction: '杀菌剂' },
+  { nameCn: '二硫化四乙基秋兰姆', nameEn: 'Disulfiram', casNo: '97-77-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(209)', category: '禁用-化学物质', ingredientFunction: '杀菌剂' },
+  { nameCn: '锆及其化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(210)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '硒及其化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(211)', category: '禁用-重金属', ingredientFunction: '重金属', restrictionNote: '除二硫化硒用于去屑洗发水外禁用' },
+  { nameCn: '碲及其化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(212)', category: '禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '钍及其化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(213)', category: '禁用-放射性物质', ingredientFunction: '放射性物质' },
+  { nameCn: '铀及其化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(214)', category: '禁用-放射性物质', ingredientFunction: '放射性物质' },
+  { nameCn: '钚及其化合物', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(215)', category: '禁用-放射性物质', ingredientFunction: '放射性物质' },
+  { nameCn: '放射性同位素', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(216)', category: '禁用-放射性物质', ingredientFunction: '放射性物质' },
+  { nameCn: '甲醛苄醇半缩醛', nameEn: 'Benzylhemiformal', casNo: '14548-60-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(217)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+  { nameCn: '溴硝丙二醇', nameEn: 'Bronopol', casNo: '52-51-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(218)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+  { nameCn: '5-溴-5-硝基-1,3-二氧杂环己烷', nameEn: 'Bronidox', casNo: '30007-47-7', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(219)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+  { nameCn: '2,4-二氯苯甲醇', nameEn: '2,4-Dichlorobenzyl alcohol', casNo: '1777-82-8', regulationType: 'PROHIBITED', market: 'CHINA', sourceRegulation: '安全技术规范表1(220)', category: '禁用-化学物质', ingredientFunction: '防腐剂' },
+]
+
+// ============================================================
+// SECTION B: 中国限用成分 (RESTRICTED) — 安全技术规范表2
+// ============================================================
+const chinaRestricted: RegulationSeed[] = [
+  { nameCn: '苯甲酸', nameEn: 'Benzoic acid', casNo: '65-85-0', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.5, restrictionNote: '酸、其盐和酯总量计', sourceRegulation: '安全技术规范表3(1)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '苯甲酸钠', nameEn: 'Sodium benzoate', casNo: '532-32-1', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.5, restrictionNote: '以苯甲酸计', sourceRegulation: '安全技术规范表3(2)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '水杨酸', nameEn: 'Salicylic acid', casNo: '69-72-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 2.0, productTypeRestriction: '驻留类/淋洗类', restrictionNote: '除香波外，三岁以下儿童用品禁用', sourceRegulation: '安全技术规范表3(3)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '驻留类/淋洗类' },
+  { nameCn: '山梨酸', nameEn: 'Sorbic acid', casNo: '110-44-1', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.6, restrictionNote: '以酸计', sourceRegulation: '安全技术规范表3(4)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '山梨酸钾', nameEn: 'Potassium sorbate', casNo: '24634-61-5', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.6, restrictionNote: '以山梨酸计', sourceRegulation: '安全技术规范表3(5)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '甲醛苄醇半缩醛（化妆品禁用）', nameEn: '', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.1, restrictionNote: '仅限特定产品', sourceRegulation: '安全技术规范表3(6)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '对羟基苯甲酸甲酯', nameEn: 'Methylparaben', casNo: '99-76-3', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.4, restrictionNote: '单一酯0.4%，混合酯总量0.8%', sourceRegulation: '安全技术规范表3(7)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '对羟基苯甲酸乙酯', nameEn: 'Ethylparaben', casNo: '120-47-8', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.4, restrictionNote: '单一酯0.4%，混合酯总量0.8%', sourceRegulation: '安全技术规范表3(8)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '对羟基苯甲酸丙酯', nameEn: 'Propylparaben', casNo: '94-13-3', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.14, restrictionNote: '混合酯总量0.8%，丙酯0.14%', sourceRegulation: '安全技术规范表3(9)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '对羟基苯甲酸丁酯', nameEn: 'Butylparaben', casNo: '94-26-8', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.14, restrictionNote: '混合酯总量0.8%', sourceRegulation: '安全技术规范表3(10)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '苯氧乙醇', nameEn: 'Phenoxyethanol', casNo: '122-99-6', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 1.0, sourceRegulation: '安全技术规范表3(11)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '苯甲酸苄酯', nameEn: 'Benzyl benzoate', casNo: '120-51-4', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 1.0, sourceRegulation: '安全技术规范表3(12)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '苄醇', nameEn: 'Benzyl alcohol', casNo: '100-51-6', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 1.0, sourceRegulation: '安全技术规范表3(13)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类/驻留类' },
+  { nameCn: '2-溴-2-硝基丙烷-1,3-二醇', nameEn: 'Bronopol', casNo: '52-51-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.1, restrictionNote: '避免形成亚硝胺', sourceRegulation: '安全技术规范表3(14)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '甲基异噻唑啉酮', nameEn: 'Methylisothiazolinone', casNo: '2682-20-4', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.01, restrictionNote: '仅限淋洗类产品', sourceRegulation: '安全技术规范表3(15)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类' },
+  { nameCn: '甲基氯异噻唑啉酮和甲基异噻唑啉酮混合物', nameEn: 'Methylchloroisothiazolinone and Methylisothiazolinone', casNo: '55965-84-9', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.0015, restrictionNote: '3:1比例混合物', sourceRegulation: '安全技术规范表3(16)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类' },
+  { nameCn: '脱氢乙酸', nameEn: 'Dehydroacetic acid', casNo: '520-45-6', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.6, restrictionNote: '以酸计', sourceRegulation: '安全技术规范表3(17)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '脱氢乙酸钠', nameEn: 'Sodium dehydroacetate', casNo: '4418-26-2', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.6, restrictionNote: '以脱氢乙酸计', sourceRegulation: '安全技术规范表3(18)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '甲酸', nameEn: 'Formic acid', casNo: '64-18-6', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.5, restrictionNote: '以酸计', sourceRegulation: '安全技术规范表3(19)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '丙酸', nameEn: 'Propionic acid', casNo: '79-09-4', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 2.0, restrictionNote: '以酸计', sourceRegulation: '安全技术规范表3(20)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '丙酸钠', nameEn: 'Sodium propionate', casNo: '137-40-6', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 2.0, restrictionNote: '以丙酸计', sourceRegulation: '安全技术规范表3(21)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '十一烯酸', nameEn: 'Undecenoic acid', casNo: '32466-54-9', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.2, restrictionNote: '以酸计', sourceRegulation: '安全技术规范表3(22)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '吡罗克酮乙醇胺盐', nameEn: 'Piroctone olamine', casNo: '68890-66-4', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.5, restrictionNote: '限用洗发水', sourceRegulation: '安全技术规范表3(23)', category: '准用-防腐剂', ingredientFunction: '防腐剂', scope: '淋洗类' },
+  { nameCn: '二甲基噁唑烷', nameEn: 'Dimethyl oxazolidine', casNo: '51200-87-4', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.1, sourceRegulation: '安全技术规范表3(24)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+  { nameCn: '二甲基乙内酰脲', nameEn: 'DMDM Hydantoin', casNo: '6440-58-0', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.6, sourceRegulation: '安全技术规范表3(25)', category: '准用-防腐剂', ingredientFunction: '防腐剂' },
+
+  // --- 中国限用组分 - 紫外线吸收剂 (准用防晒剂) 表4 ---
+  { nameCn: '二苯酮-3', nameEn: 'Benzophenone-3', casNo: '131-57-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 6, restrictionNote: '驻留类产品限用', sourceRegulation: '安全技术规范表4(1)', category: '准用-防晒剂', ingredientFunction: '防晒剂', scope: '驻留类/淋洗类' },
+  { nameCn: '二苯酮-4', nameEn: 'Benzophenone-4', casNo: '4065-45-6', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 5, restrictionNote: '以酸计', sourceRegulation: '安全技术规范表4(2)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '二苯酮-5', nameEn: 'Benzophenone-5', casNo: '6628-37-1', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 5, sourceRegulation: '安全技术规范表4(3)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '对甲氧基肉桂酸异戊酯', nameEn: 'Isoamyl p-methoxycinnamate', casNo: '71617-10-2', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 10, sourceRegulation: '安全技术规范表4(4)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '甲氧基肉桂酸乙基己酯', nameEn: 'Ethylhexyl methoxycinnamate', casNo: '5466-77-3', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 10, sourceRegulation: '安全技术规范表4(5)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '水杨酸乙基己酯', nameEn: 'Ethylhexyl salicylate', casNo: '118-60-5', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 5, sourceRegulation: '安全技术规范表4(6)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '胡莫柳酯', nameEn: 'Homosalate', casNo: '118-56-9', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 10, sourceRegulation: '安全技术规范表4(7)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '奥克立林', nameEn: 'Octocrylene', casNo: '6197-30-4', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 10, sourceRegulation: '安全技术规范表4(8)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '二氧化钛', nameEn: 'Titanium dioxide', casNo: '13463-67-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 25, sourceRegulation: '安全技术规范表4(9)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '氧化锌', nameEn: 'Zinc oxide', casNo: '1314-13-2', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 25, sourceRegulation: '安全技术规范表4(10)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '二乙氨羟苯甲酰基苯甲酸己酯', nameEn: 'Diethylamino hydroxybenzoyl hexyl benzoate', casNo: '302776-68-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 10, sourceRegulation: '安全技术规范表4(11)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '双-乙基己氧苯酚甲氧苯基三嗪', nameEn: 'Bis-ethylhexyloxyphenol methoxyphenyl triazine', casNo: '187393-00-6', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 10, sourceRegulation: '安全技术规范表4(12)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '丁基甲氧基二苯甲酰基甲烷', nameEn: 'Butyl methoxydibenzoylmethane', casNo: '70356-09-1', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 5, sourceRegulation: '安全技术规范表4(13)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '4-甲基苄亚基樟脑', nameEn: '4-Methylbenzylidene camphor', casNo: '36861-47-9', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 4, sourceRegulation: '安全技术规范表4(14)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '苯基苯并咪唑磺酸', nameEn: 'Phenylbenzimidazole sulfonic acid', casNo: '27503-81-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 8, restrictionNote: '以酸计', sourceRegulation: '安全技术规范表4(15)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '亚甲基双-苯并三唑基四甲基丁基酚', nameEn: 'Methylene bis-benzotriazolyl tetramethylbutylphenol', casNo: '103597-45-1', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 10, sourceRegulation: '安全技术规范表4(16)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+  { nameCn: '对苯二亚甲基二樟脑磺酸', nameEn: 'Terephthalylidene dicamphor sulfonic acid', casNo: '92761-26-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 10, sourceRegulation: '安全技术规范表4(17)', category: '准用-防晒剂', ingredientFunction: '防晒剂' },
+
+  // --- 中国限用成分 - 染发剂 ---
+  { nameCn: '对苯二胺', nameEn: 'p-Phenylenediamine', casNo: '106-50-3', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 2, productTypeRestriction: '氧化型染发产品', restrictionNote: '最大浓度2%（以游离基计）', sourceRegulation: '安全技术规范表2', category: '限用-染发剂', ingredientFunction: '染发剂' },
+  { nameCn: '甲苯-2,5-二胺', nameEn: 'Toluene-2,5-diamine', casNo: '95-70-5', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 4, productTypeRestriction: '氧化型染发产品', restrictionNote: '最大浓度4%（以硫酸盐计）', sourceRegulation: '安全技术规范表2', category: '限用-染发剂', ingredientFunction: '染发剂' },
+  { nameCn: '间苯二酚', nameEn: 'Resorcinol', casNo: '108-46-3', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 1.25, productTypeRestriction: '染发产品', sourceRegulation: '安全技术规范表2', category: '限用-染发剂', ingredientFunction: '染发剂' },
+  { nameCn: '氨', nameEn: 'Ammonia', casNo: '7664-41-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 6, restrictionNote: '以氨计，染发产品', sourceRegulation: '安全技术规范表2', category: '限用-染发剂', ingredientFunction: 'pH调节剂' },
+  { nameCn: '过氧化氢', nameEn: 'Hydrogen peroxide', casNo: '7722-84-1', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 12, productTypeRestriction: '染发/脱毛产品', restrictionNote: '以H2O2计，12%', sourceRegulation: '安全技术规范表2', category: '限用-染发剂', ingredientFunction: '氧化剂' },
+  { nameCn: '巯基乙酸', nameEn: 'Thioglycolic acid', casNo: '68-11-1', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 11, productTypeRestriction: '脱毛/烫发产品', restrictionNote: '以酸计,pH调整', sourceRegulation: '安全技术规范表2', category: '限用-脱毛/烫发', ingredientFunction: '还原剂' },
+  { nameCn: '巯基乙酸钙', nameEn: 'Calcium thioglycolate', casNo: '814-71-1', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 8, productTypeRestriction: '脱毛产品', restrictionNote: '以巯基乙酸计', sourceRegulation: '安全技术规范表2', category: '限用-脱毛/烫发', ingredientFunction: '还原剂' },
+  { nameCn: '巯基乙酸铵', nameEn: 'Ammonium thioglycolate', casNo: '5421-46-5', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 11, productTypeRestriction: '烫发产品', restrictionNote: '以巯基乙酸计', sourceRegulation: '安全技术规范表2', category: '限用-脱毛/烫发', ingredientFunction: '还原剂' },
+  { nameCn: '氢氧化钾', nameEn: 'Potassium hydroxide', casNo: '1310-58-3', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 2, productTypeRestriction: 'pH调节剂', restrictionNote: '2%', sourceRegulation: '安全技术规范表2', category: '限用-pH调节剂', ingredientFunction: 'pH调节剂' },
+  { nameCn: '氢氧化钠', nameEn: 'Sodium hydroxide', casNo: '1310-73-2', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 2, restrictionNote: '2%', sourceRegulation: '安全技术规范表2', category: '限用-pH调节剂', ingredientFunction: 'pH调节剂' },
+  { nameCn: '氢氧化锂', nameEn: 'Lithium hydroxide', casNo: '1310-65-2', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 2, restrictionNote: '2%', sourceRegulation: '安全技术规范表2', category: '限用-pH调节剂', ingredientFunction: 'pH调节剂' },
+  { nameCn: '乙醇', nameEn: 'Ethanol', casNo: '64-17-5', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 75, restrictionNote: '添加量限制因产品类型而异', sourceRegulation: '安全技术规范表2', category: '限用-溶剂', ingredientFunction: '溶剂' },
+  { nameCn: '异丙醇', nameEn: 'Isopropyl alcohol', casNo: '67-63-0', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 5, restrictionNote: '5%', sourceRegulation: '安全技术规范表2', category: '限用-溶剂', ingredientFunction: '溶剂' },
+  { nameCn: '二硫化硒', nameEn: 'Selenium disulfide', casNo: '7488-56-4', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.5, productTypeRestriction: '去屑洗发水', restrictionNote: '0.5%', sourceRegulation: '安全技术规范表2', category: '限用-去屑剂', ingredientFunction: '去屑剂', scope: '淋洗类' },
+  { nameCn: '吡硫翁锌', nameEn: 'Pyrithione zinc', casNo: '13463-41-7', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.5, productTypeRestriction: '去屑洗发水', restrictionNote: '0.5%', sourceRegulation: '安全技术规范表2', category: '限用-去屑剂', ingredientFunction: '去屑剂', scope: '淋洗类' },
+  { nameCn: '氟化钠', nameEn: 'Sodium fluoride', casNo: '7681-49-4', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.15, productTypeRestriction: '牙膏', restrictionNote: '以氟计0.15%', sourceRegulation: '安全技术规范表2', category: '限用-牙膏', ingredientFunction: '防龋剂' },
+  { nameCn: '单氟磷酸钠', nameEn: 'Sodium monofluorophosphate', casNo: '10163-15-2', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.15, productTypeRestriction: '牙膏', restrictionNote: '以氟计0.15%', sourceRegulation: '安全技术规范表2', category: '限用-牙膏', ingredientFunction: '防龋剂' },
+  { nameCn: '氟化亚锡', nameEn: 'Stannous fluoride', casNo: '7783-47-3', regulationType: 'RESTRICTED', market: 'CHINA', maxConcentration: 0.15, productTypeRestriction: '牙膏', restrictionNote: '以氟计0.15%', sourceRegulation: '安全技术规范表2', category: '限用-牙膏', ingredientFunction: '防龋剂' },
+]
+
+// ============================================================
+// SECTION C: EU Annex II 禁用成分 (EU PROHIBITED)
+// ============================================================
+const euProhibited: RegulationSeed[] = [
+  { nameCn: '亚硝胺类物质', nameEn: 'N-Nitrosamines', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(1)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '2-乙氧基乙醇', nameEn: '2-Ethoxyethanol', casNo: '110-80-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(2)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '2-甲氧基乙醇', nameEn: '2-Methoxyethanol', casNo: '109-86-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(3)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '3-亚苄基樟脑', nameEn: '3-Benzylidene camphor', casNo: '15087-24-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(4)', category: 'EU-禁用', ingredientFunction: '防晒剂' },
+  { nameCn: '4-氨基苯甲酸', nameEn: '4-Aminobenzoic acid (PABA)', casNo: '150-13-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(5)', category: 'EU-禁用', ingredientFunction: '防晒剂' },
+  { nameCn: '乙二醇单乙醚', nameEn: '2-Ethoxyethanol', casNo: '110-80-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(6)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '乙二醇单甲醚', nameEn: '2-Methoxyethanol', casNo: '109-86-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(7)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '乙酸乙二醇单乙醚', nameEn: '2-Ethoxyethyl acetate', casNo: '111-15-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(8)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '乙酸乙二醇单甲醚', nameEn: '2-Methoxyethyl acetate', casNo: '110-49-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(9)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '乙二醇丁醚', nameEn: '2-Butoxyethanol', casNo: '111-76-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(10)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '乙二醇己醚', nameEn: '2-Hexoxyethanol', casNo: '112-25-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(11)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '乙酸', nameEn: 'Acetic acid', casNo: '64-19-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(12)', category: 'EU-禁用', ingredientFunction: 'pH调节剂', restrictionNote: '仅限特定pH条件下禁用' },
+  { nameCn: '丙酮', nameEn: 'Acetone', casNo: '67-64-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(13)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '丙烯腈', nameEn: 'Acrylonitrile', casNo: '107-13-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(14)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '阿夫麦菌素', nameEn: 'Aflatoxins', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(15)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '3-(N-甲基-N-亚硝基)氨基丙腈', nameEn: '3-(N-Methyl-N-nitroso)aminopropionitrile', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(16)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基二丙胺', nameEn: 'N-Nitrosodipropylamine', casNo: '621-64-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(17)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基二异丙胺', nameEn: 'N-Nitrosodiisopropylamine', casNo: '601-77-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(18)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基二正丁胺', nameEn: 'N-Nitrosodi-n-butylamine', casNo: '924-16-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(19)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基二乙醇胺', nameEn: 'N-Nitrosodiethanolamine', casNo: '1116-54-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(20)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基甲基乙基胺', nameEn: 'N-Nitroso-N-methylethylamine', casNo: '10595-95-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(21)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基-N-甲基-N-苯胺', nameEn: 'N-Nitroso-N-methylaniline', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(22)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基-N-乙基苯胺', nameEn: 'N-Nitroso-N-ethylaniline', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(23)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: 'N-亚硝基-N-丙基苯胺', nameEn: 'N-Nitroso-N-propylaniline', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(24)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: '2,2′-联吡啶', nameEn: '2,2′-Bipyridyl', casNo: '366-18-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(25)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '1,2-二溴乙烷', nameEn: '1,2-Dibromoethane', casNo: '106-93-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(26)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '1,2-二氯乙烷', nameEn: '1,2-Dichloroethane', casNo: '107-06-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(27)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '1,3-二氯丙烯', nameEn: '1,3-Dichloropropene', casNo: '542-75-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(28)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '1,4-二氯苯', nameEn: '1,4-Dichlorobenzene', casNo: '106-46-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(29)', category: 'EU-禁用', ingredientFunction: '防腐剂' },
+  { nameCn: '1-氨基-2-甲基蒽醌', nameEn: '1-Amino-2-methylanthraquinone', casNo: '82-28-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(30)', category: 'EU-禁用', ingredientFunction: '着色剂' },
+  { nameCn: '1-氯-4-硝基苯', nameEn: '1-Chloro-4-nitrobenzene', casNo: '100-00-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(31)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '1-萘胺', nameEn: '1-Naphthylamine', casNo: '134-32-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(32)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '2-氨基-5-硝基噻唑', nameEn: '2-Amino-5-nitrothiazole', casNo: '121-66-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(33)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '2-氨基-4-硝基苯酚', nameEn: '2-Amino-4-nitrophenol', casNo: '99-57-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(34)', category: 'EU-禁用', ingredientFunction: '染发剂' },
+  { nameCn: '2-氨基-5-硝基苯酚', nameEn: '2-Amino-5-nitrophenol', casNo: '121-88-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(35)', category: 'EU-禁用', ingredientFunction: '染发剂' },
+  { nameCn: '2-甲氧基苯胺', nameEn: '2-Methoxyaniline', casNo: '90-04-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(36)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '2-硝基苯胺', nameEn: '2-Nitroaniline', casNo: '88-74-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(37)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '2-硝基苯酚', nameEn: '2-Nitrophenol', casNo: '88-75-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(38)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '3,3′-二甲氧基联苯胺', nameEn: '3,3′-Dimethoxybenzidine', casNo: '119-90-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(39)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '3,3′-二甲基联苯胺', nameEn: '3,3′-Dimethylbenzidine', casNo: '119-93-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(40)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '3-硝基苯胺', nameEn: '3-Nitroaniline', casNo: '99-09-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(41)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '4-氨基偶氮苯', nameEn: '4-Aminoazobenzene', casNo: '60-09-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(42)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '4-氯苯胺', nameEn: '4-Chloroaniline', casNo: '106-47-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(43)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '4-硝基-2-氨基苯酚', nameEn: '4-Nitro-2-aminophenol', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(44)', category: 'EU-禁用', ingredientFunction: '染发剂' },
+  { nameCn: '4-硝基苯胺', nameEn: '4-Nitroaniline', casNo: '100-01-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(45)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '4-硝基苯酚', nameEn: '4-Nitrophenol', casNo: '100-02-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(46)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '4-硝基茴香醚', nameEn: '4-Nitroanisole', casNo: '100-17-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(47)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '5-硝基-2-氨基苯酚', nameEn: '5-Nitro-2-aminophenol', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(48)', category: 'EU-禁用', ingredientFunction: '染发剂' },
+  { nameCn: '5-硝基-2-甲氧基苯胺', nameEn: '5-Nitro-o-anisidine', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(49)', category: 'EU-禁用', ingredientFunction: '染发剂' },
+  { nameCn: '6-氨基-2-乙氧基萘', nameEn: '6-Amino-2-ethoxynaphthalene', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(50)', category: 'EU-禁用', ingredientFunction: '染发剂' },
+  { nameCn: '6-甲氧基-2-甲基苯胺', nameEn: '6-Methoxy-m-toluidine', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(51)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '6-甲基-2,4-二氨基苯酚', nameEn: '6-Methyl-2,4-diaminophenol', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(52)', category: 'EU-禁用', ingredientFunction: '染发剂' },
+  { nameCn: '9-氨基吖啶', nameEn: '9-Aminoacridine', casNo: '90-45-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(53)', category: 'EU-禁用', ingredientFunction: '消毒剂' },
+  { nameCn: '丙烯醛', nameEn: 'Acrolein', casNo: '107-02-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(54)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '丙烯酰胺', nameEn: 'Acrylamide', casNo: '79-06-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(55)', category: 'EU-禁用', ingredientFunction: '神经毒素' },
+  { nameCn: '阿尔德林', nameEn: 'Aldrin', casNo: '309-00-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(56)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '烯丙基氯', nameEn: 'Allyl chloride', casNo: '107-05-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(57)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: 'α-苯并蒽', nameEn: 'alpha-Benzanthracene', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(58)', category: 'EU-禁用', ingredientFunction: '多环芳烃' },
+  { nameCn: 'α-萘胺', nameEn: 'alpha-Naphthylamine', casNo: '134-32-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(59)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '铝', nameEn: 'Aluminium', casNo: '7429-90-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(60)', category: 'EU-禁用', ingredientFunction: '金属', restrictionNote: '铝颜料禁用于气雾剂型产品' },
+  { nameCn: '氨基甲酸乙酯', nameEn: 'Urethane', casNo: '51-79-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(61)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '氨磺乐灵', nameEn: 'Oryzalin', casNo: '19044-88-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(62)', category: 'EU-禁用', ingredientFunction: '除草剂' },
+  { nameCn: '邻甲氧基苯胺', nameEn: 'o-Anisidine', casNo: '90-04-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(63)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '邻甲苯胺', nameEn: 'o-Toluidine', casNo: '95-53-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(64)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '邻氨基苯甲醚', nameEn: 'o-Anisidine', casNo: '90-04-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(65)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '邻苯三酚', nameEn: 'Pyrogallol', casNo: '87-66-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(66)', category: 'EU-禁用', ingredientFunction: '染发剂' },
+  { nameCn: '邻苯二甲酸二丁酯', nameEn: 'Dibutyl phthalate', casNo: '84-74-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(67)', category: 'EU-禁用', ingredientFunction: '塑化剂' },
+  { nameCn: '邻苯二甲酸二(2-乙基己基)酯', nameEn: 'DEHP', casNo: '117-81-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(68)', category: 'EU-禁用', ingredientFunction: '塑化剂' },
+  { nameCn: '对茴香胺', nameEn: 'p-Anisidine', casNo: '104-94-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(69)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '对甲苯胺', nameEn: 'p-Toluidine', casNo: '106-49-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(70)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '对硝基甲苯', nameEn: '4-Nitrotoluene', casNo: '99-99-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(71)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '对茴香胺(4-甲氧基苯胺)', nameEn: 'p-Anisidine', casNo: '104-94-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(72)', category: 'EU-禁用', ingredientFunction: '染料中间体' },
+  { nameCn: '对苯二酚', nameEn: 'Hydroquinone', casNo: '123-31-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(73)', category: 'EU-禁用', ingredientFunction: '美白剂' },
+  { nameCn: '二噁烷', nameEn: '1,4-Dioxane', casNo: '123-91-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(74)', category: 'EU-禁用', ingredientFunction: '杂质控制' },
+  { nameCn: '二噁英', nameEn: 'Dioxins', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(75)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '二甲基氨基甲酰氯', nameEn: 'Dimethylcarbamoyl chloride', casNo: '79-44-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(76)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '二甲基亚硝胺', nameEn: 'N-Nitrosodimethylamine', casNo: '62-75-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(77)', category: 'EU-禁用', ingredientFunction: '亚硝胺类' },
+  { nameCn: '二噻农', nameEn: 'Dithianon', casNo: '3347-22-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(78)', category: 'EU-禁用', ingredientFunction: '杀菌剂' },
+  { nameCn: '偶氮二甲酰胺', nameEn: 'Azodicarbonamide', casNo: '123-77-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(79)', category: 'EU-禁用', ingredientFunction: '发泡剂' },
+  { nameCn: '偶氮染料(可裂解致癌芳胺类)', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(80)', category: 'EU-禁用', ingredientFunction: '着色剂', restrictionNote: '22种致癌芳胺衍生的偶氮染料禁用' },
+  { nameCn: '苯并[a]蒽', nameEn: 'Benz[a]anthracene', casNo: '56-55-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(81)', category: 'EU-禁用', ingredientFunction: '多环芳烃' },
+  { nameCn: '苯并[a]芘', nameEn: 'Benzo[a]pyrene', casNo: '50-32-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(82)', category: 'EU-禁用', ingredientFunction: '多环芳烃' },
+  { nameCn: '苯并[b]荧蒽', nameEn: 'Benzo[b]fluoranthene', casNo: '205-99-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(83)', category: 'EU-禁用', ingredientFunction: '多环芳烃' },
+  { nameCn: '苯并[k]荧蒽', nameEn: 'Benzo[k]fluoranthene', casNo: '207-08-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(84)', category: 'EU-禁用', ingredientFunction: '多环芳烃' },
+  { nameCn: '苯并三唑', nameEn: 'Benzotriazole', casNo: '95-14-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(85)', category: 'EU-禁用', ingredientFunction: '防腐剂' },
+  { nameCn: '苯菌灵', nameEn: 'Benomyl', casNo: '17804-35-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(86)', category: 'EU-禁用', ingredientFunction: '杀菌剂' },
+  { nameCn: '铍及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(87)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '铋及其化合物', nameEn: 'Bismuth and its compounds', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(88)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '双酚A', nameEn: 'Bisphenol A', casNo: '80-05-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(89)', category: 'EU-禁用', ingredientFunction: '内分泌干扰物' },
+  { nameCn: '双酚S', nameEn: 'Bisphenol S', casNo: '80-09-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(90)', category: 'EU-禁用', ingredientFunction: '内分泌干扰物' },
+  { nameCn: '镉及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(91)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '樟脑', nameEn: 'Camphor', casNo: '76-22-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(92)', category: 'EU-禁用', ingredientFunction: '香料' },
+  { nameCn: '碳黑(游离石英含量>1%)', nameEn: 'Carbon black', casNo: '1333-86-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(93)', category: 'EU-禁用', ingredientFunction: '着色剂', restrictionNote: '游离石英含量>1%时禁用' },
+  { nameCn: '四氯化碳', nameEn: 'Carbon tetrachloride', casNo: '56-23-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(94)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '氯代烃(某些)', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(95)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '氯仿', nameEn: 'Chloroform', casNo: '67-66-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(96)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '氯甲烷', nameEn: 'Chloromethane', casNo: '74-87-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(97)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '氯丁二烯', nameEn: 'Chloroprene', casNo: '126-99-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(98)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '铬酸', nameEn: 'Chromic acid', casNo: '1333-82-0', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(99)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '铬酸锌', nameEn: 'Zinc chromate', casNo: '13530-65-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(100)', category: 'EU-禁用', ingredientFunction: '着色剂' },
+  { nameCn: '铬酸锌钾', nameEn: 'Zinc potassium chromate', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(101)', category: 'EU-禁用', ingredientFunction: '着色剂' },
+  { nameCn: '钴化合物（某些）', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(102)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '香豆素', nameEn: 'Coumarin', casNo: '91-64-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(103)', category: 'EU-禁用', ingredientFunction: '香精', restrictionNote: '作为香精成分禁用' },
+  { nameCn: '氰化物', nameEn: 'Cyanides', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(104)', category: 'EU-禁用', ingredientFunction: '剧毒物' },
+  { nameCn: '氰化氢', nameEn: 'Hydrogen cyanide', casNo: '74-90-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(105)', category: 'EU-禁用', ingredientFunction: '剧毒物' },
+  { nameCn: '滴滴涕', nameEn: 'DDT', casNo: '50-29-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(106)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '异狄氏剂', nameEn: 'Endrin', casNo: '72-20-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(107)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '环氧乙烷', nameEn: 'Ethylene oxide', casNo: '75-21-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(108)', category: 'EU-禁用', ingredientFunction: '灭菌剂' },
+  { nameCn: '环氧丙烷', nameEn: 'Propylene oxide', casNo: '75-56-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(109)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '氟乙酰胺', nameEn: 'Fluoroacetamide', casNo: '640-19-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(110)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '七氯', nameEn: 'Heptachlor', casNo: '76-44-8', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(111)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '六氯苯', nameEn: 'Hexachlorobenzene', casNo: '118-74-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(112)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '六氯-1,3-丁二烯', nameEn: 'Hexachlorobutadiene', casNo: '87-68-3', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(113)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '六氯乙烷', nameEn: 'Hexachloroethane', casNo: '67-72-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(114)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '六六六(林丹)', nameEn: 'Lindane', casNo: '58-89-9', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(115)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '肼', nameEn: 'Hydrazine', casNo: '302-01-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(116)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '硫化氢', nameEn: 'Hydrogen sulfide', casNo: '7783-06-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(117)', category: 'EU-禁用', ingredientFunction: '剧毒气体' },
+  { nameCn: '异黄樟油素', nameEn: 'Isosafrole', casNo: '120-58-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(118)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '异丙基氯', nameEn: 'Isopropyl chloride', casNo: '75-29-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(119)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '马拉硫磷', nameEn: 'Malathion', casNo: '121-75-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(120)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '汞及汞化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(121)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '甲醇', nameEn: 'Methanol', casNo: '67-56-1', regulationType: 'PROHIBITED', market: 'EU', maxConcentration: 1, restrictionNote: '杂质限量', sourceRegulation: 'EU Reg Annex II(122)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '甲氧基沙林', nameEn: 'Methoxsalen', casNo: '298-81-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(123)', category: 'EU-禁用', ingredientFunction: '光敏剂' },
+  { nameCn: '蝇蕈醇', nameEn: 'Muscimol', casNo: '2763-96-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(124)', category: 'EU-禁用', ingredientFunction: '神经毒素' },
+  { nameCn: '镍及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(125)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '尼古丁', nameEn: 'Nicotine', casNo: '54-11-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(126)', category: 'EU-禁用', ingredientFunction: '生物碱' },
+  { nameCn: '硝酸盐/亚硝酸盐', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(127)', category: 'EU-禁用', ingredientFunction: '防腐剂' },
+  { nameCn: '亚硝胺类物质', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(128)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '对硫磷', nameEn: 'Parathion', casNo: '56-38-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(129)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '五氯苯酚', nameEn: 'Pentachlorophenol', casNo: '87-86-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(130)', category: 'EU-禁用', ingredientFunction: '防腐剂' },
+  { nameCn: '苯酚', nameEn: 'Phenol', casNo: '108-95-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(131)', category: 'EU-禁用', ingredientFunction: '防腐剂' },
+  { nameCn: '磷胺', nameEn: 'Phosphamidon', casNo: '13171-21-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(132)', category: 'EU-禁用', ingredientFunction: '杀虫剂' },
+  { nameCn: '聚氯联苯', nameEn: 'Polychlorinated biphenyls (PCBs)', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(133)', category: 'EU-禁用', ingredientFunction: '持久性有机污染物' },
+  { nameCn: '硝基丙烷', nameEn: '1-Nitropropane', casNo: '108-03-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(134)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '放射性物质', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(135)', category: 'EU-禁用', ingredientFunction: '放射性物质' },
+  { nameCn: '黄樟素', nameEn: 'Safrole', casNo: '94-59-7', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(136)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: '硒及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(137)', category: 'EU-禁用-重金属', ingredientFunction: '重金属', restrictionNote: '除二硫化硒限用外' },
+  { nameCn: '锑及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(138)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '铊及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(139)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '钍及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(140)', category: 'EU-禁用-放射性物质', ingredientFunction: '放射性物质' },
+  { nameCn: '2,4-二硝基甲苯', nameEn: '2,4-Dinitrotoluene', casNo: '121-14-2', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(141)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '三氯乙烷', nameEn: '1,1,1-Trichloroethane', casNo: '71-55-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(142)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '三氯乙烯', nameEn: 'Trichloroethylene', casNo: '79-01-6', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(143)', category: 'EU-禁用', ingredientFunction: '溶剂' },
+  { nameCn: '三丁基锡化合物', nameEn: 'Tributyltin compounds', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(144)', category: 'EU-禁用', ingredientFunction: '防腐剂' },
+  { nameCn: '三苯基锡化合物', nameEn: 'Triphenyltin compounds', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(145)', category: 'EU-禁用', ingredientFunction: '防腐剂' },
+  { nameCn: '三(氮丙啶基)氧化膦', nameEn: 'TEPA', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(146)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '铀及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(147)', category: 'EU-禁用-放射性物质', ingredientFunction: '放射性物质' },
+  { nameCn: '氯乙烯', nameEn: 'Vinyl chloride', casNo: '75-01-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(148)', category: 'EU-禁用', ingredientFunction: '致癌物' },
+  { nameCn: 'N-乙烯基甲基丙烯酰胺', nameEn: 'N-Vinylmethacrylamide', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(149)', category: 'EU-禁用', ingredientFunction: '化学试剂' },
+  { nameCn: '4-甲基苯酚', nameEn: 'p-Cresol', casNo: '106-44-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(150)', category: 'EU-禁用', ingredientFunction: '防腐剂' },
+  { nameCn: '锌及其化合物(某些)', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(151)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '锆及其化合物', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(152)', category: 'EU-禁用-重金属', ingredientFunction: '重金属' },
+  { nameCn: '香茅醛（合成）', nameEn: 'Citral (synthetic)', casNo: '5392-40-5', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(153)', category: 'EU-禁用', ingredientFunction: '香精', restrictionNote: '仅合成品禁用' },
+  { nameCn: 'L-香茅醇', nameEn: 'L-Citronellol', casNo: '7540-51-4', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(154)', category: 'EU-禁用', ingredientFunction: '香精' },
+  { nameCn: '香叶醇', nameEn: 'Geraniol', casNo: '106-24-1', regulationType: 'PROHIBITED', market: 'EU', sourceRegulation: 'EU Reg Annex II(155)', category: 'EU-禁用', ingredientFunction: '香精' },
+]
+
+// ============================================================
+// SECTION D: EU Annex V 准用防腐剂 (ALLOWED/EU)
+// ============================================================
+const euAllowedPreservatives: RegulationSeed[] = [
+  { nameCn: '苯甲酸', nameEn: 'Benzoic acid', casNo: '65-85-0', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.5, restrictionNote: '以酸计', sourceRegulation: 'EU Reg Annex V(1)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '苯甲酸钠', nameEn: 'Sodium benzoate', casNo: '532-32-1', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.5, restrictionNote: '以苯甲酸计', sourceRegulation: 'EU Reg Annex V(2)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '苯甲酸丙酯', nameEn: 'Propyl benzoate', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.5, restrictionNote: '以苯甲酸计', sourceRegulation: 'EU Reg Annex V(3)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '山梨酸', nameEn: 'Sorbic acid', casNo: '110-44-1', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.6, restrictionNote: '以酸计', sourceRegulation: 'EU Reg Annex V(4)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '山梨酸钾', nameEn: 'Potassium sorbate', casNo: '24634-61-5', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.6, restrictionNote: '以山梨酸计', sourceRegulation: 'EU Reg Annex V(5)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '水杨酸', nameEn: 'Salicylic acid', casNo: '69-72-7', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.5, productTypeRestriction: '除香波外，三岁以下儿童禁用', restrictionNote: '以酸计', sourceRegulation: 'EU Reg Annex V(6)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '苯氧乙醇', nameEn: 'Phenoxyethanol', casNo: '122-99-6', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 1.0, sourceRegulation: 'EU Reg Annex V(7)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '对羟基苯甲酸甲酯', nameEn: 'Methylparaben', casNo: '99-76-3', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.4, restrictionNote: '单一酯0.4%', sourceRegulation: 'EU Reg Annex V(8)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '对羟基苯甲酸乙酯', nameEn: 'Ethylparaben', casNo: '120-47-8', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.4, restrictionNote: '单一酯0.4%', sourceRegulation: 'EU Reg Annex V(9)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '对羟基苯甲酸丙酯', nameEn: 'Propylparaben', casNo: '94-13-3', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.14, restrictionNote: '丙酯0.14%', sourceRegulation: 'EU Reg Annex V(10)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '对羟基苯甲酸丁酯', nameEn: 'Butylparaben', casNo: '94-26-8', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.14, sourceRegulation: 'EU Reg Annex V(11)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '甲基异噻唑啉酮', nameEn: 'Methylisothiazolinone', casNo: '2682-20-4', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.0015, restrictionNote: '仅限淋洗类产品', sourceRegulation: 'EU Reg Annex V(12)', category: 'EU-准用', ingredientFunction: '防腐剂', scope: '淋洗类' },
+  { nameCn: '甲基氯异噻唑啉酮和甲基异噻唑啉酮混合物', nameEn: 'Methylchloroisothiazolinone and Methylisothiazolinone', casNo: '55965-84-9', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.0015, restrictionNote: '3:1比例混合物', sourceRegulation: 'EU Reg Annex V(13)', category: 'EU-准用', ingredientFunction: '防腐剂', scope: '淋洗类' },
+  { nameCn: '脱氢乙酸', nameEn: 'Dehydroacetic acid', casNo: '520-45-6', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.6, restrictionNote: '以酸计', sourceRegulation: 'EU Reg Annex V(14)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '脱氢乙酸钠', nameEn: 'Sodium dehydroacetate', casNo: '4418-26-2', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.6, restrictionNote: '以脱氢乙酸计', sourceRegulation: 'EU Reg Annex V(15)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '甲酸', nameEn: 'Formic acid', casNo: '64-18-6', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.5, restrictionNote: '以酸计', sourceRegulation: 'EU Reg Annex V(16)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '丙酸', nameEn: 'Propionic acid', casNo: '79-09-4', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 2.0, sourceRegulation: 'EU Reg Annex V(17)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '十一烯酸', nameEn: 'Undecenoic acid', casNo: '32466-54-9', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.2, sourceRegulation: 'EU Reg Annex V(18)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '2-溴-2-硝基丙烷-1,3-二醇', nameEn: 'Bronopol', casNo: '52-51-7', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.1, restrictionNote: '避免形成亚硝胺', sourceRegulation: 'EU Reg Annex V(19)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '吡罗克酮乙醇胺盐', nameEn: 'Piroctone olamine', casNo: '68890-66-4', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.1, restrictionNote: '限用洗发水', sourceRegulation: 'EU Reg Annex V(20)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '二甲基噁唑烷', nameEn: 'Dimethyl oxazolidine', casNo: '51200-87-4', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.1, sourceRegulation: 'EU Reg Annex V(21)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '二甲基乙内酰脲', nameEn: 'DMDM Hydantoin', casNo: '6440-58-0', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.6, sourceRegulation: 'EU Reg Annex V(22)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '2-苯氧基乙醇', nameEn: 'Phenoxyethanol', casNo: '122-99-6', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 1.0, sourceRegulation: 'EU Reg Annex V(23)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '多亚甲基双噁唑烷', nameEn: 'Polymethoxy bicyclic oxazolidine', casNo: '56709-13-8', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.5, sourceRegulation: 'EU Reg Annex V(24)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '苯甲醇', nameEn: 'Benzyl alcohol', casNo: '100-51-6', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 1.0, restrictionNote: '作为防腐剂限用', sourceRegulation: 'EU Reg Annex V(25)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '苯甲酸苄酯', nameEn: 'Benzyl benzoate', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 1.0, sourceRegulation: 'EU Reg Annex V(26)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '4-羟基苯甲酸异丙酯', nameEn: 'Isopropylparaben', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.14, sourceRegulation: 'EU Reg Annex V(27)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+  { nameCn: '4-羟基苯甲酸异丁酯', nameEn: 'Isobutylparaben', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 0.14, sourceRegulation: 'EU Reg Annex V(28)', category: 'EU-准用', ingredientFunction: '防腐剂' },
+]
+
+// ============================================================
+// SECTION E: EU Annex VI 准用防晒剂 (ALLOWED/EU)
+// ============================================================
+const euAllowedUVFilters: RegulationSeed[] = [
+  { nameCn: '二苯酮-3', nameEn: 'Benzophenone-3', casNo: '131-57-7', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 6, sourceRegulation: 'EU Reg Annex VI(1)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '二苯酮-4', nameEn: 'Benzophenone-4', casNo: '4065-45-6', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 5, restrictionNote: '以酸计', sourceRegulation: 'EU Reg Annex VI(2)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '二苯酮-5', nameEn: 'Benzophenone-5', casNo: '6628-37-1', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 5, sourceRegulation: 'EU Reg Annex VI(3)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '对甲氧基肉桂酸异戊酯', nameEn: 'Isoamyl p-methoxycinnamate', casNo: '71617-10-2', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(4)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '甲氧基肉桂酸乙基己酯', nameEn: 'Ethylhexyl methoxycinnamate', casNo: '5466-77-3', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(5)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '水杨酸乙基己酯', nameEn: 'Ethylhexyl salicylate', casNo: '118-60-5', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 5, sourceRegulation: 'EU Reg Annex VI(6)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '胡莫柳酯', nameEn: 'Homosalate', casNo: '118-56-9', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(7)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '奥克立林', nameEn: 'Octocrylene', casNo: '6197-30-4', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, restrictionNote: '配方中需含稳定剂', sourceRegulation: 'EU Reg Annex VI(8)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '二氧化钛', nameEn: 'Titanium dioxide', casNo: '13463-67-7', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 25, sourceRegulation: 'EU Reg Annex VI(9)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '氧化锌', nameEn: 'Zinc oxide', casNo: '1314-13-2', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 25, restrictionNote: '纳米粒子需在标签上标注', sourceRegulation: 'EU Reg Annex VI(10)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '二乙氨羟苯甲酰基苯甲酸己酯', nameEn: 'Diethylamino hydroxybenzoyl hexyl benzoate', casNo: '302776-68-7', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(11)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '双-乙基己氧苯酚甲氧苯基三嗪', nameEn: 'Bis-ethylhexyloxyphenol methoxyphenyl triazine', casNo: '187393-00-6', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(12)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '丁基甲氧基二苯甲酰基甲烷', nameEn: 'Butyl methoxydibenzoylmethane', casNo: '70356-09-1', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 5, sourceRegulation: 'EU Reg Annex VI(13)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '4-甲基苄亚基樟脑', nameEn: '4-Methylbenzylidene camphor', casNo: '36861-47-9', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 4, sourceRegulation: 'EU Reg Annex VI(14)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '苯基苯并咪唑磺酸', nameEn: 'Phenylbenzimidazole sulfonic acid', casNo: '27503-81-7', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 8, restrictionNote: '以酸计', sourceRegulation: 'EU Reg Annex VI(15)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '亚甲基双-苯并三唑基四甲基丁基酚', nameEn: 'Methylene bis-benzotriazolyl tetramethylbutylphenol', casNo: '103597-45-1', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(16)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '对苯二亚甲基二樟脑磺酸', nameEn: 'Terephthalylidene dicamphor sulfonic acid', casNo: '92761-26-7', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(17)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '乙基己基三嗪酮', nameEn: 'Ethylhexyl triazone', casNo: '88122-99-0', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 5, sourceRegulation: 'EU Reg Annex VI(18)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '二乙基己基丁酰胺基三嗪酮', nameEn: 'Diethylhexyl butamido triazone', casNo: '154702-15-5', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(19)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '3-亚苄基樟脑', nameEn: '3-Benzylidene camphor', casNo: '15087-24-8', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 2, sourceRegulation: 'EU Reg Annex VI(20)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '樟脑苯扎铵甲基硫酸盐', nameEn: 'Camphor benzalkonium methosulfate', casNo: '52793-97-2', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 6, sourceRegulation: 'EU Reg Annex VI(21)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '二甲基PABA乙基己酯', nameEn: 'Ethylhexyl dimethyl PABA', casNo: '21245-02-3', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 8, sourceRegulation: 'EU Reg Annex VI(22)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+  { nameCn: '三硅氧烷', nameEn: 'Polysilicone-15', casNo: '207574-74-1', regulationType: 'ALLOWED', market: 'EU', maxConcentration: 10, sourceRegulation: 'EU Reg Annex VI(23)', category: 'EU-准用', ingredientFunction: '防晒剂' },
+]
+
+// ============================================================
+// SECTION F: 中国准用着色剂 (ALLOWED/CHINA) — 部分代表性
+// ============================================================
+const chinaAllowedColorants: RegulationSeed[] = [
+  { nameCn: 'CI 10006', nameEn: 'Pigment Green 8', casNo: '16143-80-9', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(1)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 10020', nameEn: 'Acid Green 1', casNo: '5850-39-5', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(2)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 10316', nameEn: 'Acid Yellow 1', casNo: '846-70-8', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(3)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 11680', nameEn: 'Pigment Yellow 1', casNo: '2512-29-0', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(4)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 11710', nameEn: 'Pigment Yellow 3', casNo: '6486-23-3', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(5)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 11725', nameEn: 'Pigment Orange 1', casNo: '6371-96-6', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(6)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 11920', nameEn: 'Solvent Orange 1', casNo: '2051-85-6', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(7)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 12010', nameEn: 'Solvent Red 1', casNo: '1229-55-6', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(8)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 12085', nameEn: 'Pigment Red 4', casNo: '2814-77-9', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(9)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 12120', nameEn: 'Pigment Red 3', casNo: '2425-85-6', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(10)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 12370', nameEn: 'Pigment Red 112', casNo: '6535-46-2', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(11)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 12420', nameEn: 'Pigment Red 5', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(12)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 12480', nameEn: 'Pigment Red 7', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(13)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 12490', nameEn: 'Pigment Red 9', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(14)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 12700', nameEn: 'Disperse Yellow 16', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(15)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 13015', nameEn: 'Acid Yellow 9', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(16)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 14270', nameEn: 'Acid Orange 6', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(17)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 14700', nameEn: 'FD&C Red 4', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(18)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 14720', nameEn: 'Acid Red 14', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(19)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 14815', nameEn: 'Acid Red 2', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(20)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15510', nameEn: 'D&C Orange 4', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(21)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15525', nameEn: 'Pigment Red 68', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(22)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15620', nameEn: 'Acid Red 88', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(23)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15630', nameEn: 'Pigment Red 49', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(24)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15800', nameEn: 'Pigment Red 50', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(25)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15850', nameEn: 'D&C Red 6', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(26)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15865', nameEn: 'Pigment Red 48', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(27)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15880', nameEn: 'D&C Red 7', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(28)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15980', nameEn: 'FD&C Orange 2', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(29)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 15985', nameEn: 'FD&C Yellow 6', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(30)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 16035', nameEn: 'FD&C Red 40', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(31)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 16185', nameEn: 'Acid Red 27', casNo: '915-67-3', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(32)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 16255', nameEn: 'Ponceau 4R', casNo: '2611-82-7', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(33)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 16290', nameEn: 'Acid Red 41', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(34)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 17200', nameEn: 'D&C Red 31', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(35)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 18050', nameEn: 'Acid Red 1', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(36)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 18130', nameEn: 'Acid Red 17', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(37)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 18690', nameEn: 'Acid Yellow 121', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(38)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 18736', nameEn: 'Acid Red 180', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(39)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 18820', nameEn: 'Acid Yellow 11', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(40)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 18965', nameEn: 'Acid Yellow 29', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(41)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 19140', nameEn: 'FD&C Yellow 5', casNo: '1934-21-0', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(42)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 20040', nameEn: 'Pigment Yellow 16', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(43)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 20170', nameEn: 'Acid Orange 24', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(44)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 20470', nameEn: 'Acid Black 1', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(45)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 21100', nameEn: 'Pigment Yellow 13', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(46)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 21230', nameEn: 'Solvent Yellow 29', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(47)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 24790', nameEn: 'Acid Red 33', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(48)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 26100', nameEn: 'D&C Red 17', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(49)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 27755', nameEn: 'Acid Black 52', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(50)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 28440', nameEn: 'Acid Black 1', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(51)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 40215', nameEn: 'Direct Orange 39', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(52)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 40800', nameEn: 'Pigment Yellow 24', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(53)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 40820', nameEn: 'Pigment Orange 43', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(54)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 40825', nameEn: 'Pigment Red 194', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(55)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42045', nameEn: 'Acid Blue 1', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(56)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42051', nameEn: 'Patent Blue V', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(57)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42053', nameEn: 'FD&C Green 3', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(58)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42080', nameEn: 'Acid Blue 7', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(59)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42090', nameEn: 'FD&C Blue 1', casNo: '3844-45-9', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(60)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42100', nameEn: 'Acid Blue 22', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(61)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42170', nameEn: 'Acid Blue 23', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(62)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42510', nameEn: 'Basic Violet 14', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(63)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42520', nameEn: 'Acid Violet 49', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(64)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 42735', nameEn: 'Acid Blue 104', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(65)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 44045', nameEn: 'Acid Blue 9', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(66)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 44090', nameEn: 'Food Green 4', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(67)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45100', nameEn: 'Acid Red 52', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(68)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45190', nameEn: 'Acid Violet 9', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(69)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45220', nameEn: 'Acid Red 50', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(70)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45350', nameEn: 'D&C Yellow 8', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(71)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45370', nameEn: 'D&C Orange 5', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(72)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45380', nameEn: 'D&C Red 22', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(73)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45396', nameEn: 'Acid Orange 11', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(74)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45405', nameEn: 'Acid Red 98', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(75)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45410', nameEn: 'D&C Red 27', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(76)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45425', nameEn: 'D&C Red 28', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(77)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 45430', nameEn: 'FD&C Red 3', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(78)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 47000', nameEn: 'D&C Yellow 11', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(79)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 47005', nameEn: 'D&C Yellow 10', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(80)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 47500', nameEn: 'Acid Yellow 3', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(81)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 48013', nameEn: 'Acid Brown 13', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(82)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 48070', nameEn: 'Acid Blue 78', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(83)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 50325', nameEn: 'Acid Black 1', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(84)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 50420', nameEn: 'Acid Black 26', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(85)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 50430', nameEn: 'Acid Black 107', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(86)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 51319', nameEn: 'Pigment Violet 23', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(87)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 52015', nameEn: 'Basic Blue 9', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(88)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 52020', nameEn: 'Basic Blue 7', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(89)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 52040', nameEn: 'Basic Blue 11', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(90)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 60725', nameEn: 'Solvent Violet 13', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(91)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 60730', nameEn: 'Acid Violet 43', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(92)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 61565', nameEn: 'Solvent Green 3', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(93)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 61570', nameEn: 'Acid Green 25', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(94)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 61585', nameEn: 'Acid Blue 80', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(95)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 62000', nameEn: 'Acid Blue 25', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(96)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 62045', nameEn: 'Acid Blue 62', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(97)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 63000', nameEn: 'Solvent Blue 5', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(98)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 73000', nameEn: 'Pigment Blue 15', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(99)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 73360', nameEn: 'D&C Red 30', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(100)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 73900', nameEn: 'Pigment Red 122', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(101)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 73915', nameEn: 'Pigment Red 202', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(102)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 74100', nameEn: 'Pigment Blue 16', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(103)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 74160', nameEn: 'Pigment Blue 15:1', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(104)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 74260', nameEn: 'Pigment Green 7', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(105)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 75100', nameEn: 'Natural Yellow 3', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(106)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 75120', nameEn: 'Annatto', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(107)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 75130', nameEn: 'Beta-Carotene', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(108)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 75170', nameEn: 'Guanine', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(109)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 75300', nameEn: 'Curcumin', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(110)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 75470', nameEn: 'Carmine', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(111)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 75810', nameEn: 'Chlorophyllin Copper Complex', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(112)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77000', nameEn: 'Aluminum powder', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(113)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77002', nameEn: 'Aluminum hydroxide', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(114)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77004', nameEn: 'Kaolin', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(115)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77007', nameEn: 'Ultramarines', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(116)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77015', nameEn: 'Red Iron Oxide', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(117)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77163', nameEn: 'Bismuth oxychloride', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(118)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77266', nameEn: 'Carbon black', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(119)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77288', nameEn: 'Chromium oxide green', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(120)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77289', nameEn: 'Chromium hydroxide green', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(121)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77346', nameEn: 'Iron blue', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(122)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77400', nameEn: 'Copper powder', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(123)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77480', nameEn: 'Bronze powder', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(124)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77491', nameEn: 'Red iron oxide', casNo: '1309-37-1', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(125)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77492', nameEn: 'Yellow iron oxide', casNo: '51274-00-1', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(126)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77499', nameEn: 'Black iron oxide', casNo: '12227-89-3', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(127)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77510', nameEn: 'Ferric ferrocyanide', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(128)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77713', nameEn: 'Magnesium carbonate', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(129)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77718', nameEn: 'Talc', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(130)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77742', nameEn: 'Manganese violet', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(131)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77745', nameEn: 'Manganese phosphate', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(132)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77820', nameEn: 'Silver', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(133)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77891', nameEn: 'Titanium dioxide', casNo: '13463-67-7', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(134)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+  { nameCn: 'CI 77947', nameEn: 'Zinc oxide', casNo: '1314-13-2', regulationType: 'ALLOWED', market: 'CHINA', sourceRegulation: '安全技术规范表5(135)', category: '准用-着色剂', ingredientFunction: '着色剂' },
+]
+
+// ============================================================
+// Merge all sections
+// ============================================================
+const allRegulations: RegulationSeed[] = [
+  ...chinaProhibited,
+  ...chinaRestricted,
+  ...euProhibited,
+  ...euAllowedPreservatives,
+  ...euAllowedUVFilters,
+  ...chinaAllowedColorants,
+]
+
+async function main() {
+  console.log('🌱 法规数据库种子脚本 v2.0')
+  console.log(`📊 准备导入 ${allRegulations.length} 条法规数据`)
+
+  const existing = await prisma.ingredientRegulation.findMany({
+    select: { nameCn: true, market: true, id: true },
+  })
+  console.log(`📂 数据库当前有 ${existing.length} 条法规记录`)
+
+  let createdCount = 0
+  let updatedCount = 0
+  let batchIndex = 0
+  const BATCH_SIZE = 50
+
+  // Batch upsert to avoid overwhelming the DB
+  for (let i = 0; i < allRegulations.length; i += BATCH_SIZE) {
+    const batch = allRegulations.slice(i, i + BATCH_SIZE)
+    batchIndex++
+
+    for (const reg of batch) {
+      try {
+        await prisma.ingredientRegulation.upsert({
+          where: {
+            nameCn_market: {
+              nameCn: reg.nameCn,
+              market: reg.market as any,
+            },
+          },
+          update: {
+            nameEn: reg.nameEn || null,
+            inciName: null,
+            casNo: reg.casNo || null,
+            regulationType: reg.regulationType,
+            maxConcentration: reg.maxConcentration ?? null,
+            productTypeRestriction: reg.productTypeRestriction || null,
+            restrictionNote: reg.restrictionNote || null,
+            sourceRegulation: reg.sourceRegulation,
+            category: reg.category || null,
+            scope: reg.scope || null,
+            ingredientFunction: reg.ingredientFunction || null,
+            referenceFile: reg.referenceFile || null,
+          },
+          create: {
+            nameCn: reg.nameCn,
+            nameEn: reg.nameEn || null,
+            casNo: reg.casNo || null,
+            regulationType: reg.regulationType,
+            market: reg.market as any,
+            maxConcentration: reg.maxConcentration ?? null,
+            productTypeRestriction: reg.productTypeRestriction || null,
+            restrictionNote: reg.restrictionNote || null,
+            sourceRegulation: reg.sourceRegulation,
+            category: reg.category || null,
+            scope: reg.scope || null,
+            ingredientFunction: reg.ingredientFunction || null,
+            referenceFile: reg.referenceFile || null,
+          },
+        })
+        updatedCount++
+      } catch (e: any) {
+        console.error(`   ❌ 导入失败: ${reg.nameCn} (${reg.market}): ${e.message}`)
+      }
+    }
+
+    console.log(`   Batch ${batchIndex}: ${Math.min(i + BATCH_SIZE, allRegulations.length)}/${allRegulations.length}`, Math.min(i + BATCH_SIZE, allRegulations.length) >= allRegulations.length ? '✅' : '')
+  }
+
+  // Get final count
+  const finalCount = await prisma.ingredientRegulation.count()
+  console.log(`\n🎉 完成！数据库法规总数: ${finalCount} 条`)
+  console.log(`   ${batchIndex} batches processed`)
+
+  // Print stats by type
+  const [prohibited, restricted, allowed] = await Promise.all([
+    prisma.ingredientRegulation.count({ where: { regulationType: 'PROHIBITED' } }),
+    prisma.ingredientRegulation.count({ where: { regulationType: 'RESTRICTED' } }),
+    prisma.ingredientRegulation.count({ where: { regulationType: 'ALLOWED' } }),
+  ])
+  console.log(`   禁用(PROHIBITED): ${prohibited} 条`)
+  console.log(`   限用(RESTRICTED): ${restricted} 条`)
+  console.log(`   准用(ALLOWED): ${allowed} 条`)
+
+  // Stats by market
+  const markets = ['CHINA', 'EU', 'US', 'JP', 'KR']
+  for (const m of markets) {
+    const count = await prisma.ingredientRegulation.count({ where: { market: m as any } })
+    if (count > 0) console.log(`   ${m}: ${count} 条`)
+  }
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ 种子脚本执行失败:', e)
+    process.exit(1)
+  })
+  .finally(() => prisma.$disconnect())

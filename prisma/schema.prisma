@@ -1,0 +1,1957 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String                @id @default(cuid())
+  email            String                @unique
+  passwordHash     String
+  name             String
+  phone            String?
+  avatar           String?
+  role             Role                  @default(DEVELOPER)
+  department       String?
+  position         String?
+  isActive         Boolean               @default(true)
+  status           UserStatus            @default(PENDING_APPROVAL)
+  approvedBy       String?
+  approvedAt       DateTime?
+  rejectReason     String?
+  deletedAt        DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  approvalRequests ApprovalRequest[]     @relation("ApprovalRequester")
+  approvalItems    ApprovalItem[]        @relation("ApprovalItemApprover")
+  applications     PurchaseApplication[]
+  reimbursements   Reimbursement[]
+  tradeSecrets     TradeSecret[]
+  serviceContracts ServiceContract[]
+  userPermissions  UserPermission[]
+
+  @@map("users")
+}
+
+// 权限配置（覆盖硬编码的 OPERATION_ROLES 默认值）
+model PermissionConfig {
+  operation    String   @id
+  allowedRoles String[]
+  description  String
+  updatedAt    DateTime @updatedAt
+
+  @@map("permission_configs")
+}
+
+// 用户级权限覆盖（允许/拒绝特定操作，优先级高于角色权限）
+model UserPermission {
+  id        String   @id @default(cuid())
+  userId    String
+  operation String // 同 OPERATION_ROLES 中的 key，如 'formula.create'
+  granted   Boolean  @default(true) // true = 允许, false = 拒绝
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, operation])
+  @@map("user_permissions")
+}
+
+model Trademark {
+  id               String                @id @default(cuid())
+  name             String
+  type             TrademarkType
+  category         String
+  applicationNo    String?
+  registrationNo   String?
+  // 生命周期关键日期
+  applyDate        DateTime? // 原：申请日 ← 保留兼容，映射到 filingDate
+  registerDate     DateTime? // 原：注册日 ← 保留兼容
+  expireDate       DateTime? // 原：有效期至
+  filingDate       DateTime? // 申请日（商标局受理日）
+  publicationDate  DateTime? // 初审公告日
+  registrationDate DateTime? // 注册日（商标局核准注册日）
+  renewalDate      DateTime? // 续展日
+  // 代理信息
+  agency           String? // 代理机构
+  agentContact     String? // 代理人及联系方式
+  // 费用
+  fee              Float? // 申请费用
+  // 文件凭证
+  filingReceipt    String? // 受理通知书URL/文件ID
+  registrationCert String? // 注册证URL/文件ID
+  // 状态
+  status           TrademarkStatus       @default(DRAFT)
+  owner            String
+  remark           String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  deletedAt        DateTime?
+  isDeleted        Boolean               @default(false)
+  productLinks     ProductTrademark[]
+  // attachments      TrademarkAttachment[] // 已迁移到 File 模型
+  contractId       String? // 关联服务合同
+  contract         ServiceContract?      @relation(fields: [contractId], references: [id])
+
+  @@map("trademarks")
+}
+
+// model TrademarkAttachment {
+//   id          String    @id @default(cuid())
+//   trademarkId String
+//   name        String
+//   url         String
+//   type        String
+//   createdAt   DateTime  @default(now())
+//   trademark   Trademark @relation(fields: [trademarkId], references: [id], onDelete: Cascade)
+//
+//   @@map("trademark_attachments")
+// }
+
+model Patent {
+  id              String             @id @default(cuid())
+  name            String
+  type            PatentType
+  applicationNo   String?
+  patentNo        String?
+  inventor        String
+  applicant       String
+  applyDate       DateTime?
+  grantDate       DateTime?
+  expireDate      DateTime?
+  status          PatentStatus       @default(DRAFT)
+  techField       String?
+  remark          String?
+  // 扩展生命周期字段
+  filingDate      DateTime? // 申请日（正式提交日）
+  publicationDate DateTime? // 公开日
+  agency          String? // 代理机构
+  agentContact    String? // 代理人
+  fee             Float? // 申请费
+  filingReceipt   String? // 受理通知书URL
+  patentCert      String? // 专利证书URL
+  officeActions   Json? // 审查意见通知书 [{date, type, responseDate, status}]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  isDeleted       Boolean            @default(false)
+  // attachments     PatentAttachment[] // 已迁移到 File 模型
+  fees            PatentFee[]
+  contractId      String? // 关联服务合同
+  contract        ServiceContract?   @relation(fields: [contractId], references: [id])
+
+  @@map("patents")
+}
+
+// model PatentAttachment {
+//   id        String   @id @default(cuid())
+//   patentId  String
+//   name      String
+//   url       String
+//   type      String
+//   createdAt DateTime @default(now())
+//   patent    Patent   @relation(fields: [patentId], references: [id], onDelete: Cascade)
+//
+//   @@map("patent_attachments")
+// }
+
+model RawMaterial {
+  id                  String                    @id @default(cuid())
+  nameCn              String
+  nameEn              String?
+  casNo               String?
+  filingNo            String? // 备案号
+  filingStatus        RecordStatus              @default(UNRECORDED) // 备案状态
+  filingExpireDate    DateTime? // 备案有效期
+  inciName            String? // INCI 英文名
+  safetyInfoUrl       String? // 原料安全信息文件路径
+  msdsUrl             String? // 安全数据表
+  tdsUrl              String? // 技术数据表
+  supplier            String?
+  supplierId          String?
+  function            String?
+  specification       String?
+  limitChina          String?
+  limitEu             String?
+  isActive            Boolean                   @default(true)
+  safetyInfo          String?
+  unit                String                    @default("kg")
+  currentStock        Float                     @default(0)
+  minStock            Float                     @default(0)
+  remark              String?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  deletedAt           DateTime?
+  isDeleted           Boolean                   @default(false)
+  latestPrice         Float? // 最新采购单价
+  formulaItems        FormulaItem[]
+  purchaseItems       PurchaseApplicationItem[]
+  inventoryItems      RawMaterialBatch[]
+  incomingInspections IncomingInspection[]
+  ingredientChecks    IngredientCheck[]
+  priceHistories      RawMaterialPrice[]
+
+  @@map("raw_materials")
+}
+
+/// RawMaterialPrice — 原料采购价格记录（自动从PO收货写入）
+model RawMaterialPrice {
+  id              String   @id @default(cuid())
+  rawMaterialId   String
+  price           Float    // 单价（采购时的 unitPrice）
+  unit            String   @default("kg")
+  supplier        String?  // 供应商名称
+  purchaseOrderNo String?  // PO编号
+  batchNo         String?  // 原料批次号
+  recordedAt      DateTime @default(now()) // 记录时间（收货日期）
+  createdAt       DateTime @default(now())
+  rawMaterial     RawMaterial @relation(fields: [rawMaterialId], references: [id], onDelete: Cascade)
+
+  @@map("raw_material_prices")
+}
+
+model RawMaterialBatch {
+  id                  String               @id @default(cuid())
+  rawMaterialId       String
+  batchNo             String
+  internalBatch       String
+  quantity            Float
+  receiptDate         DateTime
+  expireDate          DateTime? // 批次保质期
+  supplier            String
+  coaUrl              String?
+  status              BatchStatus          @default(IN_STOCK)
+  remark              String?
+  purchaseOrderId     String? // 关联采购订单（追溯来源）
+  createdAt           DateTime             @default(now())
+  productTraceItems   ProductTraceItem[]
+  rawMaterial         RawMaterial          @relation(fields: [rawMaterialId], references: [id])
+  incomingInspections IncomingInspection[]
+
+  @@map("raw_material_batches")
+}
+
+/// 物资（非原料类库存：实验用品、办公用品、设备、礼品等）
+model Supply {
+  id           String   @id @default(cuid())
+  name         String   // 物资名称
+  category     String   // LAB_SUPPLIES / EQUIPMENT / OFFICE_SUPPLIES / GIFTS / OTHER
+  unit         String   @default("个")
+  specification String? // 规格型号
+  currentStock Float    @default(0)
+  minStock     Float    @default(0)
+  supplier     String?
+  remark       String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  batches      SupplyBatch[]
+
+  @@map("supplies")
+}
+
+/// 物资批次
+model SupplyBatch {
+  id          String   @id @default(cuid())
+  supplyId    String
+  batchNo     String   // 批次号/采购单号
+  quantity    Float
+  receiptDate DateTime // 入库日期
+  expireDate  DateTime?
+  supplier    String?
+  remark      String?
+  createdAt   DateTime @default(now())
+  supply      Supply   @relation(fields: [supplyId], references: [id])
+
+  @@map("supply_batches")
+}
+
+// 到货质检 - 原料到货后的质量检验流程
+model IncomingInspection {
+  id               String            @id @default(cuid())
+  rawMaterialId    String
+  batchId          String?
+  supplierBatchNo  String
+  quantityReceived Float
+  unit             String
+  receiptDate      DateTime
+  coaVerified      Boolean           @default(false)
+  coaResult        String?
+  sampleQty        Float?
+  sampleLocation   String?
+  samplePerson     String?
+  inspectionDate   DateTime?
+  inspector        String?
+  result           IQCResult         @default(PENDING)
+  nonConformity    Json?
+  disposition      Disposition?
+  remark           String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  rawMaterial      RawMaterial       @relation(fields: [rawMaterialId], references: [id])
+  batch            RawMaterialBatch? @relation(fields: [batchId], references: [id])
+
+  @@map("incoming_inspections")
+}
+
+// 制程检验 - 生产过程中的质量控制
+enum IPQCStage {
+  PRODUCTION
+  FILLING
+  PACKAGING
+  LABELING
+}
+
+enum IPQCResult {
+  PENDING
+  PASS
+  CONDITIONAL
+  FAIL
+}
+
+model IPQC {
+  id              String        @id @default(cuid())
+  productDesignId String
+  oemContractId   String?
+  batchNo         String
+  stage           IPQCStage     @default(PRODUCTION)
+  checkDate       DateTime?
+  inspector       String?
+  items           Json?
+  result          IPQCResult    @default(PENDING)
+  imageUrls       Json?
+  remark          String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  product         ProductDesign @relation(fields: [productDesignId], references: [id])
+  oemContract     OEMContract?  @relation(fields: [oemContractId], references: [id])
+
+  @@map("ipqc")
+}
+
+// 出厂检验 - 成品出货前的质量检验
+enum OQCResult {
+  PENDING
+  PASS
+  CONDITIONAL
+  FAIL
+}
+
+enum OQCDisposition {
+  PASS
+  REWORK
+  SCRAP
+}
+
+model OQC {
+  id              String          @id @default(cuid())
+  productDesignId String
+  batchNo         String
+  quantityTotal   Float           @default(0)
+  quantitySampled Float           @default(0)
+  checkDate       DateTime?
+  inspector       String?
+  result          OQCResult       @default(PENDING)
+  items           Json?
+  disposition     OQCDisposition?
+  reportUrl       String?
+  remark          String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  product         ProductDesign   @relation(fields: [productDesignId], references: [id])
+
+  @@map("oqc")
+}
+
+model Formula {
+  id            String           @id @default(cuid())
+  name          String
+  code          String           @unique
+  version       String           @default("V1.0")
+  targetProduct String?
+  batchSize     Float?
+  totalCost     Float?
+  status        FormulaStatus    @default(DEVELOPING)
+  isCore        Boolean          @default(false)
+  processParams String?
+  remark        String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  deletedAt     DateTime?
+  isDeleted     Boolean          @default(false)
+  items         FormulaItem[]
+  versions      FormulaVersion[]
+  complianceSnapshots FormulaComplianceSnapshot[]
+  products      ProductDesign[]
+
+  @@map("formulas")
+}
+
+model FormulaItem {
+  id            String      @id @default(cuid())
+  formulaId     String
+  rawMaterialId String
+  percentage    Float
+  weight        Float?
+  cost          Float?
+  orderIndex    Int
+  remark        String?
+  formulaId2    String?
+  formula       Formula     @relation(fields: [formulaId], references: [id], onDelete: Cascade)
+  rawMaterial   RawMaterial @relation(fields: [rawMaterialId], references: [id])
+
+  @@map("formula_items")
+}
+
+model FormulaVersion {
+  id        String   @id @default(cuid())
+  formulaId String
+  version   String
+  snapshot  Json
+  changedBy String
+  changeLog String
+  createdAt DateTime @default(now())
+  formula   Formula  @relation(fields: [formulaId], references: [id], onDelete: Cascade)
+
+  @@map("formula_versions")
+}
+
+/// 配方合规扫描快照 — 每次配方保存时自动记录合规扫描结果
+/// 供配方列表/详情页直接读取，避免实时扫描开销
+model FormulaComplianceSnapshot {
+  id            String   @id @default(cuid())
+  formulaId     String
+  scanDate      DateTime @default(now())
+  overallPass   Boolean  // true=全部通过, false=存在不合规（禁用或限用）
+  summary       Json     // { total, passed, warned, failed }
+  hasProhibited Boolean  // 是否含禁用成分
+  hasRestricted Boolean  // 是否含限用成分
+  createdAt     DateTime @default(now())
+
+  formula Formula @relation(fields: [formulaId], references: [id], onDelete: Cascade)
+
+  @@index([formulaId])
+  @@map("formula_compliance_snapshots")
+}
+
+model ProductDesign {
+  id              String                    @id @default(cuid())
+  name            String
+  brand           String?
+  category        String?
+  capacity        String?
+  status          ProductStatus             @default(CONCEPT)
+  formulaId       String?
+  packagingBom    Json?
+  designDoc       String?
+  sampleBatch     String?
+  launchDate      DateTime?
+  remark          String?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  deletedAt       DateTime?
+  isDeleted       Boolean                   @default(false)
+  // inspections     Inspection[]
+  testEntrustments TestEntrustment[]
+  formula         Formula?                  @relation(fields: [formulaId], references: [id])
+  trademarks      ProductTrademark[]
+  purchaseItems   PurchaseApplicationItem[]
+  registrations   Registration[]
+  sampleTasks     SampleTask[]
+  retainedSamples RetainedSample[]
+  stabilityTests  StabilityTest[]
+  certifications  ProductCertification[]
+  efficacyClaims  EfficacyClaim[]
+  milestones      ProductMilestone[]
+  pilotRuns       PilotRun[]
+  ipqc            IPQC[]
+  oqc             OQC[]
+  costings        ProductCosting[]
+  priceHistories  PriceHistory[]
+  productBatches  ProductBatch[]
+
+  @@map("product_designs")
+}
+
+// 试产/中试管理 — 产品量产前的中试验证和批次管理
+model PilotRun {
+  id              String          @id @default(cuid())
+  productDesignId String
+  batchNo         String // 批次号，自动生成 PLT-2026-0001
+  scale           String // 试产规模，如 "5kg", "20kg", "100kg"
+  producer        String // 生产方（代工厂名称或内部）
+  plannedDate     DateTime? // 计划试产日期
+  completedDate   DateTime? // 实际完成日期
+  status          PilotRunStatus  @default(PLANNED)
+  result          PilotRunResult? // 试产结果
+  yield           Float? // 得率(%)
+  defects         Json? // 缺陷记录 [{item, severity, description, action}]
+  remark          String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  product         ProductDesign   @relation(fields: [productDesignId], references: [id])
+
+  @@map("pilot_runs")
+}
+
+enum PilotRunStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PilotRunResult {
+  PASS
+  CONDITIONAL
+  FAIL
+}
+
+model ProductTrademark {
+  productId   String
+  trademarkId String
+  product     ProductDesign @relation(fields: [productId], references: [id], onDelete: Cascade)
+  trademark   Trademark     @relation(fields: [trademarkId], references: [id], onDelete: Cascade)
+
+  @@id([productId, trademarkId])
+  @@map("product_trademarks")
+}
+
+model Registration {
+  id           String                   @id @default(cuid())
+  productId    String
+  registerNo   String?
+  registerType String
+  applyDate    DateTime?
+  approveDate  DateTime?
+  expiryDate   DateTime?
+  status       RegistrationStatus       @default(APPLYING)
+  remark       String?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  deletedAt    DateTime?
+  isDeleted    Boolean                  @default(false)
+  testEntrustments TestEntrustment[]
+  // attachments  RegistrationAttachment[] // 已迁移到 File 模型
+  assessments  SafetyAssessment[]
+  documents    RegistrationDocument[]
+  product      ProductDesign            @relation(fields: [productId], references: [id])
+
+  @@map("registrations")
+}
+
+model RegistrationDocument {
+  id             String          @id @default(cuid())
+  registrationId String
+  registration   Registration    @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  name           String          // 材料名称（如"配方表""工艺简述""标签样稿""检测报告"等）
+  required       Boolean         @default(true) // 是否必需
+  status         DocumentStatus  @default(PENDING)
+  submitDate     DateTime?
+  remark         String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@map("registration_documents")
+}
+
+enum DocumentStatus {
+  PENDING    // 待提交
+  SUBMITTED  // 已提交
+  RETURNED   // 已退回
+}
+
+// model RegistrationAttachment {
+//   id             String       @id @default(cuid())
+//   registrationId String
+//   name           String
+//   url            String
+//   type           String
+//   createdAt      DateTime     @default(now())
+//   registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+//
+//   @@map("registration_attachments")
+// }
+
+/// 安全评估报告（CPSR）— 备案关联的安全评估记录
+/// 根据《化妆品监督管理条例》和《化妆品安全评估技术导则》要求
+model SafetyAssessment {
+  id             String               @id @default(cuid())
+  registrationId String
+  registration   Registration         @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  assessor       String               // 评估机构
+  assessDate     DateTime?            // 评估日期
+  reportNo       String?              // 报告编号
+  conclusion     AssessmentConclusion // 评估结论
+  fileUrl        String?              // 报告文件URL
+  remark         String?              // 备注
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([registrationId])
+  @@map("safety_assessments")
+}
+
+enum AssessmentConclusion {
+  PASS         // 通过
+  CONDITIONAL  // 有条件通过
+  FAIL         // 不通过
+}
+
+/// 化妆品合规 - 原料法规数据库
+/// 存储中国化妆品禁用/限用/准用成分信息
+/// 数据来源：《化妆品安全技术规范（2015年版）》及后续修订
+model IngredientRegulation {
+  id            String   @id @default(cuid())
+  nameCn        String   // 中文名称
+  nameEn        String?  // 英文名称
+  inciName      String?  // INCI名称
+  casNo         String?  // CAS号
+  regulationType String // 禁用/限用/准用
+  market        Market   @default(CHINA) // 适用市场
+  maxConcentration Float? // 最大允许浓度（%）
+  productTypeRestriction String? // 产品类型限制
+  restrictionNote String? // 限制说明
+  sourceRegulation String // 法规来源
+  category       String? // 分类
+  scope          String? // 适用范围（如"驻留类/淋洗类"）
+  ingredientFunction String? // 原料功能（如"防腐剂/防晒剂/美白剂"）
+  referenceFile  String? // 法规原文文件引用
+  isActive       Boolean @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([casNo])
+  @@index([nameCn])
+  @@index([regulationType])
+  @@index([ingredientFunction])
+  @@index([scope])
+  @@map("ingredient_regulations")
+  @@unique([nameCn, market])
+}
+
+/// 多市场检测标准配置 — 不同目标市场对同一检测项目的标准限值
+model ComplianceStandard {
+  id             String   @id @default(cuid())
+  market         Market   // 目标市场
+  testItem       String   // 检测项目（MICROBIAL/PHYSICAL/STABILITY/SAFETY/EFFICACY/CHALLENGE/PACKAGING）
+  standardValue  String   // 标准值/限值
+  regulationRef  String?  // 法规依据（如《化妆品安全技术规范》2015版第X条）
+  remark         String?  // 备注
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([market, testItem])
+  @@index([market])
+  @@index([testItem])
+  @@map("compliance_standards")
+}
+
+enum RegulationType {
+  PROHIBITED   // 禁用
+  RESTRICTED   // 限用
+  ALLOWED      // 准用
+}
+
+enum Market {
+  CHINA
+  EU
+  US
+  KSA
+  JP
+  KR
+  MY
+  PH
+  RU
+  GB
+}
+
+/// 化妆品合规 - 检测委托
+model TestEntrustment {
+  id              String           @id @default(cuid())
+  registrationId  String?
+  registration    Registration?    @relation(fields: [registrationId], references: [id])
+  productDesignId String?
+  product         ProductDesign?   @relation(fields: [productDesignId], references: [id])
+  productName     String           // 送检产品名称
+  type            String?          // 检测类型
+  testItems       Json?            // 检测项目
+  institution     String           // 检测机构
+  reportNo        String?          // 报告编号
+  reportUrl       String?          // 报告文件URL
+  sampleBatch     String?          // 样品批号
+  applyDate       DateTime?        // 申请日期
+  sendDate        DateTime?        // 送检日期
+  completeDate    DateTime?        // 完成日期
+  reportDate      DateTime?        // 报告日期
+  result          InspectionResult @default(PENDING) // 检测结果
+  status          InspectionStatus @default(PENDING) // 检测状态
+  cost            Float?           // 检测费用
+  remark          String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  isDeleted       Boolean          @default(false)
+
+  @@index([registrationId])
+  @@index([productDesignId])
+  @@map("test_entrustments")
+}
+
+// 原料合规筛查 — 合规链条中的"原料筛查"环节
+model IngredientCheck {
+  id            String      @id @default(cuid())
+  rawMaterialId String
+  checkItem     String // 筛查项目: DISABLED_COMPONENT(禁用组分)/RESTRICTED_SUBSTANCE(限用物质)/ALLERGEN(过敏原)/PRESERVATIVE(防腐剂)/SUNSCREEN(防晒剂)/COLORANT(着色剂)
+  referenceStd  String? // 参考标准 (如《化妆品安全技术规范》2015版)
+  limitValue    String? // 限量值
+  actualValue   String? // 实测值或配方中含量
+  result        IQCResult   @default(PENDING) // PASS/CONDITIONAL/FAIL
+  remark        String?
+  checkedBy     String? // 筛查人
+  checkedAt     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  rawMaterial   RawMaterial @relation(fields: [rawMaterialId], references: [id])
+
+  @@index([rawMaterialId])
+  @@map("ingredient_checks")
+}
+
+// model Inspection已迁移到 TestEntrustment，保留到下次清理
+// InspectionResult 和 InspectionStatus 枚举仍被 TestEntrustment 共用
+//  id              String           @id @default(cuid())
+//  registrationId  String
+//  productDesignId String?
+//  type            InspectionType
+//  items           Json?
+//  institution     String
+//  reportNo        String?
+//  reportUrl       String?
+//  sampleBatch     String?
+//  applyDate       DateTime?
+//  completeDate    DateTime?
+//  result          InspectionResult @default(PENDING)
+//  cost            Float?
+//  status          InspectionStatus @default(PENDING)
+//  remark          String?
+//  createdAt       DateTime         @default(now())
+//  updatedAt       DateTime         @updatedAt
+//  deletedAt       DateTime?
+//  isDeleted       Boolean          @default(false)
+//  product         ProductDesign?   @relation(fields: [productDesignId], references: [id])
+//  registration    Registration     @relation(fields: [registrationId], references: [id])
+//  @@map("inspections")
+//}
+
+// 功效宣称管理
+enum ClaimCategory {
+  STANDARD // 国标功效
+  NEW      // 新功效
+}
+
+enum ClaimStatus {
+  DRAFT
+  REVIEWING
+  APPROVED
+  REJECTED
+}
+
+model EfficacyClaim {
+  id              String         @id @default(cuid())
+  productDesignId String?
+  product         ProductDesign? @relation(fields: [productDesignId], references: [id])
+  claimName       String         // 宣称名称（如"美白""保湿""抗皱""舒缓"等）
+  category        ClaimCategory  @default(STANDARD) // 国标宣称/新功效
+  status          ClaimStatus    @default(DRAFT)
+  evidence        String?        // 支持证据（检测报告编号/文献引用）
+  testEntrustmentId String?      // 关联的检测委托
+  remark          String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@map("efficacy_claims")
+}
+
+model Supplier {
+  id                   String                @id @default(cuid())
+  name                 String
+  type                 SupplierType
+  contact              String?
+  phone                String?
+  email                String?
+  address              String?
+  license              String?
+  qualification        String?
+  rating               Float?
+  contractUrl          String?
+  contractEnd          DateTime?
+  isActive             Boolean               @default(true)
+  remark               String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
+  isDeleted            Boolean               @default(false)
+  oemContracts         OEMContract[]
+  purchaseApplications PurchaseApplication[]
+  documents            SupplierDocument[]
+  audits               SupplierAudit[]
+  evaluations          SupplierEvaluation[]
+
+  @@map("suppliers")
+}
+
+model OEMContract {
+  id             String            @id @default(cuid())
+  supplierId     String
+  contractNo     String            @unique
+  productName    String
+  techStandard   String?
+  unitPrice      Float
+  moq            Int
+  leadTime       Int
+  startDate      DateTime
+  endDate        DateTime
+  contractUrl    String?
+  status         ContractStatus    @default(ACTIVE)
+  remark         String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  isDeleted      Boolean           @default(false)
+  supplier       Supplier          @relation(fields: [supplierId], references: [id])
+  priceHistories OemPriceHistory[]
+  schedules      OemSchedule[]
+  ipqc           IPQC[]
+
+  @@map("oem_contracts")
+}
+
+model OemPriceHistory {
+  id            String      @id @default(cuid())
+  contractId    String
+  productName   String
+  unitPrice     Float
+  moq           Int?
+  effectiveDate DateTime
+  remark        String?
+  createdAt     DateTime    @default(now())
+  contract      OEMContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("oem_price_history")
+}
+
+model OemSchedule {
+  id            String         @id @default(cuid())
+  contractId    String
+  productName   String
+  orderQty      Int
+  plannedDate   DateTime
+  completedDate DateTime?
+  status        ScheduleStatus @default(PLANNED)
+  remark        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  contract      OEMContract    @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("oem_schedules")
+}
+
+enum ScheduleStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  DELAYED
+  CANCELLED
+}
+
+model SupplierDocument {
+  id         String          @id @default(cuid())
+  supplierId String
+  type       SupplierDocType
+  name       String
+  fileUrl    String?
+  issueDate  DateTime?
+  expireDate DateTime?
+  notifyDays Int             @default(30)
+  status     DocStatus       @default(VALID)
+  remark     String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  supplier   Supplier        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@map("supplier_documents")
+}
+
+model SupplierAudit {
+  id         String      @id @default(cuid())
+  supplierId String
+  auditDate  DateTime
+  auditor    String
+  result     AuditResult
+  score      Float?
+  reportUrl  String?
+  findings   Json?
+  remark     String?
+  createdAt  DateTime    @default(now())
+  supplier   Supplier    @relation(fields: [supplierId], references: [id])
+
+  @@map("supplier_audits")
+}
+
+model SupplierEvaluation {
+  id            String   @id @default(cuid())
+  supplierId    String
+  evalDate      DateTime
+  scoreQuality  Float
+  scoreDelivery Float
+  scoreService  Float
+  scoreTotal    Float
+  grade         String?  @default("C")
+  evaluator     String
+  remark        String?
+  createdAt     DateTime @default(now())
+  supplier      Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("supplier_evaluations")
+}
+
+model ProductBatch {
+  id                   String                @id @default(cuid())
+  productId            String
+  batchNo              String                @unique
+  productionDate       DateTime
+  expireDate           DateTime?
+  quantity             Int
+  minStock             Int                   @default(0)
+  status               BatchStatus           @default(IN_STOCK)
+  registrationNo       String?
+  remark               String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
+  isDeleted            Boolean               @default(false)
+  traceItems           ProductTraceItem[]
+  antiCounterfeitCodes AntiCounterfeitCode[]
+  stockOutRecords      StockOutRecord[]
+  product              ProductDesign         @relation(fields: [productId], references: [id])
+
+  @@map("product_batches")
+}
+
+/// 成品出库记录
+model StockOutRecord {
+  id            String         @id @default(cuid())
+  batchId       String
+  quantity      Int
+  reason        StockOutReason
+  operatorName  String
+  remark        String?
+  createdAt     DateTime       @default(now())
+  batch         ProductBatch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId])
+  @@map("stock_out_records")
+}
+
+enum StockOutReason {
+  SALE
+  DAMAGE
+  RECALL
+  GIFT
+  OTHER
+}
+
+model ProductTraceItem {
+  id                 String           @id @default(cuid())
+  productBatchId     String
+  rawMaterialBatchId String
+  usagePercentage    Float?
+  remark             String?
+  productBatch       ProductBatch     @relation(fields: [productBatchId], references: [id], onDelete: Cascade)
+  rawMaterialBatch   RawMaterialBatch @relation(fields: [rawMaterialBatchId], references: [id])
+
+  @@map("product_trace_items")
+}
+
+model PurchaseApplication {
+  id             String                    @id @default(cuid())
+  code           String                    @unique
+  applicantId    String
+  title          String
+  supplier       String?
+  supplierId     String?
+  totalAmount    Decimal                   @default(0)
+  status         PurchaseStatus            @default(PENDING)
+  urgency        Urgency                   @default(NORMAL)
+  category       String                    @default("RAW_MATERIAL") // 采购分类: RAW_MATERIAL/LAB_SUPPLIES/EQUIPMENT/OFFICE_SUPPLIES/GIFTS/OTHER
+  purpose        String
+  relatedProject String?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  deletedAt      DateTime?
+  isDeleted      Boolean                   @default(false)
+  items          PurchaseApplicationItem[]
+  purchaseOrder  PurchaseOrder?
+  reimbursements Reimbursement[]
+  applicant      User                      @relation(fields: [applicantId], references: [id])
+  supplierR      Supplier?                 @relation(fields: [supplierId], references: [id])
+
+  @@map("purchase_applications")
+}
+
+model PurchaseApplicationItem {
+  id              String              @id @default(cuid())
+  applicationId   String
+  productDesignId String?
+  rawMaterialId   String?
+  name            String
+  specification   String?
+  quantity        Float
+  unit            String
+  estimatedPrice  Decimal
+  totalPrice      Decimal
+  remark          String?
+  application     PurchaseApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  product         ProductDesign?      @relation(fields: [productDesignId], references: [id])
+  rawMaterial     RawMaterial?        @relation(fields: [rawMaterialId], references: [id])
+
+  @@map("purchase_application_items")
+}
+
+/// 采购订单状态
+enum PurchaseOrderStatus {
+  DRAFT // 草稿
+  ISSUED // 已发出
+  CONFIRMED // 供应商已确认
+  PARTIAL // 部分到货
+  COMPLETED // 已完成
+  CANCELLED // 已取消
+}
+
+/// 采购订单（PO）— 从审批通过的采购申请生成
+model PurchaseOrder {
+  id            String              @id @default(cuid())
+  poNo          String              @unique // PO编号，自动生成 PO-2026-0001
+  applicationId String              @unique // 关联采购申请（一对一）
+  supplierId    String? // 供应商ID
+  supplierName  String // 供应商名称（冗余）
+  totalAmount   Float               @default(0) // 订单总额
+  status        PurchaseOrderStatus @default(DRAFT)
+  issuedAt      DateTime? // 发出日期
+  confirmedAt   DateTime? // 供应商确认日期
+  completedAt   DateTime? // 完成日期
+  remark        String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  items         PurchaseOrderItem[]
+  application   PurchaseApplication @relation(fields: [applicationId], references: [id])
+
+  @@map("purchase_orders")
+}
+
+/// 采购订单明细
+model PurchaseOrderItem {
+  id            String        @id @default(cuid())
+  orderId       String
+  name          String
+  rawMaterialId String?
+  quantity      Float
+  receivedQty   Float         @default(0) // 已收货数量
+  unit          String
+  unitPrice     Float         @default(0)
+  totalPrice    Float         @default(0)
+  remark        String?
+  order         PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_order_items")
+}
+
+model ApprovalFlow {
+  id        String   @id @default(cuid())
+  name      String // 流程名称，如 "采购审批流程"
+  module    String   @default("purchase") // 所属模块
+  stages    Json // 审批阶段配置
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("approval_flows")
+}
+
+/// 审批请求状态
+enum ApprovalRequestStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+/// 通用审批请求 - 支持采购、报销、商标、专利、合同等多种业务
+model ApprovalRequest {
+  id          String                @id @default(cuid())
+  entityType  String // 'PurchaseApplication','Reimbursement','Patent','Trademark','ServiceContract','Payment'
+  entityId    String
+  title       String // 审批标题，如 "S²R 商标注册申请审批"
+  amount      Float? // 涉及金额
+  requesterId String
+  status      ApprovalRequestStatus @default(PENDING)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  requester   User                  @relation("ApprovalRequester", fields: [requesterId], references: [id])
+  approvals   ApprovalItem[]
+
+  @@index([entityType, entityId])
+  @@index([requesterId])
+  @@index([status])
+  @@map("approval_requests")
+}
+
+/// 审批节点 - 每个审批请求的逐级审批记录
+model ApprovalItem {
+  id         String          @id @default(cuid())
+  requestId  String
+  level      Int // 审批层级，从1开始
+  role       String? // 审批角色
+  approverId String?
+  action     ApprovalAction  @default(PENDING)
+  comment    String?
+  createdAt  DateTime        @default(now())
+  request    ApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approver   User?           @relation("ApprovalItemApprover", fields: [approverId], references: [id])
+
+  @@index([requestId])
+  @@index([approverId])
+  @@map("approval_items")
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  department  String
+  fiscalYear  Int
+  totalAmount Decimal  @default(0)
+  usedAmount  Decimal  @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categories     BudgetCategory[]
+  transactions   BudgetTransaction[]
+
+  @@unique([department, fiscalYear])
+  @@map("budgets")
+}
+
+/// 预算科目 — 每个预算下按用途细分的科目（如"原料采购""包装材料""检测费用""办公费用"等）
+model BudgetCategory {
+  id              String   @id @default(cuid())
+  budgetId        String
+  name            String   // 科目名称，如"原料采购""包装材料""检测费用""办公费用"
+  allocatedAmount Decimal  @default(0) // 科目分配金额
+  usedAmount      Decimal  @default(0) // 科目已使用金额（自动累计）
+  sortOrder       Int      @default(0)
+  remark          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  budget       Budget              @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  transactions BudgetTransaction[]
+
+  @@unique([budgetId, name])
+  @@map("budget_categories")
+}
+
+/// 预算执行明细 — 每笔支出记录（关联到预算和科目）
+model BudgetTransaction {
+  id              String   @id @default(cuid())
+  budgetId        String
+  categoryId      String?  // 关联科目（可选）
+  amount          Decimal  @default(0) // 支出金额
+  type            String   @default("EXPENSE") // EXPENSE / REIMBURSEMENT / PAYMENT
+  description     String   // 支出说明
+  referenceType   String?  // 关联业务类型：PurchaseApplication / Reimbursement / ServiceContract
+  referenceId     String?  // 关联业务ID
+  transactionDate DateTime @default(now()) // 交易日期
+  createdBy       String?  // 创建人ID
+  remark          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  budget   Budget          @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  category BudgetCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([budgetId])
+  @@index([categoryId])
+  @@index([referenceType, referenceId])
+  @@map("budget_transactions")
+}
+
+model Reimbursement {
+  id                    String               @id @default(cuid())
+  code                  String               @unique
+  applicantId           String
+  amount                Decimal
+  receipts              Json?
+  description           String
+  status                ReimbursementStatus  @default(DRAFT)
+  purchaseApplicationId String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  deletedAt             DateTime?
+  isDeleted             Boolean              @default(false)
+  applicant             User                 @relation(fields: [applicantId], references: [id])
+  purchaseApplication   PurchaseApplication? @relation(fields: [purchaseApplicationId], references: [id])
+
+  @@map("reimbursements")
+}
+
+model SampleTask {
+  id              String        @id @default(cuid())
+  productDesignId String
+  batchNo         String
+  quantity        Int
+  result          String?
+  evaluation      String?
+  nextAction      String?
+  status          SampleStatus  @default(PENDING)
+  assignedTo      String?
+  dueDate         DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  remark          String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  isDeleted       Boolean       @default(false)
+  product         ProductDesign @relation(fields: [productDesignId], references: [id], onDelete: Cascade)
+
+  @@map("sample_tasks")
+}
+
+// 留样记录 — 法规要求的成品留样管理
+model RetainedSample {
+  id                 String               @id @default(cuid())
+  productDesignId    String
+  batchNo            String // 批次号
+  quantity           Int // 留样数量
+  storageLocation    String? // 留样位置（如：留样室A-3-2）
+  sampleDate         DateTime // 留样日期
+  expireDate         DateTime? // 保质期（到期日）
+  status             RetainedSampleStatus @default(NORMAL) // NORMAL / EXPIRING / EXPIRED
+  observationRecords Json? // 观察记录 [{ date: "2026-01-15", result: "NORMAL", images: ["url1"], remark: "..." }]
+  remark             String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  deletedAt          DateTime?
+  isDeleted          Boolean              @default(false)
+  product            ProductDesign        @relation(fields: [productDesignId], references: [id])
+
+  @@index([productDesignId])
+  @@index([status])
+  @@index([expireDate])
+  @@map("retained_samples")
+}
+
+enum RetainedSampleStatus {
+  NORMAL
+  EXPIRING
+  EXPIRED
+}
+
+// 稳定性跟踪 — 加速/长期/挑战测试
+model StabilityTest {
+  id              String              @id @default(cuid())
+  productDesignId String
+  batchNo         String // 批次号
+  testType        StabilityTestType // ACCELERATED / LONG_TERM / CHALLENGE
+  startDate       DateTime // 开始日期
+  endDate         DateTime? // 结束日期（预计完成）
+  interval        Int                 @default(1) // 观察间隔（月）
+  status          StabilityTestStatus @default(IN_PROGRESS) // IN_PROGRESS / COMPLETED / FAILED
+  records         Json? // 各时间点观察记录 [{ month: 0, date: "...", result: "NORMAL", description: "...", images: ["url1"] }]
+  remark          String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  deletedAt       DateTime?
+  isDeleted       Boolean             @default(false)
+  product         ProductDesign       @relation(fields: [productDesignId], references: [id])
+
+  @@index([productDesignId])
+  @@index([status])
+  @@map("stability_tests")
+}
+
+enum StabilityTestType {
+  ACCELERATED
+  LONG_TERM
+  CHALLENGE
+}
+
+enum StabilityTestStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+// 产品合规认证 - 跟踪产品在各市场的注册/认证/宣称进度
+model ProductCertification {
+  id              String        @id @default(cuid())
+  productDesignId String
+  market          String // CN/US/EU/JP/OTHER
+  certType        String // REGISTRATION/CERTIFICATION/LABEL_CLAIM
+  certName        String
+  certNo          String?
+  status          CertStatus    @default(PENDING)
+  applyDate       DateTime?
+  approveDate     DateTime?
+  expiryDate      DateTime?
+  remark          String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  product         ProductDesign @relation(fields: [productDesignId], references: [id])
+
+  @@map("product_certifications")
+}
+
+// 产品开发里程碑 - 记录产品开发进度的关键节点完成情况
+model ProductMilestone {
+  id              String        @id @default(cuid())
+  productDesignId String
+  stage           String // CONCEPT_REVIEW/FORMULA_FINALIZED/PACKAGING_CONFIRMED/SAMPLE_CONFIRMED/EFFICACY_COMPLETED/REGISTRATION_COMPLETED/COMPLIANCE_READY/PRODUCTION_READY
+  label           String
+  completed       Boolean       @default(false)
+  completedAt     DateTime?
+  completedBy     String?
+  remark          String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  product         ProductDesign @relation(fields: [productDesignId], references: [id], onDelete: Cascade)
+
+  @@unique([productDesignId, stage])
+  @@map("product_milestones")
+}
+
+// 产品防伪码 - S²R/QEVORIA 品牌产品真伪验证
+enum AntiCounterfeitStatus {
+  ACTIVE
+  VERIFIED
+  EXPIRED
+  REVOKED
+}
+
+model AntiCounterfeitCode {
+  id              String                @id @default(cuid())
+  code            String                @unique // 防伪码
+  productBatchId  String? // 关联生产批次
+  productId       String? // 关联产品
+  status          AntiCounterfeitStatus @default(ACTIVE)
+  firstVerifiedAt DateTime? // 首次验证时间
+  firstVerifiedIp String? // 首次验证IP
+  verifyCount     Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  expiredAt       DateTime? // 有效期
+  batch           ProductBatch?         @relation(fields: [productBatchId], references: [id])
+
+  @@index([code])
+  @@map("anti_counterfeit_codes")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  userName  String?
+  action    String
+  entity    String
+  entityId  String?
+  detail    Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model PatentFee {
+  id       String          @id @default(cuid())
+  patentId String
+  year     Int
+  amount   Float
+  dueDate  DateTime
+  paidDate DateTime?
+  status   PatentFeeStatus @default(PENDING)
+  remark   String?
+  patent   Patent          @relation(fields: [patentId], references: [id], onDelete: Cascade)
+
+  @@map("patent_fees")
+}
+
+// 服务合同 - 翻译/法务/咨询/检测/其他
+enum ServiceContractType {
+  TRANSLATION
+  LEGAL
+  CONSULTING
+  TESTING
+  OTHER
+}
+
+enum ServiceContractStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+model ServiceContract {
+  id          String                   @id @default(cuid())
+  name        String // 合同名称
+  contractor  String // 服务方
+  type        ServiceContractType // TRANSLATION/LEGAL/CONSULTING/TESTING/OTHER
+  amount      Float // 合同金额
+  signingDate DateTime // 签署日期
+  startDate   DateTime? // 生效日期
+  endDate     DateTime? // 结束日期
+  status      ServiceContractStatus    @default(DRAFT)
+  fileUrl     String? // 合同文件URL
+  isDeleted   Boolean                  @default(false)
+  deletedAt   DateTime?
+  remark      String? // 备注
+  applicantId String // 申请人
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  applicant   User                     @relation(fields: [applicantId], references: [id])
+  payments    ServiceContractPayment[]
+  trademarks  Trademark[] // 关联的商标申请
+  patents     Patent[] // 关联的专利申请
+
+  @@map("service_contracts")
+}
+
+model ServiceContractPayment {
+  id          String          @id @default(cuid())
+  contractId  String
+  amount      Float // 本次支付金额
+  paymentDate DateTime // 支付日期
+  method      String? // BANK_TRANSFER / ALIPAY / WECHAT / CASH / CHECK
+  remark      String? // 备注
+  createdAt   DateTime        @default(now())
+  contract    ServiceContract @relation(fields: [contractId], references: [id])
+
+  @@map("service_contract_payments")
+}
+
+/// 业务流程节点 — 记录每个业务阶段的进度、文件、完成时间
+/// 多态关联（entityType+entityId），不设外键约束
+model ProcessMilestone {
+  id          String    @id @default(cuid())
+  entityType  String // 'Trademark' / 'Patent' / 'ServiceContract' / 'ProductDesign'
+  entityId    String
+  stage       String // 节点标识
+  label       String // 节点显示名
+  status      String // PENDING / IN_PROGRESS / COMPLETED / SKIPPED / FAILED
+  completedAt DateTime?
+  remark      String? // 备注
+  fileUrls    Json? // 关联文件URL列表
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@unique([entityType, entityId, stage])
+  @@index([entityType, entityId])
+  @@map("process_milestones")
+}
+
+model TradeSecret {
+  id        String           @id @default(cuid())
+  title     String
+  content   String // Base64 encrypted
+  summary   String?
+  level     TradeSecretLevel @default(CONFIDENTIAL)
+  createdBy String
+  creator   User             @relation(fields: [createdBy], references: [id])
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?
+  isDeleted Boolean          @default(false)
+
+  @@map("trade_secrets")
+}
+
+// 统一文件系统 - 通用文件存储，支持所有实体类型的附件上传
+model File {
+  id           String    @id @default(cuid())
+  name         String
+  originalName String
+  url          String
+  mimeType     String
+  size         Int
+  entityType   String // 'Trademark','Patent','Registration','Supplier','SupplierAudit','IncomingInspection','RawMaterial','OEMContract','ProductDesign'
+  entityId     String
+  fileType     String? // 'COA','MSDS','TDS','LICENSE','NDA','REPORT','CERT','LABEL','PACKAGING','DESIGN' 等
+  expireDate   DateTime?
+  uploadedBy   String?
+  remark       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  isDeleted    Boolean   @default(false)
+
+  @@index([entityType, entityId])
+  @@index([fileType])
+  @@map("files")
+}
+
+enum Role {
+  CEO
+  RND_MANAGER
+  DEVELOPER
+  COMPLIANCE
+  PURCHASER
+  FINANCE
+  PRODUCTION
+  OBSERVER
+}
+
+enum UserStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  DISABLED
+}
+
+enum TrademarkType {
+  WORD
+  FIGURE
+  COMBINED
+}
+
+enum TrademarkStatus {
+  DRAFT
+  FILING
+  ACCEPTED
+  PUBLISHED
+  OPPOSITION
+  REGISTERED
+  RENEWING
+  EXPIRED
+  REJECTED
+}
+
+enum PatentType {
+  INVENTION
+  UTILITY
+  DESIGN
+}
+
+enum PatentStatus {
+  DRAFT
+  FILING
+  ACCEPTED
+  SUBSTANTIVE
+  AUTHORIZED
+  MAINTENANCE
+  EXPIRED
+  REJECTED
+}
+
+enum RecordStatus {
+  UNRECORDED
+  RECORDING
+  RECORDED
+  EXPIRED
+}
+
+enum BatchStatus {
+  QUARANTINE
+  IN_STOCK
+  USED
+  RETURNED
+  EXPIRED
+  OUT_OF_STOCK
+  DAMAGED
+}
+
+enum FormulaStatus {
+  DEVELOPING
+  SAMPLING
+  TESTING
+  STABILIZED
+  DISCONTINUED
+}
+
+enum ProductStatus {
+  CONCEPT
+  DESIGNING
+  SAMPLING
+  TESTING
+  REGISTERING
+  READY
+  LAUNCHED
+  DISCONTINUED
+}
+
+enum RegistrationStatus {
+  APPLYING
+  SUPPLEMENT
+  REGISTERED
+  CHANGE
+  CANCELLED
+}
+
+/// InspectionType 检测类型
+/// EFFICACY  — 功效测评（如保湿、美白、抗皱等功效验证）
+/// CHALLENGE — 防腐挑战（微生物挑战测试，评价防腐体系有效性）
+/// STABILITY — 稳定性（加速老化、冷热循环等稳定性考察）
+enum InspectionType {
+  MICROBIAL
+  PHYSICAL
+  STABILITY
+  SAFETY
+  EFFICACY
+  CHALLENGE
+  PACKAGING
+}
+
+enum CertStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum InspectionResult {
+  PENDING
+  PASS
+  FAIL
+}
+
+enum InspectionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum SupplierType {
+  RAW_MATERIAL
+  PACKAGING
+  OEM
+  TESTING
+  CERTIFICATION_BODY
+  OTHER
+}
+
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum PurchaseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ORDERED
+  RECEIVED
+  REIMBURSED
+}
+
+enum Urgency {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum ApprovalAction {
+  PENDING
+  APPROVED
+  REJECTED
+  RETURNED
+}
+
+enum SampleStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum PatentFeeStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum TradeSecretLevel {
+  TOP_SECRET // 绝密 - only CEO
+  CONFIDENTIAL // 机密 - CEO + RND_MANAGER
+  INTERNAL // 内部 - CEO + RND_MANAGER + DEVELOPER
+}
+
+enum SupplierDocType {
+  BUSINESS_LICENSE
+  PRODUCTION_LICENSE
+  CERTIFICATION
+  NDA
+  QUALITY_AGREEMENT
+  COA
+  MSDS
+  TDS
+  GMP
+  ISO22716
+  CMA
+  CNAS
+  CERT_SCOPE
+  AUTH_CERT
+  OTHER
+}
+
+enum DocStatus {
+  VALID
+  EXPIRING
+  EXPIRED
+}
+
+enum AuditResult {
+  PASS
+  CONDITIONAL
+  FAIL
+}
+
+/// ReimbursementStatus - 报销状态
+/// DRAFT            — 草稿
+/// PENDING_APPROVAL — 待审批
+/// APPROVED         — 已通过
+/// REJECTED         — 已驳回
+enum ReimbursementStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+/// IQCResult - 来料检验结果
+/// PENDING    — 待检
+/// PASS       — 通过
+/// CONDITIONAL — 让步接收
+/// FAIL       — 不合格
+enum IQCResult {
+  PENDING
+  PASS
+  CONDITIONAL
+  FAIL
+}
+
+/// Disposition - 不合格品处置方式
+enum Disposition {
+  USE_AS_IS
+  RETURN
+  SCRAP
+}
+
+// ── 成本核算与定价 ──
+
+/// CostingStatus - 成本核算状态
+/// DRAFT — 草稿（可编辑）
+/// FINAL — 已定稿（不可编辑）
+enum CostingStatus {
+  DRAFT
+  FINAL
+}
+
+/// ProductCosting — 产品成本核算
+/// 记录每批次产品的完整成本结构和建议定价
+model ProductCosting {
+  id               String        @id @default(cuid())
+  productDesignId  String
+  version          Int           @default(1) // 版本号，每次核算自动递增
+  costingDate      DateTime      @default(now()) // 核算日期
+  rawMaterialCost  Float         @default(0) // 原料成本（自动计算或手动填写）
+  packagingCost    Float         @default(0) // 包材成本
+  oemFee           Float         @default(0) // 代工费
+  testingFee       Float         @default(0) // 检测费
+  certificationFee Float         @default(0) // 备案/认证费
+  otherCost        Float         @default(0) // 其他费用
+  totalCost        Float         @default(0) // 总成本 = 原料+包材+代工+检测+认证+其他
+  outputQty        Int           @default(0) // 产出数量（每批次）
+  unitCost         Float         @default(0) // 单件成本 (totalCost / outputQty)
+  targetMargin     Float?        @default(0) // 目标毛利率(%)
+  suggestedPrice   Float         @default(0) // 建议零售价（自动 = unitCost / (1 - targetMargin/100)）
+  actualPrice      Float? // 实际售价
+  status           CostingStatus @default(DRAFT)
+  remark           String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  product          ProductDesign @relation(fields: [productDesignId], references: [id], onDelete: Cascade)
+
+  @@unique([productDesignId, version])
+  @@map("product_costings")
+}
+
+/// PriceHistory — 售价变更记录
+model PriceHistory {
+  id              String        @id @default(cuid())
+  productDesignId String
+  price           Float // 售价
+  effectiveDate   DateTime // 生效日期
+  channel         String? // 渠道（如 天猫/Amazon/小红书）
+  reason          String? // 变更原因
+  createdAt       DateTime      @default(now())
+  product         ProductDesign @relation(fields: [productDesignId], references: [id], onDelete: Cascade)
+
+  @@map("price_histories")
+}
+
+// ── 分销管理 ──
+
+enum ChannelType {
+  PLATFORM
+  DISTRIBUTOR
+  RETAILER
+  OFFLINE
+  OTHER
+}
+
+enum ChannelStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPING
+  DELIVERED
+  CANCELLED
+}
+
+model DistributionChannel {
+  id             String        @id @default(cuid())
+  name           String // 渠道名称，如 "天猫旗舰店"、"抖音小店"、"Amazon US"、"小红书店铺"、"线下经销商"
+  type           ChannelType // PLATFORM/DISTRIBUTOR/RETAILER/OFFLINE/OTHER
+  contact        String? // 联系人
+  phone          String? // 联系电话
+  commissionRate Float? // 佣金比例 %
+  status         ChannelStatus @default(ACTIVE)
+  remark         String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  orders         SalesOrder[]
+
+  @@map("distribution_channels")
+}
+
+model SalesOrder {
+  id             String              @id @default(cuid())
+  orderNo        String              @unique // 订单号，自动生成
+  channelId      String
+  productId      String? // 关联产品
+  productName    String // 产品名称（冗余方便显示）
+  quantity       Int
+  unitPrice      Float // 单价
+  totalAmount    Float // 总金额
+  orderDate      DateTime
+  status         OrderStatus         @default(PENDING)
+  trackingNo     String? // 物流单号
+  remark         String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  channel        DistributionChannel @relation(fields: [channelId], references: [id])
+  shippingOrders ShippingOrder[]
+
+  @@map("sales_orders")
+}
+
+enum ShippingStatus {
+  PENDING
+  PICKING
+  PACKED
+  SHIPPED
+  DELIVERED
+  RETURNED
+}
+
+model ShippingOrder {
+  id                String         @id @default(cuid())
+  salesOrderId      String
+  shippingNo        String         @unique // 运单号，自动生成 SO-{date}-{seq}
+  logisticsProvider String? // 物流商名称
+  trackingNo        String? // 物流单号
+  shippingDate      DateTime? // 发货日期
+  estimatedDays     Int? // 预计运输天数
+  deliveredDate     DateTime? // 签收日期
+  status            ShippingStatus @default(PENDING)
+  totalPackage      Int? // 总件数
+  weight            Float? // 重量(kg)
+  volume            Float? // 体积(m³)
+  shippingCost      Float? // 运费
+  remark            String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  salesOrder        SalesOrder     @relation(fields: [salesOrderId], references: [id])
+
+  @@map("shipping_orders")
+}
+
+model LogisticsProvider {
+  id        String   @id @default(cuid())
+  name      String // 物流商名称
+  contact   String? // 联系人
+  phone     String? // 电话
+  regions   Json? // 服务区域（Json数组）
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("logistics_providers")
+}
+
+/// 收货地址 — 管理常用收货地址（仓库地址、办公地址等）
+model ShippingAddress {
+  id        String   @id @default(cuid())
+  label     String   // 地址标签，如"仓库地址""办公地址"
+  receiver  String   // 收货人
+  phone     String   // 联系电话
+  province  String   // 省份
+  city      String   // 城市
+  district  String   // 区/县
+  detail    String   // 详细地址
+  isDefault Boolean  @default(false) // 是否默认地址
+  remark    String?  // 备注
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("shipping_addresses")
+}
+
+/// 仓位区域 — 仓库的区域划分
+model WarehouseZone {
+  id          String   @id @default(cuid())
+  name        String   // 区域名称，如"A区""常温库""冷藏库"
+  description String?  // 区域描述
+  remark      String?  // 备注
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  locations   WarehouseLocation[]
+
+  @@map("warehouse_zones")
+}
+
+/// 仓位 — 区域下的具体仓位
+model WarehouseLocation {
+  id          String        @id @default(cuid())
+  zoneId      String
+  code        String        // 仓位编码，如"A-01""A-02"
+  description String?       // 仓位描述
+  isOccupied  Boolean       @default(false) // 是否被占用
+  remark      String?       // 备注
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  zone        WarehouseZone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  @@unique([zoneId, code])
+  @@map("warehouse_locations")
+}

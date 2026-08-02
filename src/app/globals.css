@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg: #f8fafc;
+    --color-navbar: #ffffff;
+    --color-sidebar: #ffffff;
+    --color-card: #ffffff;
+    --color-border: #e2e8f0;
+    --color-text: #1e293b;
+    --color-text-secondary: #64748b;
+    --color-primary: #059669;
+    --color-primary-light: #d1fae5;
+    --color-primary-dark: #065f46;
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
+    --color-success: #10b981;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #0f172a;
+      --color-navbar: #1e293b;
+      --color-sidebar: #1e293b;
+      --color-card: #1e293b;
+      --color-border: #334155;
+      --color-text: #f1f5f9;
+      --color-text-secondary: #94a3b8;
+      --color-primary: #34d399;
+      --color-primary-light: #064e3b;
+      --color-primary-dark: #6ee7b7;
+    }
+  }
+
+  .dark {
+    --color-bg: #0f172a;
+    --color-navbar: #1e293b;
+    --color-sidebar: #1e293b;
+    --color-card: #1e293b;
+    --color-border: #334155;
+    --color-text: #f1f5f9;
+    --color-text-secondary: #94a3b8;
+    --color-primary: #34d399;
+    --color-primary-light: #064e3b;
+    --color-primary-dark: #6ee7b7;
+  }
+
+  /* 定制滚动条 */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  .dark ::-webkit-scrollbar-thumb { background: #475569; }
+  .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+  .sidebar-transition { transition: width 0.3s ease-in-out; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.25s ease-out; }
+
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 0.375rem; }
+  .dark .skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; }
+
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 1rem; text-align: center; }
+  .empty-state-icon { width: 3rem; height: 3rem; color: #cbd5e1; margin-bottom: 0.75rem; }
+  .dark .empty-state-icon { color: #475569; }
+  .empty-state-title { font-size: 0.875rem; color: #94a3b8; margin-bottom: 0.25rem; }
+  .empty-state-desc { font-size: 0.75rem; color: #cbd5e1; }
+}

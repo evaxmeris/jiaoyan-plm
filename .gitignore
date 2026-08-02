@@ -1,0 +1,108 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+
+# production
+build/
+
+# env
+.env
+.env*.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# bun
+bun.lock
+
+# ts build info
+*.tsbuildinfo
+
+# Cross-project dirs (NOT part of PLM)
+claw-code/
+jiaoyan-feedback/
+trade-erp/
+
+# CLAWD/Hermes config
+.agents/
+.claw/
+.claude/
+.windsurf/
+.hermes/
+.openclaw/
+.learnings/
+skills/
+skills-lock.json
+
+# Other non-PLM stuff
+config/
+configs/
+data/
+docs/
+memo/
+memory/
+workspace/
+knowledge-base/
+logs/
+.venv/
+.env.alibaba
+.env.alibaba.example
+cookies.txt
+DREAMS.md
+RBAC_ACCEPTANCE_REPORT.md
+BOOTSTRAP.md
+TOOLS.md
+MEMORY.md
+
+# Other non-PLM dirs at root
+notes/
+notifications/
+open-design/
+postiz/
+sheglam-clone/
+storefront/
+v2rayu-cli/
+website-cloner/
+tests/
+test-coding-plan.sh
+multi-agent-config-example.json
+投研团队/
+investment-research/
+scripts/CONFIG_CHANGE_CHECKLIST.md
+scripts/alibaba*
+scripts/stock-*
+scripts/vnpy*
+scripts/dingtalk*
+scripts/cron*
+scripts/send-*
+scripts/fix-*
+scripts/convert-*
+scripts/create_*
+scripts/extract_*
+scripts/generate_*
+scripts/memory*
+scripts/*check*
+scripts/*test*
+
+# PLM review docs (not source code)
+reviews/
+review-*.json
+审查报告*
