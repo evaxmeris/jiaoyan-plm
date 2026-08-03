@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { User, Mail, Shield, Building2, Lock, Save, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 // 角色中文名
 const ROLE_LABELS: Record<string, string> = {
@@ -66,7 +67,7 @@ export default function ProfilePage() {
 
   async function loadProfile() {
     try {
-      const res = await fetch('/api/profile')
+      const res = await apiFetch('/api/profile')
       if (!res.ok) {
         if (res.status === 401) {
           router.push('/login')
@@ -97,7 +98,7 @@ export default function ProfilePage() {
     setNameMessage(null)
 
     try {
-      const res = await fetch('/api/profile', {
+      const res = await apiFetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim() }),
@@ -143,7 +144,7 @@ export default function ProfilePage() {
     setSavingPassword(true)
 
     try {
-      const res = await fetch('/api/profile/password', {
+      const res = await apiFetch('/api/profile/password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldPassword, newPassword }),

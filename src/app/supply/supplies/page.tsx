@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const CATEGORIES = [
   { value: 'LAB_SUPPLIES', label: '实验用品', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
@@ -41,14 +42,14 @@ export default function SuppliesPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/supply/supplies?q=${search}`)
+    const res = await apiFetch(`/api/supply/supplies?q=${search}`)
     const data = await res.json()
     if (!res.ok) { showToast('error', data.error || '加载失败'); setLoading(false); return }
     setSupplies(data.data || data.supplies || [])
     setLoading(false)
   }, [search, showToast])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const openCreate = () => {
     setEditingId(null)
@@ -74,7 +75,7 @@ export default function SuppliesPage() {
     const url = editingId ? `/api/supply/supplies/${editingId}` : '/api/supply/supplies'
     const method = editingId ? 'PUT' : 'POST'
     const body = editingId ? { ...form } : form
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -96,7 +97,7 @@ export default function SuppliesPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/supply/supplies/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/supply/supplies/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -110,7 +111,7 @@ export default function SuppliesPage() {
   // 入库弹窗
   const openStockIn = async (supplyId?: string) => {
     // 加载全部物资供选择
-    const res = await fetch('/api/supply/supplies?q=')
+    const res = await apiFetch('/api/supply/supplies?q=')
     const data = await res.json()
     setSuppliesForSelect(data.data || data.supplies || [])
     setStockInForm({
@@ -126,7 +127,7 @@ export default function SuppliesPage() {
       showToast('error', '请选择物资并填写批次号和数量')
       return
     }
-    const res = await fetch('/api/supply/batches', {
+    const res = await apiFetch('/api/supply/batches', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(stockInForm),

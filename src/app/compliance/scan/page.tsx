@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MARKET_OPTIONS, MARKET_LABELS, DEFAULT_MARKET, type Market } from '@/lib/validation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface Regulation {
   id: string
@@ -41,7 +42,7 @@ export default function ComplianceScanPage() {
     try {
       const params = new URLSearchParams({ search: q })
       if (market) params.set('market', market)
-      const res = await fetch(`/api/compliance/ingredient-regulations?${params.toString()}`)
+      const res = await apiFetch(`/api/compliance/ingredient-regulations?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
         setResults(data.ingredientRegulations || [])

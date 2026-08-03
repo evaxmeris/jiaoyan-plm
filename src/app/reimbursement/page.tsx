@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: '草稿',
@@ -43,7 +44,7 @@ export default function ReimbursementPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/reimbursement')
+    const res = await apiFetch('/api/reimbursement')
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '加载失败')
@@ -63,7 +64,7 @@ export default function ReimbursementPage() {
   // 加载用户列表
   const loadUsers = async () => {
     try {
-      const res = await fetch('/api/users')
+      const res = await apiFetch('/api/users')
       const data = await res.json()
       setUsers(data.data?.users || data.users || [])
     } catch {}
@@ -71,7 +72,7 @@ export default function ReimbursementPage() {
 
   const loadPurchaseApps = async () => {
     try {
-      const res = await fetch('/api/purchase/applications?status=RECEIVED')
+      const res = await apiFetch('/api/purchase/applications?status=RECEIVED')
       if (res.ok) {
         const data = await res.json()
         setPurchaseApps(data.data?.applications || data.applications || [])
@@ -127,7 +128,7 @@ export default function ReimbursementPage() {
       body.purchaseApplicationId = form.purchaseApplicationId
     }
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -144,7 +145,7 @@ export default function ReimbursementPage() {
   }
 
   const handleStatusChange = async (id: string, status: string) => {
-    const res = await fetch(`/api/reimbursement/${id}`, {
+    const res = await apiFetch(`/api/reimbursement/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -164,7 +165,7 @@ export default function ReimbursementPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/reimbursement/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/reimbursement/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')

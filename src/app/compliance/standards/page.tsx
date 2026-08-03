@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const MARKET_LABELS: Record<string, string> = {
   CHINA: '🇨🇳 中国', EU: '🇪🇺 EU', US: '🇺🇸 美国',
@@ -40,7 +41,7 @@ export default function ComplianceStandardsPage() {
       if (marketFilter) params.set('market', marketFilter)
       if (search) params.set('search', search)
       const qs = params.toString()
-      const res = await fetch(`/api/compliance/standards${qs ? `?${qs}` : ''}`)
+      const res = await apiFetch(`/api/compliance/standards${qs ? `?${qs}` : ''}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '加载失败')
       setItems(data.data || data.complianceStandards || [])
@@ -52,7 +53,7 @@ export default function ComplianceStandardsPage() {
     }
   }, [marketFilter, search, showToast])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const openCreate = () => {
     setEditingId(null)
@@ -79,7 +80,7 @@ export default function ComplianceStandardsPage() {
     }
     const url = editingId ? `/api/compliance/standards/${editingId}` : '/api/compliance/standards'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -98,7 +99,7 @@ export default function ComplianceStandardsPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/compliance/standards/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/compliance/standards/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')

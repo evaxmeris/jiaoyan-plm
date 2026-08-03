@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface Backup {
   id: string
@@ -23,7 +24,7 @@ export default function BackupPage() {
   const fetchBackups = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/settings/backup')
+      const res = await apiFetch('/api/settings/backup')
       const data = await res.json()
       setBackups(data.backups || [])
     } catch {
@@ -32,12 +33,12 @@ export default function BackupPage() {
     setLoading(false)
   }, [showToast])
 
-  useEffect(() => { fetchBackups() }, [fetchBackups])
+  useEffect(() => { fetchBackups().catch(() => {}) }, [fetchBackups])
 
   const handleCreate = async () => {
     setCreating(true)
     try {
-      const res = await fetch('/api/settings/backup', { method: 'POST' })
+      const res = await apiFetch('/api/settings/backup', { method: 'POST' })
       const data = await res.json()
       if (data.success) {
         showToast('success', '备份创建成功')
@@ -61,7 +62,7 @@ export default function BackupPage() {
   const handleDelete = async (id: string) => {
     if (!confirm(`确定要删除备份 ${id} 吗？`)) return
     try {
-      const res = await fetch(`/api/settings/backup/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/api/settings/backup/${id}`, { method: 'DELETE' })
       if (res.ok) {
         showToast('success', '备份已删除')
         fetchBackups()

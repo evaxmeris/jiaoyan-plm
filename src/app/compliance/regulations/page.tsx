@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Pagination from '@/components/Pagination'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const PAGE_SIZE = 20
 
@@ -125,13 +126,13 @@ export default function RegulationsPage() {
       params.set('page', String(page))
       params.set('limit', String(PAGE_SIZE))
 
-      const res = await fetch(`/api/compliance/ingredient-regulations?${params}`)
+      const res = await apiFetch(`/api/compliance/ingredient-regulations?${params}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '加载法规失败')
       setRegulations(data.ingredientRegulations || [])
       setTotalPages(data.pagination?.totalPages || 1)
     } catch (e: any) {
-      showToast('error', e.message || '加载失败')
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '加载失败')
     } finally {
       setLoading(false)
     }
@@ -139,18 +140,18 @@ export default function RegulationsPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch('/api/compliance/ingredient-regulations?limit=1')
+      const res = await apiFetch('/api/compliance/ingredient-regulations?limit=1')
       const data = await res.json()
       if (data.pagination) {
         setStats(prev => ({ ...prev, total: data.pagination.total }))
       }
       // 获取各类别的统计数据
       const [prohibited, restricted, allowed, chinese, eu] = await Promise.all([
-        fetch('/api/compliance/ingredient-regulations?regulationType=PROHIBITED&limit=1').then(r => r.json()),
-        fetch('/api/compliance/ingredient-regulations?regulationType=RESTRICTED&limit=1').then(r => r.json()),
-        fetch('/api/compliance/ingredient-regulations?regulationType=ALLOWED&limit=1').then(r => r.json()),
-        fetch('/api/compliance/ingredient-regulations?market=CHINA&limit=1').then(r => r.json()),
-        fetch('/api/compliance/ingredient-regulations?market=EU&limit=1').then(r => r.json()),
+        apiFetch('/api/compliance/ingredient-regulations?regulationType=PROHIBITED&limit=1').then(r => r.json()),
+        apiFetch('/api/compliance/ingredient-regulations?regulationType=RESTRICTED&limit=1').then(r => r.json()),
+        apiFetch('/api/compliance/ingredient-regulations?regulationType=ALLOWED&limit=1').then(r => r.json()),
+        apiFetch('/api/compliance/ingredient-regulations?market=CHINA&limit=1').then(r => r.json()),
+        apiFetch('/api/compliance/ingredient-regulations?market=EU&limit=1').then(r => r.json()),
       ])
       setStats({
         total: data.pagination?.total || 0,
@@ -163,8 +164,8 @@ export default function RegulationsPage() {
     } catch {}
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
-  useEffect(() => { fetchStats() }, [])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
+  useEffect(() => { fetchStats().catch(() => {}) }, [])
   useEffect(() => { setPage(1) }, [search, marketFilter, typeFilter, functionFilter])
 
   const openCreate = () => {
@@ -228,7 +229,7 @@ export default function RegulationsPage() {
         : '/api/compliance/ingredient-regulations'
       const method = editingId ? 'PUT' : 'POST'
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -242,7 +243,7 @@ export default function RegulationsPage() {
       fetchData()
       fetchStats()
     } catch (e: any) {
-      showToast('error', e.message || '保存失败')
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '保存失败')
     } finally {
       setSaving(false)
     }
@@ -256,7 +257,7 @@ export default function RegulationsPage() {
     if (!confirmDeleteId) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/compliance/ingredient-regulations/${confirmDeleteId}`, { method: 'DELETE' })
+      const res = await apiFetch(`/api/compliance/ingredient-regulations/${confirmDeleteId}`, { method: 'DELETE' })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || '删除失败')
@@ -266,7 +267,7 @@ export default function RegulationsPage() {
       fetchData()
       fetchStats()
     } catch (e: any) {
-      showToast('error', e.message || '删除失败')
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '删除失败')
     } finally {
       setDeleting(false)
     }
@@ -279,7 +280,7 @@ export default function RegulationsPage() {
       if (marketFilter) params.set('market', marketFilter)
       if (typeFilter) params.set('regulationType', typeFilter)
 
-      const res = await fetch(`/api/compliance/ingredient-regulations/export?${params}`)
+      const res = await apiFetch(`/api/compliance/ingredient-regulations/export?${params}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '导出失败')
 
@@ -292,7 +293,7 @@ export default function RegulationsPage() {
       URL.revokeObjectURL(url)
       showToast('success', `已导出 ${data.exportInfo?.totalCount || 0} 条记录`)
     } catch (e: any) {
-      showToast('error', e.message || '导出失败')
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '导出失败')
     }
   }
 
@@ -323,7 +324,7 @@ export default function RegulationsPage() {
         }
       }
 
-      const res = await fetch('/api/compliance/ingredient-regulations/batch-import', {
+      const res = await apiFetch('/api/compliance/ingredient-regulations/batch-import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ records }),
@@ -336,7 +337,7 @@ export default function RegulationsPage() {
       fetchData()
       fetchStats()
     } catch (e: any) {
-      showToast('error', e.message || '导入失败')
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '导入失败')
     } finally {
       setImporting(false)
       // 重置 input 以允许重复选择同一文件

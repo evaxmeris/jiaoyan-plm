@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface WarehouseZone {
   id: string
@@ -49,7 +50,7 @@ export default function WarehousePage() {
 
   const fetchZones = useCallback(async () => {
     setLoadingZones(true)
-    const res = await fetch('/api/logistics/warehouses/zones', { credentials: 'include' })
+    const res = await apiFetch('/api/logistics/warehouses/zones', { credentials: 'include' })
     const data = await res.json()
     if (res.ok) setZones(data.data || [])
     setLoadingZones(false)
@@ -58,7 +59,7 @@ export default function WarehousePage() {
   const fetchLocations = useCallback(async (zoneId?: string) => {
     setLoadingLocations(true)
     const params = zoneId ? `?zoneId=${zoneId}` : ''
-    const res = await fetch(`/api/logistics/warehouses/locations${params}`, { credentials: 'include' })
+    const res = await apiFetch(`/api/logistics/warehouses/locations${params}`, { credentials: 'include' })
     const data = await res.json()
     if (res.ok) setLocations(data.data || [])
     setLoadingLocations(false)
@@ -92,7 +93,7 @@ export default function WarehousePage() {
     const url = '/api/logistics/warehouses/zones'
     const method = zoneForm.id ? 'PUT' : 'POST'
     const body = zoneForm.id ? zoneForm : { name: zoneForm.name, description: zoneForm.description, remark: zoneForm.remark }
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -111,7 +112,7 @@ export default function WarehousePage() {
 
   const confirmDeleteZone = async () => {
     if (!deleteZoneId) return
-    const res = await fetch(`/api/logistics/warehouses/zones?id=${deleteZoneId}`, { method: 'DELETE', credentials: 'include' })
+    const res = await apiFetch(`/api/logistics/warehouses/zones?id=${deleteZoneId}`, { method: 'DELETE', credentials: 'include' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -149,7 +150,7 @@ export default function WarehousePage() {
     }
     const url = '/api/logistics/warehouses/locations'
     const method = locationForm.id ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(locationForm),
@@ -169,7 +170,7 @@ export default function WarehousePage() {
 
   const confirmDeleteLocation = async () => {
     if (!deleteLocationId) return
-    const res = await fetch(`/api/logistics/warehouses/locations?id=${deleteLocationId}`, { method: 'DELETE', credentials: 'include' })
+    const res = await apiFetch(`/api/logistics/warehouses/locations?id=${deleteLocationId}`, { method: 'DELETE', credentials: 'include' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -182,7 +183,7 @@ export default function WarehousePage() {
   }
 
   const handleToggleOccupied = async (l: WarehouseLocation) => {
-    const res = await fetch('/api/logistics/warehouses/locations', {
+    const res = await apiFetch('/api/logistics/warehouses/locations', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: l.id, isOccupied: !l.isOccupied }),

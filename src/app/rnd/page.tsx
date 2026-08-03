@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface SampleTask {
   id: string
@@ -36,14 +37,14 @@ export default function RndPage() {
   const { showToast } = useToast()
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    apiFetch('/api/auth/me')
       .then(r => r.json())
       .then(d => d.user ? setUser(d.user) : router.push('/login'))
       .catch(() => router.push('/login'))
   }, [router])
 
   const fetchSamples = async () => {
-    const res = await fetch('/api/rnd/samples')
+    const res = await apiFetch('/api/rnd/samples')
     if (res.ok) {
       const data = await res.json()
       setSamples(data.data || data.samples || [])
@@ -51,7 +52,7 @@ export default function RndPage() {
   }
 
   const fetchProducts = async () => {
-    const res = await fetch('/api/rnd/products')
+    const res = await apiFetch('/api/rnd/products')
     if (res.ok) {
       const data = await res.json()
       setProducts((data.data || data.products || []).map((p: any) => ({ id: p.id, name: p.name })))
@@ -96,7 +97,7 @@ export default function RndPage() {
       return
     }
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -120,7 +121,7 @@ export default function RndPage() {
 
   const handleSampleDelete = async (id: string) => {
     setConfirmDeleteSample(id)
-    const res = await fetch(`/api/rnd/samples/${id}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/rnd/samples/${id}`, { method: 'DELETE' })
     if (res.ok) {
       fetchSamples()
     }

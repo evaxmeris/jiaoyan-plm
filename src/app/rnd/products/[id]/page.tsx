@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface ProductDesign {
   id: string
@@ -181,12 +182,12 @@ export default function ProductDetailPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     const [pRes, cRes, mRes, fRes, prRes, crRes] = await Promise.all([
-      fetch(`/api/rnd/products/${id}`),
-      fetch(`/api/rnd/products/${id}/certifications`),
-      fetch(`/api/rnd/products/${id}/milestones`),
-      fetch(`/api/files?entityType=ProductDesign&entityId=${id}`),
-      fetch(`/api/rnd/products/${id}/pilot-runs`),
-      fetch(`/api/rnd/costing?productId=${id}`),
+      apiFetch(`/api/rnd/products/${id}`),
+      apiFetch(`/api/rnd/products/${id}/certifications`),
+      apiFetch(`/api/rnd/products/${id}/milestones`),
+      apiFetch(`/api/files?entityType=ProductDesign&entityId=${id}`),
+      apiFetch(`/api/rnd/products/${id}/pilot-runs`),
+      apiFetch(`/api/rnd/costing?productId=${id}`),
     ])
     const p = await pRes.json()
     if (pRes.ok) setProduct(p.product)
@@ -213,7 +214,7 @@ export default function ProductDetailPage() {
     setLoading(false)
   }, [id])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   // 认证 CRUD
   const submitCertForm = async () => {
@@ -222,7 +223,7 @@ export default function ProductDetailPage() {
       : `/api/rnd/products/${id}/certifications`
     const method = editCertId ? 'PUT' : 'POST'
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(certForm),
@@ -256,14 +257,14 @@ export default function ProductDetailPage() {
 
   const deleteCert = async (certId: string) => {
     if (!confirm('确定删除该认证记录？')) return
-    const res = await fetch(`/api/rnd/products/${id}/certifications?certId=${certId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/rnd/products/${id}/certifications?certId=${certId}`, { method: 'DELETE' })
     if (res.ok) fetchData()
   }
 
   // 里程碑
   const submitMilestone = async () => {
     const m = milestones.find((m) => m.stage === milestoneStage)
-    const res = await fetch(`/api/rnd/products/${id}/milestones`, {
+    const res = await apiFetch(`/api/rnd/products/${id}/milestones`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -292,7 +293,7 @@ export default function ProductDetailPage() {
       : `/api/rnd/products/${id}/pilot-runs`
     const method = editPilotRunId ? 'PUT' : 'POST'
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(pilotRunForm),
@@ -325,7 +326,7 @@ export default function ProductDetailPage() {
 
   const deletePilotRun = async (pilotRunId: string) => {
     if (!confirm('确定删除该试产记录？')) return
-    const res = await fetch(`/api/rnd/pilot-runs/${pilotRunId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/rnd/pilot-runs/${pilotRunId}`, { method: 'DELETE' })
     if (res.ok) fetchData()
   }
 

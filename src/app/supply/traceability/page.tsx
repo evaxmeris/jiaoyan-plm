@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 type RawMaterialInfo = {
   id: string; nameCn: string; nameEn?: string; casNo?: string; unit: string; supplier?: string
@@ -98,9 +99,9 @@ export default function TraceabilityPage() {
     setSearchResults(null)
     setSearchMode(false)
     const [bRes, pRes, mRes] = await Promise.all([
-      fetch(`/api/supply/traceability?q=${search}`),
-      fetch('/api/rnd/products'),
-      fetch('/api/rnd/materials?q='),
+      apiFetch(`/api/supply/traceability?q=${search}`),
+      apiFetch('/api/rnd/products'),
+      apiFetch('/api/rnd/materials?q='),
     ])
     const bData = await bRes.json()
     if (!bRes.ok) throw new Error(bData.error || '加载批次失败')
@@ -114,7 +115,7 @@ export default function TraceabilityPage() {
     setLoading(false)
   }, [search])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   // 按关键字搜索（使用新的 search 端点）
   const handleSearch = async () => {
@@ -126,7 +127,7 @@ export default function TraceabilityPage() {
     setSearching(true)
     setSearchMode(true)
     try {
-      const res = await fetch(`/api/supply/traceability/search?keyword=${encodeURIComponent(search.trim())}`)
+      const res = await apiFetch(`/api/supply/traceability/search?keyword=${encodeURIComponent(search.trim())}`)
       if (!res.ok) {
         const err = await res.json()
         alert(err.error || '搜索失败')
@@ -150,7 +151,7 @@ export default function TraceabilityPage() {
   const openDetail = async (id: string) => {
     setDetailLoading(true)
     try {
-      const res = await fetch(`/api/supply/traceability/${id}`)
+      const res = await apiFetch(`/api/supply/traceability/${id}`)
       if (!res.ok) {
         const err = await res.json()
         alert(err.error || '加载详情失败')
@@ -172,7 +173,7 @@ export default function TraceabilityPage() {
         rawMaterialBatchId: i.batchId,
         usagePercentage: i.usagePercentage ? parseFloat(i.usagePercentage) : null,
       }))
-    await fetch('/api/supply/traceability', {
+    await apiFetch('/api/supply/traceability', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, quantity: parseInt(form.quantity) || 0, traceItems: items }),
@@ -192,7 +193,7 @@ export default function TraceabilityPage() {
   const loadBatchesForMaterial = async (materialId: string) => {
     if (!materialId) return
     if (materialBatchesMap[materialId]) return
-    const res = await fetch(`/api/supply/inventory?materialId=${materialId}`)
+    const res = await apiFetch(`/api/supply/inventory?materialId=${materialId}`)
     const data = await res.json()
     const batches = data.items || []
     setMaterialBatchesMap(prev => ({ ...prev, [materialId]: batches }))

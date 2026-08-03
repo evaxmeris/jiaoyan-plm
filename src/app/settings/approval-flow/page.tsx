@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Settings, Plus, Trash2, Save, ArrowUp, ArrowDown, Loader2, CheckCircle2, AlertCircle, List, RotateCcw, User } from 'lucide-react'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface Stage {
   level: number
@@ -80,7 +81,7 @@ export default function ApprovalFlowPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/settings/approval-flow')
+      const res = await apiFetch('/api/settings/approval-flow')
       const json = await res.json()
       setAllFlows(json.flows || [])
       setUsers(json.users || [])
@@ -91,7 +92,7 @@ export default function ApprovalFlowPage() {
     }
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   // 当切换 module 时，加载该模块的流程
   useEffect(() => {
@@ -196,7 +197,7 @@ export default function ApprovalFlowPage() {
     setSaving(true)
     setMessage(null)
     try {
-      const res = await fetch('/api/settings/approval-flow', {
+      const res = await apiFetch('/api/settings/approval-flow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -223,7 +224,7 @@ export default function ApprovalFlowPage() {
   const handleActivateFlow = async (flow: ApprovalFlow) => {
     setSaving(true)
     try {
-      const res = await fetch('/api/settings/approval-flow', {
+      const res = await apiFetch('/api/settings/approval-flow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

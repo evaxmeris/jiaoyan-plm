@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const LEVEL_LABELS: Record<string, string> = { TOP_SECRET: '绝密', CONFIDENTIAL: '机密', INTERNAL: '内部' }
 const LEVEL_COLORS: Record<string, string> = { TOP_SECRET: 'bg-red-100 text-red-700', CONFIDENTIAL: 'bg-orange-100 text-orange-700', INTERNAL: 'bg-blue-100 text-blue-700' }
@@ -18,7 +19,7 @@ export default function TradeSecretDetailPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/assets/trade-secrets/${id}`)
+    const res = await apiFetch(`/api/assets/trade-secrets/${id}`)
     if (!res.ok) { setError('加载失败'); setLoading(false); return }
     const json = await res.json()
     setData(json.secret)
@@ -26,10 +27,10 @@ export default function TradeSecretDetailPage() {
     setLoading(false)
   }, [id])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const handleUpdate = async () => {
-    const res = await fetch(`/api/assets/trade-secrets/${id}`, {
+    const res = await apiFetch(`/api/assets/trade-secrets/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -41,7 +42,7 @@ export default function TradeSecretDetailPage() {
 
   const handleDelete = async () => {
     if (!confirm('确认删除此技术秘密？')) return
-    const res = await fetch(`/api/assets/trade-secrets/${id}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/assets/trade-secrets/${id}`, { method: 'DELETE' })
     if (!res.ok) { setError('删除失败'); return }
     router.push('/assets/trade-secrets')
   }

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface DistributionChannel {
   id: string
@@ -48,7 +49,7 @@ export default function DistributionPage() {
 
   const fetchChannels = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/distribution/channels')
+    const res = await apiFetch('/api/distribution/channels')
     const data = await res.json()
     if (res.ok) {
       setChannels(data.data || data.channels || [])
@@ -58,7 +59,7 @@ export default function DistributionPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch('/api/distribution/orders')
+      const res = await apiFetch('/api/distribution/orders')
       const data = await res.json()
       const orders = data.orders || []
       const now = new Date()
@@ -74,8 +75,8 @@ export default function DistributionPage() {
     } catch { /* ignore */ }
   }, [channels])
 
-  useEffect(() => { fetchChannels() }, [fetchChannels])
-  useEffect(() => { fetchStats() }, [fetchStats])
+  useEffect(() => { fetchChannels().catch(() => {}) }, [fetchChannels])
+  useEffect(() => { fetchStats().catch(() => {}) }, [fetchStats])
 
   const openCreate = () => {
     setEditingId(null)
@@ -103,7 +104,7 @@ export default function DistributionPage() {
       ? `/api/distribution/channels/${editingId}`
       : '/api/distribution/channels'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -120,7 +121,7 @@ export default function DistributionPage() {
   const handleDelete = async (id: string, name: string) => {
     setConfirmDeleteChannel({id, name})
     return
-    const res = await fetch(`/api/distribution/channels/${id}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/distribution/channels/${id}`, { method: 'DELETE' })
     if (res.ok) {
       fetchChannels()
     } else {

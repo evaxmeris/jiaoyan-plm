@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 // ─── 类型定义 ───
 
@@ -108,8 +109,8 @@ export default function CostingPage() {
     const params = new URLSearchParams()
     if (filterProductId) params.set('productId', filterProductId)
     const [cRes, pRes] = await Promise.all([
-      fetch(`/api/rnd/costing?${params}`),
-      fetch('/api/rnd/products'),
+      apiFetch(`/api/rnd/costing?${params}`),
+      apiFetch('/api/rnd/products'),
     ])
     if (cRes.ok) {
       const c = await cRes.json()
@@ -122,7 +123,7 @@ export default function CostingPage() {
     setLoading(false)
   }, [filterProductId])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const openCreate = () => {
     setEditId(null)
@@ -166,7 +167,7 @@ export default function CostingPage() {
     const url = editId ? `/api/rnd/costing/${editId}` : '/api/rnd/costing'
     const method = editId ? 'PUT' : 'POST'
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -183,13 +184,13 @@ export default function CostingPage() {
 
   const deleteCosting = async (id: string) => {
     if (!confirm('确定删除该成本核算？')) return
-    const res = await fetch(`/api/rnd/costing/${id}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/rnd/costing/${id}`, { method: 'DELETE' })
     if (res.ok) fetchData()
   }
 
   const toggleStatus = async (c: ProductCosting) => {
     const newStatus = c.status === 'DRAFT' ? 'FINAL' : 'DRAFT'
-    const res = await fetch(`/api/rnd/costing/${c.id}`, {
+    const res = await apiFetch(`/api/rnd/costing/${c.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
@@ -200,7 +201,7 @@ export default function CostingPage() {
   // 价格历史
   const openPriceHistory = async (costing: ProductCosting) => {
     setPriceHistoryProduct({ id: costing.productDesignId, name: costing.product.name })
-    const res = await fetch(`/api/rnd/price-history?productId=${costing.productDesignId}`)
+    const res = await apiFetch(`/api/rnd/price-history?productId=${costing.productDesignId}`)
     if (res.ok) {
       const d = await res.json()
       setPriceHistories(d.histories)
@@ -210,7 +211,7 @@ export default function CostingPage() {
 
   const submitPriceForm = async () => {
     if (!priceHistoryProduct) return
-    const res = await fetch('/api/rnd/price-history', {
+    const res = await apiFetch('/api/rnd/price-history', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -222,7 +223,7 @@ export default function CostingPage() {
       setShowPriceForm(false)
       setPriceForm({ price: '', effectiveDate: new Date().toISOString().slice(0, 10), channel: '', reason: '' })
       // 刷新价格历史列表
-      const r = await fetch(`/api/rnd/price-history?productId=${priceHistoryProduct.id}`)
+      const r = await apiFetch(`/api/rnd/price-history?productId=${priceHistoryProduct.id}`)
       if (r.ok) {
         const d = await r.json()
         setPriceHistories(d.histories)
@@ -244,7 +245,7 @@ export default function CostingPage() {
     setCalcBatchQty(form.outputQty || '1000')
 
     // 加载所有配方
-    const fRes = await fetch('/api/rnd/formulas')
+    const fRes = await apiFetch('/api/rnd/formulas')
     if (fRes.ok) {
       const d = await fRes.json()
       setAllFormulas(d.data || d.formulas || [])
@@ -257,7 +258,7 @@ export default function CostingPage() {
     setCalcLoading(true)
     setCalcResult(null)
     try {
-      const res = await fetch('/api/rnd/costing/calc-from-formula', {
+      const res = await apiFetch('/api/rnd/costing/calc-from-formula', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

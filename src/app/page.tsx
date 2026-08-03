@@ -9,6 +9,7 @@ import {
   Users, Percent, ArrowRight, ChevronRight, AlertOctagon, Bell,
   BarChart3, TrendingUp, Shield, Calendar, CheckCircle2, Activity,
 } from 'lucide-react'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 /* ───────── 类型定义 ───────── */
 
@@ -121,20 +122,20 @@ export default function DashboardPage() {
   useEffect(() => {
     Promise.all([
       // 统计卡片
-      fetch('/api/dashboard').then(r => r.ok ? r.json() : Promise.reject('Dashboard API error')).catch(() => {
+      apiFetch('/api/dashboard').then(r => r.ok ? r.json() : Promise.reject('Dashboard API error')).catch(() => {
         console.warn('获取仪表盘数据失败')
         return {}
       }),
       // 近期动态
-      fetch('/api/audit-log?limit=50').then(r => r.json()).catch(() => ({ logs: [] })),
+      apiFetch('/api/audit-log?limit=50').then(r => r.json()).catch(() => ({ logs: [] })),
       // 待审批请求
-      fetch('/api/approval-requests?status=PENDING&limit=10').then(r => r.json()).catch(() => ({ data: [] })),
+      apiFetch('/api/approval-requests?status=PENDING&limit=10').then(r => r.json()).catch(() => ({ data: [] })),
       // 商标到期
-      fetch('/api/assets/trademarks').then(r => r.json()).catch(() => ({ trademarks: [] })),
+      apiFetch('/api/assets/trademarks').then(r => r.json()).catch(() => ({ trademarks: [] })),
       // 产品列表（用于阶段分布）
-      fetch('/api/rnd/products').then(r => r.json()).catch(() => ({ products: [] })),
+      apiFetch('/api/rnd/products').then(r => r.json()).catch(() => ({ products: [] })),
       // 备案列表（用于合规状态）
-      fetch('/api/compliance/registrations').then(r => r.json()).catch(() => ({ registrations: [] })),
+      apiFetch('/api/compliance/registrations').then(r => r.json()).catch(() => ({ registrations: [] })),
     ]).then(([dashboardData, auditRes, approvalRes, trademarkRes, productRes, regRes]) => {
       // ── 统计卡片 ──
       const stats = dashboardData.stats || {}
@@ -240,7 +241,7 @@ export default function DashboardPage() {
     }).catch(() => setLoading(false))
 
     // ── 统一预警数据（到期预警区块） ──
-    fetch('/api/alerts').then(r => r.json()).then(data => {
+    apiFetch('/api/alerts').then(r => r.json()).then(data => {
       if (data.alerts) setAlerts(data.alerts)
     }).catch(() => console.warn('获取预警数据失败'))
   }, [])

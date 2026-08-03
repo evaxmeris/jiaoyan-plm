@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import FileUploader from '@/components/FileUploader'
 import ProcessTimeline from '@/components/ProcessTimeline'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const STATUS: Record<string, string> = {
   DRAFT: '草稿', FILING: '已提交申请', ACCEPTED: '已受理',
@@ -51,7 +52,7 @@ export default function TrademarkDetailPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/assets/trademarks/${id}`)
+    const res = await apiFetch(`/api/assets/trademarks/${id}`)
     const json = await res.json()
     setData(json.trademark)
     setAuditLogs(json.auditLogs || [])
@@ -59,11 +60,11 @@ export default function TrademarkDetailPage() {
     setLoading(false)
   }, [id])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   // 获取可选的服务合同列表
   useEffect(() => {
-    fetch('/api/service-contracts?limit=100')
+    apiFetch('/api/service-contracts?limit=100')
       .then(r => r.json())
       .then(d => setContracts(d.contracts || []))
       .catch(() => {})
@@ -104,7 +105,7 @@ export default function TrademarkDetailPage() {
       if (payload[k] === '') payload[k] = null
     }
     if (payload.fee) payload.fee = parseFloat(payload.fee)
-    await fetch(`/api/assets/trademarks/${id}`, {
+    await apiFetch(`/api/assets/trademarks/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -117,7 +118,7 @@ export default function TrademarkDetailPage() {
   const handleStatusChange = async (newStatus: string) => {
     if (!confirm(`确认将状态从「${STATUS[data.status]}」变更为「${STATUS[newStatus]}」？`)) return
     setSaving(true)
-    await fetch(`/api/assets/trademarks/${id}`, {
+    await apiFetch(`/api/assets/trademarks/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),

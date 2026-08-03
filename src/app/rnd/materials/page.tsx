@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import Pagination from '@/components/Pagination'
 import PageHeader from '@/components/PageHeader'
 import { useList, useCreate, useUpdate, useDelete } from '@/lib/api-hooks'
+import { apiFetch } from '@/lib/api-client'
 
 interface RawMaterial {
   id: string
@@ -48,14 +49,22 @@ export default function MaterialsPage() {
     onSuccess: () => { fetchMaterials(); showToast('success', '创建成功') },
     onError: (err) => showToast('error', err),
   })
-  const { update } = useUpdate('/api/rnd/materials', {
-    onSuccess: () => { fetchMaterials(); showToast('success', '更新成功') },
-    onError: (err) => showToast('error', err),
-  })
   const { remove } = useDelete('/api/rnd/materials', {
     onSuccess: () => { fetchMaterials(); showToast('success', '删除成功') },
     onError: (err) => showToast('error', err),
   })
+  const [supplierOptions, setSupplierOptions] = useState<{ id: string; name: string }[]>([])
+
+  // 供应商下拉数据源（新建/编辑时选择已有厂家）
+  useEffect(() => {
+    apiFetch('/api/supply/suppliers?limit=200')
+      .then(r => r.json())
+      .then(json => {
+        const items = json.data || json.suppliers || []
+        setSupplierOptions(items.map((s: any) => ({ id: s.id, name: s.name })))
+      })
+      .catch(() => { /* 下拉失败不阻塞页面 */ })
+  }, [])
   const [showForm, setShowForm] = useState(false)
   const [editMaterial, setEditMaterial] = useState<RawMaterial | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
@@ -68,11 +77,15 @@ export default function MaterialsPage() {
     setRegulationData(null)
     setLoadingReg(true)
     try {
-      const res = await fetch(`/api/rnd/materials/${m.id}/regulations`)
+      const res = await apiFetch(`/api/rnd/materials/${m.id}/regulations`)
       if (res.ok) setRegulationData(await res.json())
     } catch { /* ignore */ }
     setLoadingReg(false)
   }
+
+  // 解包标准响应 {success, data:{...}}，兼容旧格式
+  const regData = (regulationData as any)?.data || regulationData
+  const regTotal = regData?.total ?? 0
 
   const marketLabels: Record<string, string> = {
     CHINA: '🇨🇳 中国', EU: '🇪🇺 欧盟', US: '🇺🇸 美国', GB: '🇬🇧 英国',
@@ -89,42 +102,35 @@ export default function MaterialsPage() {
   const totalPages = pagination?.totalPages || 1
 
   const handleSubmit = async () => {
+    const matched = supplierOptions.find(s => s.name === form.supplier.trim())
     const data = {
       nameCn: form.nameCn, nameEn: form.nameEn || undefined,
       inciName: form.inciName || undefined, casNo: form.casNo || undefined,
       filingNo: form.filingNo || undefined, filingStatus: form.filingStatus,
-      supplier: form.supplier || undefined, function: form.function || undefined,
+      supplier: form.supplier || undefined, supplierId: matched?.id || undefined,
+      function: form.function || undefined,
       specification: form.specification || undefined, unit: form.unit || 'kg',
       limitChina: form.limitChina || undefined, limitEu: form.limitEu || undefined,
       remark: form.remark || undefined,
       isActive: true,
     }
     if (editMaterial) {
-      await update(editMaterial.id, data)
-    } else {
-      await create(data)
+      // 编辑统一走详情页（保留此分支防御，正常流程不会到达）
+      router.push(`/rnd/materials/${editMaterial.id}`)
+      return
     }
+    const created = await create(data)
     setShowForm(false)
     setEditMaterial(null)
     setForm(emptyForm)
+    // 新建成功 → 跳转详情页补厂家资料（先建后补）
+    if (created?.id) {
+      router.push(`/rnd/materials/${created.id}`)
+    }
   }
 
   const handleDelete = async (id: string) => {
     setConfirmDelete(id)
-  }
-
-  const openEdit = (m: RawMaterial) => {
-    setEditMaterial(m)
-    setForm({
-      nameCn: m.nameCn, nameEn: m.nameEn || '', inciName: m.inciName || '',
-      casNo: m.casNo || '', filingNo: m['备案号'] || '',
-      filingStatus: m['备案状态'] || 'UNRECORDED',
-      supplier: m.supplier || '', function: m.function || '',
-      specification: m.specification || '', unit: m.unit || 'kg',
-      limitChina: m.limitChina || '', limitEu: m.limitEu || '',
-      remark: m.remark || '',
-    })
-    setShowForm(true)
   }
 
   const openCreate = () => {
@@ -169,7 +175,7 @@ export default function MaterialsPage() {
                 {[
                   { label: 'INCI 中文名 *', key: 'nameCn', required: true },
                   { label: 'INCI 英文名', key: 'nameEn' }, { label: 'INCI 名(规范)', key: 'inciName' }, { label: 'CAS 号', key: 'casNo' },
-                  { label: '备案码', key: 'filingNo' }, { label: '供应商', key: 'supplier' },
+                  { label: '备案码', key: 'filingNo' },
                   { label: '功能分类', key: 'function' }, { label: '规格参数', key: 'specification' },
                   { label: '单位', key: 'unit' }, { label: '中国限量', key: 'limitChina' },
                   { label: '欧盟限量', key: 'limitEu' },
@@ -181,6 +187,16 @@ export default function MaterialsPage() {
                       className="w-full px-3 py-1.5 border border-[var(--color-border)] rounded text-sm" required={f.required} />
                   </div>
                 ))}
+                <div>
+                  <label className="block text-[var(--color-text-secondary)] mb-1">厂家/供应商</label>
+                  <input type="text" list="material-supplier-list" value={form.supplier}
+                    onChange={e => setForm({ ...form, supplier: e.target.value })}
+                    placeholder="选择已有厂家或输入新厂家名"
+                    className="w-full px-3 py-1.5 border border-[var(--color-border)] rounded text-sm" />
+                  <datalist id="material-supplier-list">
+                    {supplierOptions.map(s => <option key={s.id} value={s.name} />)}
+                  </datalist>
+                </div>
                 <div>
                   <label className="block text-[var(--color-text-secondary)] mb-1">备案状态</label>
                   <select value={form.filingStatus}
@@ -244,9 +260,9 @@ export default function MaterialsPage() {
                     <td className="px-4 py-3 text-right">
                       <span className={m.currentStock <= m.minStock ? 'text-red-500 font-medium' : 'text-[var(--color-text-secondary)]'}>{m.currentStock}{m.unit}</span>
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <button onClick={() => openEdit(m)} className="text-xs text-blue-500 hover:text-blue-700 mr-2">编辑</button>
-                      <button onClick={() => viewRegulations(m)} className="text-xs text-emerald-500 hover:text-emerald-700 mr-2">查看</button>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <button onClick={() => router.push(`/rnd/materials/${m.id}`)} className="text-xs text-emerald-600 hover:text-emerald-800 font-medium mr-3">详情/资料</button>
+                      <button onClick={() => viewRegulations(m)} className="text-xs text-emerald-500 hover:text-emerald-700 mr-2">法规</button>
                       <button onClick={() => handleDelete(m.id)} className="text-xs text-red-400 hover:text-red-600">删除</button>
                     </td>
                   </tr>
@@ -285,11 +301,11 @@ export default function MaterialsPage() {
             {loadingReg ? (
               <div className="text-center py-8 text-gray-400">加载中...</div>
             ) : regulationData ? (
-              regulationData.total === 0 ? (
+              regTotal === 0 ? (
                 <div className="text-center py-8 text-gray-400">该原料在法规库中暂无匹配记录</div>
               ) : (
                 <div className="space-y-4">
-                  {Object.entries(regulationData.byMarket as Record<string, any[]>).map(([market, items]) => (
+                  {Object.entries(regData.byMarket as Record<string, any[]>).map(([market, items]) => (
                     <div key={market}>
                       <h3 className="text-sm font-semibold mb-2 px-1">{(marketLabels as any)[market] || market}</h3>
                       <div className="space-y-1">
@@ -305,7 +321,7 @@ export default function MaterialsPage() {
                       </div>
                     </div>
                   ))}
-                  <div className="text-xs text-gray-400 text-center pt-2">共匹配 {regulationData.total} 条法规记录</div>
+                  <div className="text-xs text-gray-400 text-center pt-2">共匹配 {regTotal} 条法规记录</div>
                 </div>
               )
             ) : (

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { ShieldCheck, Plus, Download, Trash2, Search, AlertTriangle } from 'lucide-react'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface AntiCounterfeitCode {
   id: string
@@ -61,18 +62,18 @@ export default function AntiCounterfeitAdminPage() {
       const params = new URLSearchParams({ page: page.toString(), pageSize: pageSize.toString() })
       if (statusFilter) params.set('status', statusFilter)
       if (keyword) params.set('keyword', keyword)
-      const res = await fetch(`/api/anti-counterfeit?${params}`)
+      const res = await apiFetch(`/api/anti-counterfeit?${params}`)
       const data = await res.json()
       if (res.ok) {
         setCodes(data.data || data.codes || [])
         setTotal((data.meta || data.pagination || {}).total || data.total || 0)
         // 计算统计
-        const allRes = await fetch('/api/anti-counterfeit?pageSize=1')
+        const allRes = await apiFetch('/api/anti-counterfeit?pageSize=1')
         const allData = await allRes.json()
         // 分别统计各状态数量
         const statusCounts = await Promise.all(
           ['ACTIVE', 'VERIFIED', 'EXPIRED', 'REVOKED'].map(async (s) => {
-            const r = await fetch(`/api/anti-counterfeit?pageSize=1&status=${s}`)
+            const r = await apiFetch(`/api/anti-counterfeit?pageSize=1&status=${s}`)
             const d = await r.json()
             return (d.meta || {}).total || d.total || 0
           })
@@ -92,11 +93,11 @@ export default function AntiCounterfeitAdminPage() {
     }
   }, [page, statusFilter, keyword])
 
-  useEffect(() => { fetchCodes() }, [fetchCodes])
+  useEffect(() => { fetchCodes().catch(() => {}) }, [fetchCodes])
 
   const handleGenerate = async () => {
     try {
-      const res = await fetch('/api/anti-counterfeit/generate', {
+      const res = await apiFetch('/api/anti-counterfeit/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(generateForm),
@@ -121,7 +122,7 @@ export default function AntiCounterfeitAdminPage() {
 
   const doBatchRevoke = async () => {
     try {
-      const res = await fetch('/api/anti-counterfeit', {
+      const res = await apiFetch('/api/anti-counterfeit', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: Array.from(selectedIds) }),

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 // 代工生产进度阶段（与详情页一致）
 const OEM_STAGES = [
@@ -55,7 +56,7 @@ export default function OEMPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const [cRes, sRes] = await Promise.all([fetch('/api/supply/oem'), fetch('/api/supply/suppliers')])
+    const [cRes, sRes] = await Promise.all([apiFetch('/api/supply/oem'), apiFetch('/api/supply/suppliers')])
     const cData = await cRes.json()
     if (!cRes.ok) throw new Error(cData.error || '加载合同失败')
     const contractsList = cData.contracts || []
@@ -67,7 +68,7 @@ export default function OEMPage() {
     // 批量获取里程碑
     if (contractsList.length > 0) {
       try {
-        const mRes = await fetch('/api/milestones/batch', {
+        const mRes = await apiFetch('/api/milestones/batch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -86,7 +87,7 @@ export default function OEMPage() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const resetForm = () => {
     setForm({ supplierId: '', contractNo: '', productName: '', unitPrice: '', moq: '', leadTime: '', techStandard: '', startDate: '', endDate: '', remark: '' })
@@ -112,13 +113,13 @@ export default function OEMPage() {
 
   const handleSave = async () => {
     if (editingId) {
-      await fetch(`/api/supply/oem/${editingId}`, {
+      await apiFetch(`/api/supply/oem/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
     } else {
-      await fetch('/api/supply/oem', {
+      await apiFetch('/api/supply/oem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -131,7 +132,7 @@ export default function OEMPage() {
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`确认删除代工合同「${name}」？删除后数据将移至回收站。`)) return
-    await fetch(`/api/supply/oem/${id}`, { method: 'DELETE' })
+    await apiFetch(`/api/supply/oem/${id}`, { method: 'DELETE' })
     fetchData()
   }
 

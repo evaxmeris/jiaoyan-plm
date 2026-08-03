@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   IN_STOCK: { label: '在库', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
@@ -119,29 +120,29 @@ export default function ProductInventoryPage() {
       if (statusFilter) params.set('status', statusFilter)
       if (lowStockOnly) params.set('lowStock', 'true')
 
-      const res = await fetch(`/api/supply/product-inventory?${params.toString()}`)
+      const res = await apiFetch(`/api/supply/product-inventory?${params.toString()}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '加载失败')
       setItems(data.data || data.items || [])
       setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 0 })
     } catch (e: any) {
-      showToast('error', e.message || '加载产品库存失败')
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '加载产品库存失败')
     }
     setLoading(false)
   }, [page, search, statusFilter, lowStockOnly, showToast])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   // 加载产品列表
   const fetchProducts = useCallback(async () => {
     try {
-      const res = await fetch('/api/rnd/products?limit=200')
+      const res = await apiFetch('/api/rnd/products?limit=200')
       const data = await res.json()
       if (res.ok) setProducts(data.data || data.productDesigns || [])
     } catch {}
   }, [])
 
-  useEffect(() => { fetchProducts() }, [fetchProducts])
+  useEffect(() => { fetchProducts().catch(() => {}) }, [fetchProducts])
 
   const openCreate = () => {
     setEditingId(null)
@@ -169,7 +170,7 @@ export default function ProductInventoryPage() {
     const url = editingId ? `/api/supply/product-inventory/${editingId}` : '/api/supply/product-inventory'
     const method = editingId ? 'PUT' : 'POST'
     try {
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -195,7 +196,7 @@ export default function ProductInventoryPage() {
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
     try {
-      const res = await fetch(`/api/supply/product-inventory/${confirmDeleteId}`, { method: 'DELETE' })
+      const res = await apiFetch(`/api/supply/product-inventory/${confirmDeleteId}`, { method: 'DELETE' })
       if (!res.ok) {
         const err = await res.json()
         showToast('error', err.error || '删除失败')
@@ -223,7 +224,7 @@ export default function ProductInventoryPage() {
     if (qty > stockOutItem.quantity) { showToast('error', '出库数量不能超过当前库存'); return }
     setStockOutSubmitting(true)
     try {
-      const res = await fetch(`/api/supply/product-inventory/${stockOutItem.id}`, {
+      const res = await apiFetch(`/api/supply/product-inventory/${stockOutItem.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -258,7 +259,7 @@ export default function ProductInventoryPage() {
     if (!anomalyItem) return
     setAnomalySubmitting(true)
     try {
-      const res = await fetch(`/api/supply/product-inventory/${anomalyItem.id}`, {
+      const res = await apiFetch(`/api/supply/product-inventory/${anomalyItem.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: anomalyStatus }),

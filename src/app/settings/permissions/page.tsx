@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Shield, ShieldCheck, Lock, Save, Loader2, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface PermissionInfo {
   allowedRoles: string[]
@@ -81,7 +82,7 @@ function PermissionsPageContent() {
     setLoading(true)
     setMessage(null)
     try {
-      const res = await fetch('/api/settings/permissions', { credentials: 'include' })
+      const res = await apiFetch('/api/settings/permissions', { credentials: 'include' })
       let json: any
       try {
         json = await res.json()
@@ -108,7 +109,7 @@ function PermissionsPageContent() {
     }
   }, [])
 
-  useEffect(() => { loadPermissions() }, [loadPermissions])
+  useEffect(() => { loadPermissions().catch(() => {}) }, [loadPermissions])
 
   const isEdited = (op: string) => {
     if (!data) return false
@@ -138,7 +139,7 @@ function PermissionsPageContent() {
     setSaving(op)
     setMessage(null)
     try {
-      const res = await fetch('/api/settings/permissions', {
+      const res = await apiFetch('/api/settings/permissions', {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -181,7 +182,7 @@ function PermissionsPageContent() {
     // 逐条恢复默认
     for (const [op, defaultRoles] of Object.entries(data.defaultPermissions)) {
       try {
-        const res = await fetch('/api/settings/permissions', {
+        const res = await apiFetch('/api/settings/permissions', {
           method: 'PUT',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },

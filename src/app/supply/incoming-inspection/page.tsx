@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const RESULT_LABELS: Record<string, string> = {
   PENDING: '待检',
@@ -60,8 +61,8 @@ export default function IncomingInspectionPage() {
     if (resultFilter) params.set('result', resultFilter)
 
     const [iRes, mRes] = await Promise.all([
-      fetch(`/api/supply/incoming-inspection?${params}`),
-      fetch('/api/rnd/materials?q='),
+      apiFetch(`/api/supply/incoming-inspection?${params}`),
+      apiFetch('/api/rnd/materials?q='),
     ])
     const iData = await iRes.json()
     if (!iRes.ok) throw new Error(iData.error || '加载质检记录失败')
@@ -72,13 +73,13 @@ export default function IncomingInspectionPage() {
     setLoading(false)
   }, [search, resultFilter])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   // 选择原料后加载库存批次
   const handleMaterialChange = async (materialId: string) => {
     setForm({ ...form, rawMaterialId: materialId, batchId: '' })
     if (materialId) {
-      const res = await fetch(`/api/supply/inventory?materialId=${materialId}`)
+      const res = await apiFetch(`/api/supply/inventory?materialId=${materialId}`)
       const data = await res.json()
       setBatches(data.data || data.items || [])
     } else {
@@ -106,7 +107,7 @@ export default function IncomingInspectionPage() {
       disposition: form.disposition || null,
       remark: form.remark || null,
     }
-    await fetch('/api/supply/incoming-inspection', {
+    await apiFetch('/api/supply/incoming-inspection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -118,7 +119,7 @@ export default function IncomingInspectionPage() {
 
   const handleUpdate = async () => {
     if (!showDetail) return
-    await fetch(`/api/supply/incoming-inspection/${showDetail.id}`, {
+    await apiFetch(`/api/supply/incoming-inspection/${showDetail.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

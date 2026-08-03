@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { apiFetch } from '@/lib/api-client'
 
 /**
  * 通用 API 查询 Hook
@@ -72,7 +73,7 @@ export function useList<T = any>(
       }
       const qs = params.toString()
       const url = qs ? `${baseUrl}?${qs}` : baseUrl
-      const res = await fetch(url)
+      const res = await apiFetch(url)
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.error || '请求失败')
@@ -111,7 +112,7 @@ export function useDetail<T = any>(
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${baseUrl}/?id=${id}`)
+      const res = await apiFetch(`${baseUrl}/?id=${id}`)
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.error || '请求失败')
@@ -144,7 +145,7 @@ export function useCreate<T = any>(baseUrl: string, options: MutationOptions<T> 
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(baseUrl, {
+      const res = await apiFetch(baseUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -178,7 +179,7 @@ export function useUpdate<T = any>(baseUrl: string, options: MutationOptions<T> 
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${baseUrl}/${id}`, {
+      const res = await apiFetch(`${baseUrl}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -212,7 +213,7 @@ export function useDelete(baseUrl: string, options: MutationOptions = {}) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${baseUrl}/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`${baseUrl}/${id}`, { method: 'DELETE' })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || '删除失败')
       options.onSuccess?.(json)

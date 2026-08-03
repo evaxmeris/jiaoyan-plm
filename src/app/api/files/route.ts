@@ -4,6 +4,7 @@ import { verifyAuth, verifyPermission } from '@/lib/auth'
 import { writeAuditLog, extractIp } from '@/lib/audit'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import crypto from 'crypto'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 // 允许的 MIME 类型
@@ -34,10 +35,12 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const entityType = searchParams.get('entityType')
   const entityId = searchParams.get('entityId')
+  const fileType = searchParams.get('fileType')
 
   const where: Record<string, unknown> = { isDeleted: false }
   if (entityType) where.entityType = entityType
   if (entityId) where.entityId = entityId
+  if (fileType) where.fileType = fileType
 
   const files = await prisma.file.findMany({
     where,
@@ -121,21 +124,23 @@ export async function POST(req: NextRequest) {
     return errorResponse('文件大小超过限制 (20MB)', 400)
   }
 
-  // 确保上传目录存在
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', entityType, entityId)
-  await mkdir(uploadDir, { recursive: true })
+  // 确保上传目录存在（统一走 UPLOAD_DIR，与 /api/upload 及 Docker volume 一致）
+  const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), '..', 'data', 'uploads')
+  await mkdir(UPLOAD_DIR, { recursive: true })
 
-  // 生成唯一文件名
-  const timestamp = Date.now()
-  const safeName = uploadedFile.name.replace(/[^a-zA-Z0-9._\-]/g, '_')
-  const fileName = `${timestamp}-${safeName}`
-  const filePath = path.join(uploadDir, fileName)
+  // 生成唯一文件名（扁平存储，与 download 路由的 basename 读取方式匹配）
+  const ext = uploadedFile.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'bin'
+  // 磁盘文件名只用 ASCII（中文等非 ASCII 会导致 URL 编码/Next 路由参数解码不一致而 404），原名保留在 originalName 显示
+  const safeBase = uploadedFile.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 60)
+  const fileName = `${Date.now()}_${crypto.randomBytes(4).toString('hex')}_${safeBase}.${ext}`
+  const filePath = path.join(UPLOAD_DIR, fileName)
 
   // 写入文件
   const buffer = Buffer.from(await uploadedFile.arrayBuffer())
   await writeFile(filePath, buffer)
 
-  const publicUrl = `/uploads/${entityType}/${entityId}/${fileName}`
+  // 走下载代理路由（Docker standalone 下静态目录不服务运行时文件，必须走 API）
+  const publicUrl = `/api/files/download/${fileName}`
 
   const file = await prisma.file.create({
     data: {

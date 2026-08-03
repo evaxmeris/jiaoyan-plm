@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import FileUploader from '@/components/FileUploader'
 import ProcessTimeline from '@/components/ProcessTimeline'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const TYPES: Record<string, string> = { INVENTION: '发明专利', UTILITY: '实用新型', DESIGN: '外观设计' }
 const STATUS: Record<string, string> = {
@@ -38,17 +39,17 @@ export default function PatentDetailPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/assets/patents/${id}`)
+    const res = await apiFetch(`/api/assets/patents/${id}`)
     const json = await res.json()
     setData(json.patent)
     setAuditLogs(json.auditLogs || [])
     setLoading(false)
   }, [id])
 
-  useEffect(() => { fetchData() }, [fetchData])
-  useEffect(() => { fetch("/api/service-contracts?limit=100").then(r => r.json()).then(d => setContracts(d.contracts || [])).catch(() => {}) }, [])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
+  useEffect(() => { apiFetch("/api/service-contracts?limit=100").then(r => r.json()).then(d => setContracts(d.contracts || [])).catch(() => {}) }, [])
   const handleSave = async () => {
-    await fetch(`/api/assets/patents/${id}`, {
+    await apiFetch(`/api/assets/patents/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editForm),
@@ -58,7 +59,7 @@ export default function PatentDetailPage() {
   }
 
   const handleAddFee = async () => {
-    await fetch(`/api/assets/patents/${id}/fees`, {
+    await apiFetch(`/api/assets/patents/${id}/fees`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -76,7 +77,7 @@ export default function PatentDetailPage() {
   }
 
   const handleMarkPaid = async (feeId: string) => {
-    await fetch(`/api/assets/patents/${id}/fees?feeId=${feeId}`, {
+    await apiFetch(`/api/assets/patents/${id}/fees?feeId=${feeId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'PAID', paidDate: new Date().toISOString().split('T')[0] }),
@@ -92,7 +93,7 @@ export default function PatentDetailPage() {
       responseDate: oaForm.responseDate || null,
       status: oaForm.status,
     })
-    await fetch(`/api/assets/patents/${id}`, {
+    await apiFetch(`/api/assets/patents/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ officeActions }),
@@ -105,7 +106,7 @@ export default function PatentDetailPage() {
   const handleUpdateOAStatus = async (index: number, newStatus: string) => {
     const officeActions = [...(data.officeActions || [])]
     officeActions[index] = { ...officeActions[index], status: newStatus }
-    await fetch(`/api/assets/patents/${id}`, {
+    await apiFetch(`/api/assets/patents/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ officeActions }),
@@ -114,7 +115,7 @@ export default function PatentDetailPage() {
   }
 
   const handleStatusChange = async (newStatus: string) => {
-    await fetch(`/api/assets/patents/${id}`, {
+    await apiFetch(`/api/assets/patents/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
@@ -415,8 +416,8 @@ export default function PatentDetailPage() {
                   <option value="">— 不关联 —</option>
                   {contracts.map(c => <option key={c.id} value={c.id}>{c.name} - {c.contractor}</option>)}</select>
               </div>              <div><label className="block text-[var(--color-text-secondary)] mb-1">申请费 (¥)</label><input type="number" step="0.01" value={editForm.fee || ''} onChange={e => setEditForm({...editForm, fee: e.target.value ? parseFloat(e.target.value) : null})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>
-              <div><label className="block text-[var(--color-text-secondary)] mb-1">受理通知书</label><div className="flex items-center gap-2"><input type="file" id="filingReceiptUpload" accept=".pdf,.doc,.docx,image/*" className="hidden" onChange={async(e)=>{const file=e.target.files?.[0];if(!file)return;const fd=new FormData();fd.append('file',file);const res=await fetch('/api/upload',{method:'POST',body:fd});const data=await res.json();if(data.url)setEditForm({...editForm,filingReceipt:data.url})}}/><button type="button" onClick={()=>document.getElementById('filingReceiptUpload')?.click()} className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700">选择文件上传</button>{editForm.filingReceipt ? <><span className="text-xs text-green-600">✓ 已上传</span><button onClick={()=>setEditForm({...editForm,filingReceipt:''})} className="text-red-500 text-xs ml-1">移除</button><a href={editForm.filingReceipt} target="_blank" className="text-blue-500 text-xs ml-2 hover:underline">查看</a></> : null}</div></div>
-              <div><label className="block text-[var(--color-text-secondary)] mb-1">专利证书</label><div className="flex items-center gap-2"><input type="file" id="patentCertUpload" accept=".pdf,.doc,.docx,image/*" className="hidden" onChange={async(e)=>{const file=e.target.files?.[0];if(!file)return;const fd=new FormData();fd.append('file',file);const res=await fetch('/api/upload',{method:'POST',body:fd});const data=await res.json();if(data.url)setEditForm({...editForm,patentCert:data.url})}}/><button type="button" onClick={()=>document.getElementById('patentCertUpload')?.click()} className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700">选择文件上传</button>{editForm.patentCert ? <><span className="text-xs text-green-600">✓ 已上传</span><button onClick={()=>setEditForm({...editForm,patentCert:''})} className="text-red-500 text-xs ml-1">移除</button><a href={editForm.patentCert} target="_blank" className="text-blue-500 text-xs ml-2 hover:underline">查看</a></> : null}</div></div>
+              <div><label className="block text-[var(--color-text-secondary)] mb-1">受理通知书</label><div className="flex items-center gap-2"><input type="file" id="filingReceiptUpload" accept=".pdf,.doc,.docx,image/*" className="hidden" onChange={async(e)=>{const file=e.target.files?.[0];if(!file)return;const fd=new FormData();fd.append('file',file);const res=await apiFetch('/api/upload',{method:'POST',body:fd});const data=await res.json();if(data.url)setEditForm({...editForm,filingReceipt:data.url})}}/><button type="button" onClick={()=>document.getElementById('filingReceiptUpload')?.click()} className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700">选择文件上传</button>{editForm.filingReceipt ? <><span className="text-xs text-green-600">✓ 已上传</span><button onClick={()=>setEditForm({...editForm,filingReceipt:''})} className="text-red-500 text-xs ml-1">移除</button><a href={editForm.filingReceipt} target="_blank" className="text-blue-500 text-xs ml-2 hover:underline">查看</a></> : null}</div></div>
+              <div><label className="block text-[var(--color-text-secondary)] mb-1">专利证书</label><div className="flex items-center gap-2"><input type="file" id="patentCertUpload" accept=".pdf,.doc,.docx,image/*" className="hidden" onChange={async(e)=>{const file=e.target.files?.[0];if(!file)return;const fd=new FormData();fd.append('file',file);const res=await apiFetch('/api/upload',{method:'POST',body:fd});const data=await res.json();if(data.url)setEditForm({...editForm,patentCert:data.url})}}/><button type="button" onClick={()=>document.getElementById('patentCertUpload')?.click()} className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700">选择文件上传</button>{editForm.patentCert ? <><span className="text-xs text-green-600">✓ 已上传</span><button onClick={()=>setEditForm({...editForm,patentCert:''})} className="text-red-500 text-xs ml-1">移除</button><a href={editForm.patentCert} target="_blank" className="text-blue-500 text-xs ml-2 hover:underline">查看</a></> : null}</div></div>
               <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><textarea value={editForm.remark || ''} onChange={e => setEditForm({...editForm, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2}/></div>
             </div>
             <div className="flex gap-2 mt-4 justify-end">

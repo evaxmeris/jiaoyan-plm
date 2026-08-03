@@ -6,6 +6,7 @@ import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import Pagination from '@/components/Pagination'
 import { DEFAULT_MARKET, MARKET_LABELS, MARKET_OPTIONS, MARKET_VALUES, type Market } from '@/lib/validation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const PAGE_SIZE = 20
 
@@ -92,38 +93,43 @@ export default function FormulasPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const [fRes, mRes] = await Promise.all([
-      fetch('/api/rnd/formulas'),
-      fetch('/api/rnd/materials?q='),
-    ])
-    const fData = await fRes.json()
-    if (!fRes.ok) throw new Error(fData.error || '加载配方失败')
-    const mData = await mRes.json()
-    if (!mRes.ok) throw new Error(mData.error || '加载原料失败')
-    setFormulas(fData.data || fData.formulas || [])
-    setMaterials(mData.rawMaterials || [])
-    setLoading(false)
+    try {
+      const [fRes, mRes] = await Promise.all([
+        apiFetch('/api/rnd/formulas'),
+        apiFetch('/api/rnd/materials?q='),
+      ])
+      const fData = await fRes.json()
+      if (!fRes.ok) throw new Error(fData.error || '加载配方失败')
+      const mData = await mRes.json()
+      if (!mRes.ok) throw new Error(mData.error || '加载原料失败')
+      setFormulas(fData.data || fData.formulas || [])
+      setMaterials(mData.rawMaterials || [])
 
-    // 批量加载合规状态（避免 N+1 请求）
-    if ((fData.data || fData.formulas)?.length > 0) {
-      const ids = (fData.data || fData.formulas).map((f: Formula) => f.id)
-      try {
-        const cRes = await fetch('/api/compliance/scan-batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ formulaIds: ids, market: scanMarket }),
-        })
-        if (cRes.ok) {
-          const cData = await cRes.json()
-          setComplianceMap(cData.results || {})
+      // 批量加载合规状态（避免 N+1 请求）
+      if ((fData.data || fData.formulas)?.length > 0) {
+        const ids = (fData.data || fData.formulas).map((f: Formula) => f.id)
+        try {
+          const cRes = await apiFetch('/api/compliance/scan-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ formulaIds: ids, market: scanMarket }),
+          })
+          if (cRes.ok) {
+            const cData = await cRes.json()
+            setComplianceMap(cData.results || {})
+          }
+        } catch (e) {
+          console.error('[ComplianceBadge] 批量合规扫描异常:', e)
         }
-      } catch (e) {
-        console.error('[ComplianceBadge] 批量合规扫描异常:', e)
       }
+    } catch (e: any) {
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '加载失败')
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
   useEffect(() => { setPage(1) }, [search])
 
   const filteredFormulas = formulas.filter(f =>
@@ -165,7 +171,7 @@ export default function FormulasPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/rnd/formulas/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/rnd/formulas/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -179,7 +185,7 @@ export default function FormulasPage() {
     setScanningId(formulaId)
     setScanResultMarket(scanMarket)
     try {
-      const res = await fetch('/api/compliance/scan-formula', {
+      const res = await apiFetch('/api/compliance/scan-formula', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ formulaId, market: scanMarket }),
@@ -192,8 +198,8 @@ export default function FormulasPage() {
         const err = await res.json()
         showToast('error', err.error || '扫描失败')
       }
-    } catch (e) {
-      showToast('error', '合规扫描异常')
+    } catch (e: any) {
+      if (!isUnauthorizedError(e)) showToast('error', '合规扫描异常')
     } finally {
       setScanningId(null)
     }
@@ -212,7 +218,7 @@ export default function FormulasPage() {
     // 并发扫描所有市场
     await Promise.all(markets.map(async (mkt) => {
       try {
-        const res = await fetch('/api/compliance/scan-formula', {
+        const res = await apiFetch('/api/compliance/scan-formula', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ formulaId, market: mkt }),
@@ -236,12 +242,12 @@ export default function FormulasPage() {
     setShowVersion(f)
     setVersionsLoading(true)
     try {
-      const res = await fetch(`/api/rnd/formulas/${f.id}`)
+      const res = await apiFetch(`/api/rnd/formulas/${f.id}`)
       const data = await res.json()
       // 直接从 FormulaVersion 表读取
-      const vRes = await fetch('/api/rnd/formulas?id=' + f.id) // We'll fetch versions separately
+      const vRes = await apiFetch('/api/rnd/formulas?id=' + f.id) // We'll fetch versions separately
       // Actually let's get versions by reading the formula detail with versions
-      const detailRes = await fetch(`/api/rnd/formulas/versions?formulaId=${f.id}`)
+      const detailRes = await apiFetch(`/api/rnd/formulas/versions?formulaId=${f.id}`)
       if (detailRes.ok) {
         const vData = await detailRes.json()
         setVersions(vData.versions || [])
@@ -260,7 +266,7 @@ export default function FormulasPage() {
   const fetchVersions = useCallback(async (formulaId: string) => {
     setVersionsLoading(true)
     try {
-      const res = await fetch(`/api/rnd/formulas/versions?formulaId=${formulaId}`)
+      const res = await apiFetch(`/api/rnd/formulas/versions?formulaId=${formulaId}`)
       if (res.ok) {
         const data = await res.json()
         setVersions(data.data?.versions || data.versions || [])
@@ -302,7 +308,7 @@ export default function FormulasPage() {
     const url = editFormula ? `/api/rnd/formulas/${editFormula.id}` : '/api/rnd/formulas'
     const method = editFormula ? 'PUT' : 'POST'
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

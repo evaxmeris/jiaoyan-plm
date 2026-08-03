@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Pagination from '@/components/Pagination'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const PAGE_SIZE = 20
 
@@ -38,7 +39,7 @@ export default function RegistrationsPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const [rRes, pRes] = await Promise.all([fetch('/api/compliance/registrations'), fetch('/api/rnd/products')])
+    const [rRes, pRes] = await Promise.all([apiFetch('/api/compliance/registrations'), apiFetch('/api/rnd/products')])
     const rData = await rRes.json()
     if (!rRes.ok) throw new Error(rData.error || '加载备案失败')
     const pData = await pRes.json()
@@ -48,7 +49,7 @@ export default function RegistrationsPage() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
   useEffect(() => { setPage(1) }, [search])
 
   const filteredRegistrations = registrations.filter(r =>
@@ -79,7 +80,7 @@ export default function RegistrationsPage() {
   const handleSave = async () => {
     const url = editingId ? `/api/compliance/registrations/${editingId}` : '/api/compliance/registrations'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -100,7 +101,7 @@ export default function RegistrationsPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/compliance/registrations/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/compliance/registrations/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')

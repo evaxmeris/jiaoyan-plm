@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Pagination from '@/components/Pagination'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const PAGE_SIZE = 20
 
@@ -45,8 +46,8 @@ export default function EfficacyClaimsPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     const [iRes, pRes] = await Promise.all([
-      fetch('/api/compliance/efficacy-claims'),
-      fetch('/api/rnd/products'),
+      apiFetch('/api/compliance/efficacy-claims'),
+      apiFetch('/api/rnd/products'),
     ])
     const iData = await iRes.json()
     if (!iRes.ok) throw new Error(iData.error || '加载功效宣称失败')
@@ -58,7 +59,7 @@ export default function EfficacyClaimsPage() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
   useEffect(() => { setPage(1) }, [search])
 
   const filteredItems = items.filter((i: any) =>
@@ -91,7 +92,7 @@ export default function EfficacyClaimsPage() {
   const handleSave = async () => {
     const url = editingId ? `/api/compliance/efficacy-claims/${editingId}` : '/api/compliance/efficacy-claims'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -112,7 +113,7 @@ export default function EfficacyClaimsPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/compliance/efficacy-claims/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/compliance/efficacy-claims/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -122,7 +123,7 @@ export default function EfficacyClaimsPage() {
   }
 
   const updateStatus = async (id: string, status: string) => {
-    const res = await fetch(`/api/compliance/efficacy-claims/${id}`, {
+    const res = await apiFetch(`/api/compliance/efficacy-claims/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),

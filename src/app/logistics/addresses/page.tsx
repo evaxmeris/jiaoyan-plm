@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface ShippingAddress {
   id: string
@@ -54,13 +55,13 @@ export default function AddressesPage() {
 
   const fetchAddresses = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/logistics/addresses', { credentials: 'include' })
+    const res = await apiFetch('/api/logistics/addresses', { credentials: 'include' })
     const data = await res.json()
     if (res.ok) setAddresses(data.data || [])
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchAddresses() }, [fetchAddresses])
+  useEffect(() => { fetchAddresses().catch(() => {}) }, [fetchAddresses])
 
   const openCreate = () => {
     setEditingId(null)
@@ -94,7 +95,7 @@ export default function AddressesPage() {
     const method = editingId ? 'PUT' : 'POST'
     const body = editingId ? { ...form, id: editingId } : form
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -114,7 +115,7 @@ export default function AddressesPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/logistics/addresses?id=${confirmDeleteId}`, { method: 'DELETE', credentials: 'include' })
+    const res = await apiFetch(`/api/logistics/addresses?id=${confirmDeleteId}`, { method: 'DELETE', credentials: 'include' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')

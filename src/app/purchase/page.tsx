@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface PurchaseApp {
   id: string
@@ -116,8 +117,8 @@ export default function PurchasePage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     const [appsRes, budgetRes] = await Promise.all([
-      fetch('/api/purchase/applications'),
-      fetch('/api/finance/budget'),
+      apiFetch('/api/purchase/applications'),
+      apiFetch('/api/finance/budget'),
     ])
     const appsData = await appsRes.json()
     if (!appsRes.ok) throw new Error(appsData.error || '加载申请失败')
@@ -190,7 +191,7 @@ export default function PurchasePage() {
     }))
     const totalAmount = items.reduce((s, i) => s + i.quantity * i.estimatedPrice, 0)
 
-    const res = await fetch('/api/purchase/applications', {
+    const res = await apiFetch('/api/purchase/applications', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, items, totalAmount }),
@@ -209,7 +210,7 @@ export default function PurchasePage() {
   }
 
   const handleGeneratePO = async (applicationId: string) => {
-    const res = await fetch('/api/purchase/orders', {
+    const res = await apiFetch('/api/purchase/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ applicationId }),
@@ -224,7 +225,7 @@ export default function PurchasePage() {
   }
 
   const handleStatus = async (id: string, status: string) => {
-    const res = await fetch(`/api/purchase/applications/${id}`, {
+    const res = await apiFetch(`/api/purchase/applications/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -274,7 +275,7 @@ export default function PurchasePage() {
           <button onClick={async () => {
             setShowForm(true)
             try {
-              const res = await fetch('/api/rnd/materials')
+              const res = await apiFetch('/api/rnd/materials')
               const json = await res.json()
               setRawMaterials(json.rawMaterials || json.materials || [])
             } catch {}

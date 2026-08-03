@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface BudgetCategory {
   id: string
@@ -50,7 +51,7 @@ function BudgetCategoriesContent() {
   useEffect(() => {
     const fetchBudgets = async () => {
       try {
-        const res = await fetch('/api/finance/budget?fiscalYear=' + new Date().getFullYear())
+        const res = await apiFetch('/api/finance/budget?fiscalYear=' + new Date().getFullYear())
         const data = await res.json()
         if (res.ok) setBudgets(data.data?.budgets || data.budgets || [])
       } catch {}
@@ -67,7 +68,7 @@ function BudgetCategoriesContent() {
     }
     setLoading(true)
     try {
-      const res = await fetch(`/api/finance/budget-categories?budgetId=${selectedBudgetId}`)
+      const res = await apiFetch(`/api/finance/budget-categories?budgetId=${selectedBudgetId}`)
       const data = await res.json()
       if (res.ok) setCategories(data.categories || [])
     } catch {
@@ -92,7 +93,7 @@ function BudgetCategoriesContent() {
       : '/api/finance/budget-categories'
     const method = editCategory ? 'PUT' : 'POST'
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -123,7 +124,7 @@ function BudgetCategoriesContent() {
       showToast('error', '该科目已有使用记录，无法删除')
       return
     }
-    const res = await fetch(`/api/finance/budget-categories/${category.id}`, {
+    const res = await apiFetch(`/api/finance/budget-categories/${category.id}`, {
       method: 'DELETE',
     })
     const data = await res.json()

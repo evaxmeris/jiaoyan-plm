@@ -9,6 +9,7 @@ import {
   AlertTriangle, Ban, FileWarning, BookOpenCheck,
   ScanSearch, Percent, Bell,
 } from 'lucide-react'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 // 合规流程阶段定义
 interface ComplianceStage {
@@ -202,10 +203,10 @@ export default function CompliancePage() {
     setLoading(true)
     try {
       const [rRes, iRes, aRes, sRes] = await Promise.all([
-        fetch('/api/compliance/registrations'),
-        fetch('/api/compliance/test-entrustments'),
-        fetch('/api/compliance/alerts'),
-        fetch('/api/compliance/stats'),
+        apiFetch('/api/compliance/registrations'),
+        apiFetch('/api/compliance/test-entrustments'),
+        apiFetch('/api/compliance/alerts'),
+        apiFetch('/api/compliance/stats'),
       ])
       const rData = await rRes.json()
       const iData = await iRes.json()
@@ -236,7 +237,7 @@ export default function CompliancePage() {
     }
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   // 计算各阶段状态
   const getStageStatus = (stage: ComplianceStage): 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' => {

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const CATEGORIES = [
   { value: 'LAB_SUPPLIES', label: '实验用品', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
@@ -41,8 +42,8 @@ export default function InventoryPage() {
     setLoading(true)
     if (activeTab === 'raw') {
       const [iRes, mRes] = await Promise.all([
-        fetch(`/api/supply/inventory?q=${search}`),
-        fetch('/api/rnd/materials?q='),
+        apiFetch(`/api/supply/inventory?q=${search}`),
+        apiFetch('/api/rnd/materials?q='),
       ])
       const iData = await iRes.json()
       if (!iRes.ok) throw new Error(iData.error || '加载库存失败')
@@ -51,7 +52,7 @@ export default function InventoryPage() {
       if (!mRes.ok) throw new Error(mData.error || '加载原料失败')
       setMaterials(mData.rawMaterials || [])
     } else {
-      const res = await fetch(`/api/supply/supplies?q=${search}`)
+      const res = await apiFetch(`/api/supply/supplies?q=${search}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '加载物资失败')
       setSupplies(data.data || data.supplies || [])
@@ -59,7 +60,7 @@ export default function InventoryPage() {
     setLoading(false)
   }, [search, activeTab])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const openCreate = () => {
     setEditingId(null)
@@ -84,7 +85,7 @@ export default function InventoryPage() {
   const handleSave = async () => {
     const url = editingId ? `/api/supply/inventory/${editingId}` : '/api/supply/inventory'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -105,7 +106,7 @@ export default function InventoryPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/supply/inventory/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/supply/inventory/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')

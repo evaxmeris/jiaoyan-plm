@@ -5,6 +5,7 @@ import {
   ClipboardList, Search, ChevronLeft, ChevronRight,
   Loader2, Calendar, Filter,
 } from 'lucide-react'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 // ── 类型 ──
 interface AuditLogEntry {
@@ -134,7 +135,7 @@ export default function AuditLogPage() {
     setError(null)
     try {
       const params = buildParams()
-      const res = await fetch(`/api/audit-log?${params}`, { credentials: 'include' })
+      const res = await apiFetch(`/api/audit-log?${params}`, { credentials: 'include' })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.error || `请求失败 (${res.status})`)
@@ -150,7 +151,7 @@ export default function AuditLogPage() {
     }
   }, [buildParams])
 
-  useEffect(() => { fetchLogs() }, [fetchLogs])
+  useEffect(() => { fetchLogs().catch(() => {}) }, [fetchLogs])
 
   // ── 翻页 ──
   const handlePageChange = (newPage: number) => {

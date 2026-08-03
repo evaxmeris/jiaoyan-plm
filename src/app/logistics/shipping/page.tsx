@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface SalesOrder {
   id: string
@@ -105,20 +106,20 @@ export default function LogisticsShippingPage() {
     setLoading(true)
     const params = new URLSearchParams()
     if (filterStatus) params.set('status', filterStatus)
-    const res = await fetch(`/api/logistics/shipping?${params}`, { credentials: 'include' })
+    const res = await apiFetch(`/api/logistics/shipping?${params}`, { credentials: 'include' })
     const data = await res.json()
     if (res.ok) setShippingOrders(data.data?.orders || data.orders || [])
     setLoading(false)
   }, [filterStatus])
 
   const fetchConfirmedOrders = useCallback(async () => {
-    const res = await fetch('/api/logistics/shipping?status=all', { credentials: 'include' })
+    const res = await apiFetch('/api/logistics/shipping?status=all', { credentials: 'include' })
     // 获取已确认但尚未全部发货的订单
-    const ordersRes = await fetch('/api/distribution/orders?status=CONFIRMED', { credentials: 'include' })
+    const ordersRes = await apiFetch('/api/distribution/orders?status=CONFIRMED', { credentials: 'include' })
     const data = await ordersRes.json()
     if (ordersRes.ok) {
       // 过滤掉已存在发货单的订单
-      const shippedRes = await fetch('/api/logistics/shipping', { credentials: 'include' })
+      const shippedRes = await apiFetch('/api/logistics/shipping', { credentials: 'include' })
       const shippedData = await shippedRes.json()
       const shippedOrderIds = new Set((shippedData.orders || []).map((o: ShippingOrder) => o.salesOrderId))
       setConfirmedOrders((data.data?.orders || data.orders || []).filter((o: SalesOrder) => !shippedOrderIds.has(o.id)))
@@ -126,13 +127,13 @@ export default function LogisticsShippingPage() {
   }, [])
 
   const fetchProviders = useCallback(async () => {
-    const res = await fetch('/api/logistics/providers', { credentials: 'include' })
+    const res = await apiFetch('/api/logistics/providers', { credentials: 'include' })
     const data = await res.json()
     if (res.ok) setProviders(data.data || data.providers || [])
   }, [])
 
   useEffect(() => { fetchShippingOrders(); fetchConfirmedOrders(); fetchProviders() }, [fetchShippingOrders, fetchConfirmedOrders, fetchProviders])
-  useEffect(() => { fetchShippingOrders() }, [fetchShippingOrders])
+  useEffect(() => { fetchShippingOrders().catch(() => {}) }, [fetchShippingOrders])
 
   const openCreate = () => {
     setEditingId(null)
@@ -161,7 +162,7 @@ export default function LogisticsShippingPage() {
     if (!form.salesOrderId) return
     const url = editingId ? `/api/logistics/shipping/${editingId}` : '/api/logistics/shipping'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -185,7 +186,7 @@ export default function LogisticsShippingPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/logistics/shipping/${confirmDeleteId}`, { method: 'DELETE', credentials: 'include' })
+    const res = await apiFetch(`/api/logistics/shipping/${confirmDeleteId}`, { method: 'DELETE', credentials: 'include' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -195,7 +196,7 @@ export default function LogisticsShippingPage() {
   }
 
   const handleStatusChange = async (id: string, targetStatus: string) => {
-    const res = await fetch(`/api/logistics/shipping/${id}`, {
+    const res = await apiFetch(`/api/logistics/shipping/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: targetStatus }),
@@ -225,7 +226,7 @@ export default function LogisticsShippingPage() {
     if (!providerForm.name) return
     const url = '/api/logistics/providers'
     const method = providerForm.id ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(providerForm),
@@ -243,7 +244,7 @@ export default function LogisticsShippingPage() {
 
   const handleProviderDelete = async (id: string) => {
     if (!confirm('确定要删除此物流商吗？')) return
-    const res = await fetch(`/api/logistics/providers?id=${id}`, { method: 'DELETE', credentials: 'include' })
+    const res = await apiFetch(`/api/logistics/providers?id=${id}`, { method: 'DELETE', credentials: 'include' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')

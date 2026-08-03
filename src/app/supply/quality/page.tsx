@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const RESULT_LABELS: Record<string, string> = {
   PENDING: '待检',
@@ -100,7 +101,7 @@ export default function QualityPage() {
 
   const fetchMaterials = useCallback(async () => {
     try {
-      const res = await fetch('/api/rnd/materials?q=')
+      const res = await apiFetch('/api/rnd/materials?q=')
       const data = await res.json()
       if (res.ok) setMaterials(data.data || data.rawMaterials || [])
     } catch {}
@@ -108,7 +109,7 @@ export default function QualityPage() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const res = await fetch('/api/rnd/products')
+      const res = await apiFetch('/api/rnd/products')
       const data = await res.json()
       if (res.ok) setProducts(data.data || data.products || [])
     } catch {}
@@ -116,7 +117,7 @@ export default function QualityPage() {
 
   const fetchOemContracts = useCallback(async () => {
     try {
-      const res = await fetch('/api/supply/oem')
+      const res = await apiFetch('/api/supply/oem')
       const data = await res.json()
       if (res.ok) setOemContracts(data.data || data.items || [])
     } catch {}
@@ -129,7 +130,7 @@ export default function QualityPage() {
     if (iqcSearch) params.set('q', iqcSearch)
     if (iqcResultFilter) params.set('result', iqcResultFilter)
     try {
-      const res = await fetch(`/api/supply/incoming-inspection?${params}`)
+      const res = await apiFetch(`/api/supply/incoming-inspection?${params}`)
       const data = await res.json()
       if (res.ok) setIqcItems(data.data || data.items || [])
     } catch {}
@@ -146,7 +147,7 @@ export default function QualityPage() {
     if (ipqcResultFilter) params.set('result', ipqcResultFilter)
     if (ipqcStageFilter) params.set('stage', ipqcStageFilter)
     try {
-      const res = await fetch(`/api/supply/ipqc?${params}`)
+      const res = await apiFetch(`/api/supply/ipqc?${params}`)
       const data = await res.json()
       if (res.ok) setIpqcItems(data.data || data.items || [])
     } catch {}
@@ -162,7 +163,7 @@ export default function QualityPage() {
     if (oqcSearch) params.set('q', oqcSearch)
     if (oqcResultFilter) params.set('result', oqcResultFilter)
     try {
-      const res = await fetch(`/api/supply/oqc?${params}`)
+      const res = await apiFetch(`/api/supply/oqc?${params}`)
       const data = await res.json()
       if (res.ok) setOqcItems(data.data || data.items || [])
     } catch {}
@@ -176,7 +177,7 @@ export default function QualityPage() {
     setIqcForm({ ...iqcForm, rawMaterialId: materialId, batchId: '' })
     if (materialId) {
       try {
-        const res = await fetch(`/api/supply/inventory?materialId=${materialId}`)
+        const res = await apiFetch(`/api/supply/inventory?materialId=${materialId}`)
         const data = await res.json()
         setBatches(data.data || data.items || [])
       } catch { setBatches([]) }
@@ -205,7 +206,7 @@ export default function QualityPage() {
       remark: iqcForm.remark || null,
     }
     try {
-      await fetch('/api/supply/incoming-inspection', {
+      await apiFetch('/api/supply/incoming-inspection', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       })
       setIqcShowForm(false)
@@ -218,7 +219,7 @@ export default function QualityPage() {
   const handleIqcUpdate = async () => {
     if (!iqcShowDetail) return
     try {
-      await fetch(`/api/supply/incoming-inspection/${iqcShowDetail.id}`, {
+      await apiFetch(`/api/supply/incoming-inspection/${iqcShowDetail.id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
           result: iqcShowDetail.result, disposition: iqcShowDetail.disposition,
           nonConformity: iqcShowDetail.nonConformity, sampleQty: iqcShowDetail.sampleQty,
@@ -258,7 +259,7 @@ export default function QualityPage() {
       remark: ipqcForm.remark || null,
     }
     try {
-      await fetch('/api/supply/ipqc', {
+      await apiFetch('/api/supply/ipqc', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       })
       setIpqcShowForm(false)
@@ -271,7 +272,7 @@ export default function QualityPage() {
   const handleIpqcUpdate = async () => {
     if (!ipqcShowDetail) return
     try {
-      await fetch(`/api/supply/ipqc/${ipqcShowDetail.id}`, {
+      await apiFetch(`/api/supply/ipqc/${ipqcShowDetail.id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
           result: ipqcShowDetail.result, stage: ipqcShowDetail.stage,
           inspector: ipqcShowDetail.inspector, checkDate: ipqcShowDetail.checkDate,
@@ -322,7 +323,7 @@ export default function QualityPage() {
       remark: oqcForm.remark || null,
     }
     try {
-      await fetch('/api/supply/oqc', {
+      await apiFetch('/api/supply/oqc', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       })
       setOqcShowForm(false)
@@ -335,7 +336,7 @@ export default function QualityPage() {
   const handleOqcUpdate = async () => {
     if (!oqcShowDetail) return
     try {
-      await fetch(`/api/supply/oqc/${oqcShowDetail.id}`, {
+      await apiFetch(`/api/supply/oqc/${oqcShowDetail.id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
           result: oqcShowDetail.result, disposition: oqcShowDetail.disposition,
           inspector: oqcShowDetail.inspector, checkDate: oqcShowDetail.checkDate,
@@ -375,7 +376,7 @@ export default function QualityPage() {
   const handleIpqcDelete = async (id: string) => {
     if (!confirm('确认删除此制程检验记录？')) return
     try {
-      await fetch(`/api/supply/ipqc/${id}`, { method: 'DELETE' })
+      await apiFetch(`/api/supply/ipqc/${id}`, { method: 'DELETE' })
       fetchIpqc()
     } catch {}
   }
@@ -384,7 +385,7 @@ export default function QualityPage() {
   const handleOqcDelete = async (id: string) => {
     if (!confirm('确认删除此出厂检验记录？')) return
     try {
-      await fetch(`/api/supply/oqc/${id}`, { method: 'DELETE' })
+      await apiFetch(`/api/supply/oqc/${id}`, { method: 'DELETE' })
       fetchOqc()
     } catch {}
   }
@@ -1074,7 +1075,7 @@ export default function QualityPage() {
                             if (!file) return
                             const fd = new FormData()
                             fd.append('file', file)
-                            const res = await fetch('/api/upload', { method: 'POST', body: fd })
+                            const res = await apiFetch('/api/upload', { method: 'POST', body: fd })
                             const data = await res.json()
                             if (data.url) setOqcForm({...oqcForm, reportUrl: data.url})
                           }}
@@ -1201,7 +1202,7 @@ export default function QualityPage() {
                             if (!file) return
                             const fd = new FormData()
                             fd.append('file', file)
-                            const res = await fetch('/api/upload', { method: 'POST', body: fd })
+                            const res = await apiFetch('/api/upload', { method: 'POST', body: fd })
                             const data = await res.json()
                             if (data.url) setOqcShowDetail({...oqcShowDetail, reportUrl: data.url})
                           }}

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface User {
   id: string
@@ -131,7 +132,7 @@ export default function UsersPage() {
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/users')
+    const res = await apiFetch('/api/users')
     if (res.status === 403) {
       router.push('/')
       return
@@ -149,7 +150,7 @@ export default function UsersPage() {
 
   // 新建用户
   const handleCreate = async () => {
-    const res = await fetch('/api/users', {
+    const res = await apiFetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -173,7 +174,7 @@ export default function UsersPage() {
   const handleRoleSave = async () => {
     if (!roleEditTarget || !roleEditValue) return
     setSavingRole(true)
-    const res = await fetch(`/api/users/${roleEditTarget.id}`, {
+    const res = await apiFetch(`/api/users/${roleEditTarget.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role: roleEditValue }),
@@ -194,7 +195,7 @@ export default function UsersPage() {
     if (!toggleTarget) return
     setToggling(true)
     const action = toggleTarget.isActive ? '禁用' : '启用'
-    const res = await fetch(`/api/users/${toggleTarget.id}`, {
+    const res = await apiFetch(`/api/users/${toggleTarget.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isActive: !toggleTarget.isActive }),
@@ -229,7 +230,7 @@ export default function UsersPage() {
       return
     }
     setResetting(true)
-    const res = await fetch(`/api/users/${resetTarget.id}/reset-password`, {
+    const res = await apiFetch(`/api/users/${resetTarget.id}/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newPassword: resetPwd }),
@@ -253,7 +254,7 @@ export default function UsersPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return
     setDeleting(true)
-    const res = await fetch(`/api/users/${deleteTarget.id}`, {
+    const res = await apiFetch(`/api/users/${deleteTarget.id}`, {
       method: 'DELETE',
     })
     if (res.ok) {
@@ -281,7 +282,7 @@ export default function UsersPage() {
       return
     }
     setSavingInfo(true)
-    const res = await fetch(`/api/users/${editInfoTarget.id}`, {
+    const res = await apiFetch(`/api/users/${editInfoTarget.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: editForm.name.trim(), department: editForm.department || null }),
@@ -301,7 +302,7 @@ export default function UsersPage() {
   const handleApprove = async () => {
     if (!approveTarget) return
     setApproving(true)
-    const res = await fetch(`/api/users/${approveTarget.id}/approve`, {
+    const res = await apiFetch(`/api/users/${approveTarget.id}/approve`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role: approveRole }),
@@ -324,7 +325,7 @@ export default function UsersPage() {
       return
     }
     setApproving(true)
-    const res = await fetch(`/api/users/${rejectTarget.id}/approve?action=reject`, {
+    const res = await apiFetch(`/api/users/${rejectTarget.id}/approve?action=reject`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rejectReason: rejectReason.trim() }),
@@ -345,7 +346,7 @@ export default function UsersPage() {
     setPermTarget(target)
     setPermLoading(true)
     try {
-      const res = await fetch(`/api/users/${target.id}/permissions`)
+      const res = await apiFetch(`/api/users/${target.id}/permissions`)
       if (!res.ok) { showToast('error', '加载权限信息失败'); return }
       const data = await res.json()
       // 兼容标准响应格式 { success, data: { permissions } } 与旧格式顶层 permissions
@@ -376,7 +377,7 @@ export default function UsersPage() {
 
     setPermSaving(operation)
     try {
-      const res = await fetch(`/api/users/${permTarget.id}/permissions`, {
+      const res = await apiFetch(`/api/users/${permTarget.id}/permissions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ operation, granted: nextGranted }),

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Pagination from '@/components/Pagination'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const PAGE_SIZE = 20
 
@@ -30,7 +31,7 @@ export default function TestEntrustmentsPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const [iRes, pRes] = await Promise.all([fetch('/api/compliance/test-entrustments'), fetch('/api/rnd/products')])
+    const [iRes, pRes] = await Promise.all([apiFetch('/api/compliance/test-entrustments'), apiFetch('/api/rnd/products')])
     const iData = await iRes.json()
     if (!iRes.ok) throw new Error(iData.error || '加载检测失败')
     setItems(iData.testEntrustments || [])
@@ -40,7 +41,7 @@ export default function TestEntrustmentsPage() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
   useEffect(() => { setPage(1) }, [search])
 
   const filteredItems = items.filter((i: any) =>
@@ -74,7 +75,7 @@ export default function TestEntrustmentsPage() {
   const handleSave = async () => {
     const url = editingId ? `/api/compliance/test-entrustments/${editingId}` : '/api/compliance/test-entrustments'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -99,7 +100,7 @@ export default function TestEntrustmentsPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/compliance/test-entrustments/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/compliance/test-entrustments/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -109,7 +110,7 @@ export default function TestEntrustmentsPage() {
   }
 
   const updateStatus = async (id: string, data: any) => {
-    const res = await fetch(`/api/compliance/test-entrustments/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    const res = await apiFetch(`/api/compliance/test-entrustments/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '操作失败')

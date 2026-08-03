@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import FileUploader from '@/components/FileUploader'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const TYPES: Record<string, string> = { RAW_MATERIAL: '原料供应商', PACKAGING: '包材供应商', OEM: '代工厂', TESTING: '检测机构', CERTIFICATION_BODY: '认证机构', OTHER: '其他' }
 const DOC_TYPES: Record<string, string> = {
@@ -57,26 +58,26 @@ export default function SupplierDetailPage() {
   const [evalForm, setEvalForm] = useState({ evalDate: '', scoreQuality: '', scoreDelivery: '', scoreService: '', evaluator: '', remark: '' })
 
   const fetchSupplier = useCallback(async () => {
-    const res = await fetch(`/api/supply/suppliers`)
+    const res = await apiFetch(`/api/supply/suppliers`)
     const data = await res.json()
     const found = (data.suppliers || []).find((s: any) => s.id === id)
     setSupplier(found)
   }, [id])
 
   const fetchDocuments = useCallback(async () => {
-    const res = await fetch(`/api/supply/suppliers/${id}/documents`)
+    const res = await apiFetch(`/api/supply/suppliers/${id}/documents`)
     const data = await res.json()
     setDocuments(data.data || data.supplierDocuments || data.documents || [])
   }, [id])
 
   const fetchAudits = useCallback(async () => {
-    const res = await fetch(`/api/supply/suppliers/${id}/audits`)
+    const res = await apiFetch(`/api/supply/suppliers/${id}/audits`)
     const data = await res.json()
     setAudits(data.data || data.supplierAudits || data.audits || [])
   }, [id])
 
   const fetchEvaluations = useCallback(async () => {
-    const res = await fetch(`/api/supply/suppliers/${id}/evaluations`)
+    const res = await apiFetch(`/api/supply/suppliers/${id}/evaluations`)
     const data = await res.json()
     setEvaluations(data.data || data.supplierEvaluations || data.evaluations || [])
   }, [id])
@@ -87,7 +88,7 @@ export default function SupplierDetailPage() {
   }, [fetchSupplier, fetchDocuments, fetchAudits, fetchEvaluations])
 
   const handleCreateDoc = async () => {
-    await fetch(`/api/supply/suppliers/${id}/documents`, {
+    await apiFetch(`/api/supply/suppliers/${id}/documents`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(docForm),
@@ -98,7 +99,7 @@ export default function SupplierDetailPage() {
   }
 
   const handleCreateAudit = async () => {
-    await fetch(`/api/supply/suppliers/${id}/audits`, {
+    await apiFetch(`/api/supply/suppliers/${id}/audits`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(auditForm),
@@ -109,7 +110,7 @@ export default function SupplierDetailPage() {
   }
 
   const handleCreateEval = async () => {
-    await fetch(`/api/supply/suppliers/${id}/evaluations`, {
+    await apiFetch(`/api/supply/suppliers/${id}/evaluations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(evalForm),

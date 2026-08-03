@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface Channel {
   id: string
@@ -93,14 +94,14 @@ export default function DistributionOrdersPage() {
     const params = new URLSearchParams()
     if (filterChannel) params.set('channelId', filterChannel)
     if (filterStatus) params.set('status', filterStatus)
-    const res = await fetch(`/api/distribution/orders?${params}`)
+    const res = await apiFetch(`/api/distribution/orders?${params}`)
     const data = await res.json()
     if (res.ok) setOrders(data.data || data.orders || [])
     setLoading(false)
   }, [filterChannel, filterStatus])
 
   const fetchChannels = useCallback(async () => {
-    const res = await fetch('/api/distribution/channels')
+    const res = await apiFetch('/api/distribution/channels')
     const data = await res.json()
     if (res.ok) {
       setChannels(data.data?.distributionChannels || data.distributionChannels || data.data || [])
@@ -110,7 +111,7 @@ export default function DistributionOrdersPage() {
   useEffect(() => { fetchChannels(); fetchOrders() }, [fetchOrders, fetchChannels])
 
   // 重新获取订单（当筛选变化时）
-  useEffect(() => { fetchOrders() }, [fetchOrders])
+  useEffect(() => { fetchOrders().catch(() => {}) }, [fetchOrders])
 
   const openCreate = () => {
     setEditingId(null)
@@ -135,7 +136,7 @@ export default function DistributionOrdersPage() {
     if (!form.channelId || !form.productName) return
     const url = editingId ? `/api/distribution/orders/${editingId}` : '/api/distribution/orders'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -157,7 +158,7 @@ export default function DistributionOrdersPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/distribution/orders/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/distribution/orders/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -167,7 +168,7 @@ export default function DistributionOrdersPage() {
   }
 
   const handleStatusChange = async (id: string, targetStatus: string) => {
-    const res = await fetch(`/api/distribution/orders/${id}`, {
+    const res = await apiFetch(`/api/distribution/orders/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: targetStatus }),

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface BudgetItem {
   id: string
@@ -84,7 +85,7 @@ export default function BudgetPage() {
   const fetchBudgets = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/finance/budget?fiscalYear=${fiscalYear}`)
+      const res = await apiFetch(`/api/finance/budget?fiscalYear=${fiscalYear}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '加载失败')
       setBudgets(data.data?.budgets || data.budgets || [])
@@ -109,7 +110,7 @@ export default function BudgetPage() {
       return
     }
 
-    const res = await fetch('/api/finance/budget', {
+    const res = await apiFetch('/api/finance/budget', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -139,7 +140,7 @@ export default function BudgetPage() {
       return
     }
 
-    const res = await fetch(`/api/finance/budget/${budget.id}`, {
+    const res = await apiFetch(`/api/finance/budget/${budget.id}`, {
       method: 'DELETE',
     })
 

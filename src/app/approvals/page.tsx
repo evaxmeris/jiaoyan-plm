@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface ApprovalItem {
   id: string
@@ -102,7 +103,7 @@ export default function ApprovalsPage() {
     setLoading(true)
     setError(null)
     try {
-      const newRes = await fetch('/api/approval-requests?limit=100')
+      const newRes = await apiFetch('/api/approval-requests?limit=100')
 
       const newJson = await newRes.json()
 
@@ -162,7 +163,7 @@ export default function ApprovalsPage() {
     if (!confirmAction) return
     setActing(true)
     try {
-      const res = await fetch(`/api/approval-requests/${confirmAction.requestId}`, {
+      const res = await apiFetch(`/api/approval-requests/${confirmAction.requestId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -176,7 +177,7 @@ export default function ApprovalsPage() {
       setConfirmAction(null)
       fetchData()
     } catch (e: any) {
-      showToast('error', e.message || '操作失败')
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '操作失败')
     } finally {
       setActing(false)
     }

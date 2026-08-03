@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import Pagination from '@/components/Pagination'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const PAGE_SIZE = 20
 
@@ -96,20 +97,25 @@ export default function ProductsPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const [pRes, fRes] = await Promise.all([
-      fetch('/api/rnd/products'),
-      fetch('/api/rnd/formulas'),
-    ])
-    const pData = await pRes.json()
-    if (!pRes.ok) throw new Error(pData.error || '加载产品失败')
-    const fData = await fRes.json()
-    if (!fRes.ok) throw new Error(fData.error || '加载配方失败')
-    setProducts(pData.data || pData.productDesigns || pData.products || [])
-    setFormulas((fData.data || fData.formulas || []).map((f: any) => ({ id: f.id, name: f.name })))
-    setLoading(false)
+    try {
+      const [pRes, fRes] = await Promise.all([
+        apiFetch('/api/rnd/products'),
+        apiFetch('/api/rnd/formulas'),
+      ])
+      const pData = await pRes.json()
+      if (!pRes.ok) throw new Error(pData.error || '加载产品失败')
+      const fData = await fRes.json()
+      if (!fRes.ok) throw new Error(fData.error || '加载配方失败')
+      setProducts(pData.data || pData.productDesigns || pData.products || [])
+      setFormulas((fData.data || fData.formulas || []).map((f: any) => ({ id: f.id, name: f.name })))
+    } catch (e: any) {
+      if (!isUnauthorizedError(e)) showToast('error', e.message || '加载失败')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
   useEffect(() => { setPage(1) }, [search])
 
   const filteredProducts = products.filter(p =>
@@ -159,7 +165,7 @@ export default function ProductsPage() {
     const url = editProduct ? `/api/rnd/products/${editProduct.id}` : '/api/rnd/products'
     const method = editProduct ? 'PUT' : 'POST'
 
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

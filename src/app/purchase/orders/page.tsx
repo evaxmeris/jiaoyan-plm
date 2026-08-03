@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface PurchaseOrder {
  id: string
@@ -63,7 +64,7 @@ export default function PurchaseOrdersPage() {
     if (statusFilter) params.set('status', statusFilter)
     if (keyword) params.set('keyword', keyword)
 
-    const res = await fetch(`/api/purchase/orders?${params}`)
+    const res = await apiFetch(`/api/purchase/orders?${params}`)
     const data = await res.json()
     setOrders(data.data || data.orders || [])
     setPagination(data.meta || data.pagination)
@@ -88,7 +89,7 @@ export default function PurchaseOrdersPage() {
     if (!form.poNo || !form.supplierName) return
     const url = editingId ? `/api/purchase/orders/${editingId}` : '/api/purchase/orders'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -110,7 +111,7 @@ export default function PurchaseOrdersPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/purchase/orders/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/purchase/orders/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')

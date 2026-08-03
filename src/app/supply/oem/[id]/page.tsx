@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import ProcessTimeline from '@/components/ProcessTimeline'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 // 代工生产进度阶段
 const OEM_PRODUCTION_STAGES = [
@@ -59,9 +60,9 @@ export default function OEMContractDetailPage() {
 
   const fetchContract = useCallback(async () => {
     const [cRes, pRes, sRes] = await Promise.all([
-      fetch('/api/supply/oem'),
-      fetch(`/api/supply/oem/${id}/prices`),
-      fetch(`/api/supply/oem/${id}/schedules`),
+      apiFetch('/api/supply/oem'),
+      apiFetch(`/api/supply/oem/${id}/prices`),
+      apiFetch(`/api/supply/oem/${id}/schedules`),
     ])
     const cData = await cRes.json()
     const contracts = (cData.contracts || []).filter((c: any) => c.id === id)
@@ -73,10 +74,10 @@ export default function OEMContractDetailPage() {
     setLoading(false)
   }, [id])
 
-  useEffect(() => { fetchContract() }, [fetchContract])
+  useEffect(() => { fetchContract().catch(() => {}) }, [fetchContract])
 
   const handleAddPrice = async () => {
-    await fetch(`/api/supply/oem/${id}/prices`, {
+    await apiFetch(`/api/supply/oem/${id}/prices`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(priceForm),
@@ -87,7 +88,7 @@ export default function OEMContractDetailPage() {
   }
 
   const handleAddSchedule = async () => {
-    await fetch(`/api/supply/oem/${id}/schedules`, {
+    await apiFetch(`/api/supply/oem/${id}/schedules`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(scheduleForm),
@@ -98,7 +99,7 @@ export default function OEMContractDetailPage() {
   }
 
   const updateScheduleStatus = async (scheduleId: string, status: string, completedDate?: string) => {
-    await fetch(`/api/supply/oem/${id}/schedules`, {
+    await apiFetch(`/api/supply/oem/${id}/schedules`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scheduleId, status, completedDate }),

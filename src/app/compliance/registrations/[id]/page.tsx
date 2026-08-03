@@ -9,6 +9,7 @@ import {
   FileText, CheckCircle2, Clock, AlertCircle, Circle,
   ChevronRight, ArrowUpDown, Calendar, Building2, Hash, Tag, FileSignature
 } from 'lucide-react'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const STATUS_LABELS: Record<string, string> = {
   APPLYING: '首次申请',
@@ -74,7 +75,7 @@ export default function RegistrationDetailPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/compliance/registrations/${id}`)
+      const res = await apiFetch(`/api/compliance/registrations/${id}`)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || '加载失败')
       setData(json.registration)
@@ -85,13 +86,13 @@ export default function RegistrationDetailPage() {
     }
   }, [id])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const updateStatus = async (newStatus: string) => {
     if (!data) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/compliance/registrations/${id}`, {
+      const res = await apiFetch(`/api/compliance/registrations/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -418,7 +419,7 @@ function AssessmentSection({ registrationId }: { registrationId: string }) {
   const fetchAssessments = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/compliance/registrations/${registrationId}/assessments`)
+      const res = await apiFetch(`/api/compliance/registrations/${registrationId}/assessments`)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || '加载失败')
       setAssessments(json.assessments || [])
@@ -429,7 +430,7 @@ function AssessmentSection({ registrationId }: { registrationId: string }) {
     }
   }, [registrationId])
 
-  useEffect(() => { fetchAssessments() }, [fetchAssessments])
+  useEffect(() => { fetchAssessments().catch(() => {}) }, [fetchAssessments])
 
   const resetForm = () => {
     setFormData({ assessor: '', assessDate: '', reportNo: '', conclusion: 'PASS', fileUrl: '', remark: '' })
@@ -457,7 +458,7 @@ function AssessmentSection({ registrationId }: { registrationId: string }) {
       const url = editingId
         ? `/api/compliance/registrations/${registrationId}/assessments/${editingId}`
         : `/api/compliance/registrations/${registrationId}/assessments`
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -478,7 +479,7 @@ function AssessmentSection({ registrationId }: { registrationId: string }) {
   const handleDelete = async (aid: string) => {
     if (!confirm('确定删除此安全评估报告？')) return
     try {
-      const res = await fetch(`/api/compliance/registrations/${registrationId}/assessments/${aid}`, {
+      const res = await apiFetch(`/api/compliance/registrations/${registrationId}/assessments/${aid}`, {
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('删除失败')

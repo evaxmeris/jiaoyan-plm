@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: '草稿',
@@ -60,14 +61,14 @@ export default function PurchaseOrderDetailPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/purchase/orders/${id}`)
+    const res = await apiFetch(`/api/purchase/orders/${id}`)
     const json = await res.json()
     setData(json.data || json)
     setAuditLogs(json.auditLogs || [])
     setLoading(false)
   }, [id])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const handleStatusChange = async (status: string) => {
     // 到货登记特殊处理：打开弹窗
@@ -84,7 +85,7 @@ export default function PurchaseOrderDetailPage() {
       return
     }
 
-    const res = await fetch(`/api/purchase/orders/${id}`, {
+    const res = await apiFetch(`/api/purchase/orders/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -123,7 +124,7 @@ export default function PurchaseOrderDetailPage() {
 
     setReceiveSubmitting(true)
     try {
-      const res = await fetch(`/api/purchase/orders/${id}/receive`, {
+      const res = await apiFetch(`/api/purchase/orders/${id}/receive`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items }),

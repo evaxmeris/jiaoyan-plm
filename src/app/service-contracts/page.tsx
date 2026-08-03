@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import ProcessTimeline from '@/components/ProcessTimeline'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const TYPES: Record<string, string> = { TRANSLATION: '翻译', LEGAL: '法务', CONSULTING: '咨询', TESTING: '检测', OTHER: '其他' }
 const STATUS: Record<string, string> = {
@@ -41,19 +42,19 @@ export default function ServiceContractsPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/service-contracts')
+    const res = await apiFetch('/api/service-contracts')
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || '加载失败')
     setItems(data.contracts || [])
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   const fetchPayments = useCallback(async (contractId: string) => {
     setLoadingPayments(true)
     try {
-      const res = await fetch(`/api/service-contracts/${contractId}/payments`)
+      const res = await apiFetch(`/api/service-contracts/${contractId}/payments`)
       const data = await res.json()
       setPayments(data.data?.payments || data.payments || [])
     } catch { setPayments([]) }
@@ -79,7 +80,7 @@ export default function ServiceContractsPage() {
       return
     }
     try {
-      const res = await fetch(`/api/service-contracts/${viewing.id}/payments`, {
+      const res = await apiFetch(`/api/service-contracts/${viewing.id}/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(paymentForm),
@@ -95,7 +96,7 @@ export default function ServiceContractsPage() {
   const handleDeletePayment = async (pid: string) => {
     if (!confirm('确定要删除此支付记录吗？')) return
     try {
-      await fetch(`/api/service-contracts/${viewing.id}/payments/${pid}`, { method: 'DELETE' })
+      await apiFetch(`/api/service-contracts/${viewing.id}/payments/${pid}`, { method: 'DELETE' })
       fetchPayments(viewing.id)
     } catch {}
   }
@@ -105,7 +106,7 @@ export default function ServiceContractsPage() {
     if (!paymentApprovalForm.title) return
     setSubmittingApproval(true)
     try {
-      const res = await fetch('/api/approval-requests', {
+      const res = await apiFetch('/api/approval-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -148,7 +149,7 @@ export default function ServiceContractsPage() {
   const handleSave = async () => {
     const url = editingId ? `/api/service-contracts/${editingId}` : '/api/service-contracts'
     const method = editingId ? 'PUT' : 'POST'
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -164,7 +165,7 @@ export default function ServiceContractsPage() {
   }
 
   const handleStatusChange = async (id: string, status: string) => {
-    const res = await fetch(`/api/service-contracts/${id}`, {
+    const res = await apiFetch(`/api/service-contracts/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -182,7 +183,7 @@ export default function ServiceContractsPage() {
 
   const confirmDelete = async () => {
     if (!confirmDeleteId) return
-    const res = await fetch(`/api/service-contracts/${confirmDeleteId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/service-contracts/${confirmDeleteId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '删除失败')
@@ -230,7 +231,7 @@ export default function ServiceContractsPage() {
                         if (!file) return
                         const fd = new FormData()
                         fd.append('file', file)
-                        const res = await fetch('/api/upload', { method: 'POST', body: fd })
+                        const res = await apiFetch('/api/upload', { method: 'POST', body: fd })
                         const data = await res.json()
                         if (data.url) setForm({...form, fileUrl: data.url})
                       }}

@@ -6,6 +6,7 @@ import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DataTable, { Column } from './data-table'
 import FormModal from './form-modal'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const PAGE_SIZE = 20
 const inputCls = "w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -39,15 +40,15 @@ const productSelect = (v: string, onChange: (v: string) => void, products: Produ
 // ─── Shared hooks ───
 function useProducts() {
   const [products, setProducts] = useState<Product[]>([])
-  useEffect(() => { fetch('/api/rnd/products', { credentials: 'include' }).then(r => r.json()).then(d => setProducts((d.data || d.productDesigns || d.products)?.map((p: any) => ({ id: p.id, name: p.name, status: p.status })) || [])).catch(() => {}) }, [])
+  useEffect(() => { apiFetch('/api/rnd/products', { credentials: 'include' }).then(r => r.json()).then(d => setProducts((d.data || d.productDesigns || d.products)?.map((p: any) => ({ id: p.id, name: p.name, status: p.status })) || [])).catch(() => {}) }, [])
   return products
 }
 function useTabData<T>(url: string, extract: (d: any) => T[]) {
   const { showToast } = useToast()
   const [items, setItems] = useState<T[]>([])
   const [loading, setLoading] = useState(true)
-  const fetchData = useCallback(async () => { setLoading(true); try { const d = await(await fetch(url, { credentials: 'include' })).json(); setItems(extract(d)) } catch { showToast('error', '加载失败') } finally { setLoading(false) } }, [url, showToast])
-  useEffect(() => { fetchData() }, [fetchData])
+  const fetchData = useCallback(async () => { setLoading(true); try { const d = await(await apiFetch(url, { credentials: 'include' })).json(); setItems(extract(d)) } catch { showToast('error', '加载失败') } finally { setLoading(false) } }, [url, showToast])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
   return { items, loading, refresh: fetchData }
 }
 
@@ -102,8 +103,8 @@ function SampleTaskTab() {
   const [f, setF] = useState({ productDesignId: '', batchNo: '', quantity: '0', status: 'PENDING', assignedTo: '', dueDate: '', remark: '' })
   const emptyF = () => setF({ productDesignId: '', batchNo: '', quantity: '0', status: 'PENDING', assignedTo: '', dueDate: '', remark: '' })
   const fillF = (item: SampleTask) => setF({ productDesignId: item.productDesignId, batchNo: item.batchNo, quantity: String(item.quantity), status: item.status, assignedTo: item.assignedTo || '', dueDate: item.dueDate?.slice(0, 10) || '', remark: item.remark || '' })
-  const save = async () => { const url = editItem ? `/api/rnd/samples/${editItem.id}` : '/api/rnd/samples'; const r = await fetch(url, { method: editItem ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) }); if (r.ok) { showToast('success', editItem ? '更新成功' : '创建成功'); setShowForm(false); refresh() } else { const d = await r.json(); showToast('error', d.error || '操作失败') } }
-  const del = async () => { if (!confirmDelete) return; const r = await fetch(`/api/rnd/samples/${confirmDelete}`, { method: 'DELETE' }); if (r.ok) { showToast('success', '删除成功'); setConfirmDelete(null); refresh() } else showToast('error', '删除失败') }
+  const save = async () => { const url = editItem ? `/api/rnd/samples/${editItem.id}` : '/api/rnd/samples'; const r = await apiFetch(url, { method: editItem ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) }); if (r.ok) { showToast('success', editItem ? '更新成功' : '创建成功'); setShowForm(false); refresh() } else { const d = await r.json(); showToast('error', d.error || '操作失败') } }
+  const del = async () => { if (!confirmDelete) return; const r = await apiFetch(`/api/rnd/samples/${confirmDelete}`, { method: 'DELETE' }); if (r.ok) { showToast('success', '删除成功'); setConfirmDelete(null); refresh() } else showToast('error', '删除失败') }
 
   const cols: Column<SampleTask>[] = [
     { key: 'p', label: '产品', render: i => <div className="font-medium text-[var(--color-text)]">{i.product?.name || '-'}</div> },
@@ -156,8 +157,8 @@ function RetainedSampleTab() {
   const [f, setF] = useState({ productDesignId: '', batchNo: '', quantity: '0', storageLocation: '', sampleDate: new Date().toISOString().slice(0, 10), expireDate: '', status: 'NORMAL', remark: '' })
   const emptyF = () => setF({ productDesignId: '', batchNo: '', quantity: '0', storageLocation: '', sampleDate: new Date().toISOString().slice(0, 10), expireDate: '', status: 'NORMAL', remark: '' })
   const fillF = (item: RetainedSample) => setF({ productDesignId: item.productDesignId, batchNo: item.batchNo, quantity: String(item.quantity), storageLocation: item.storageLocation || '', sampleDate: item.sampleDate.slice(0, 10), expireDate: item.expireDate?.slice(0, 10) || '', status: item.status, remark: item.remark || '' })
-  const save = async () => { const url = editItem ? `/api/rnd/retained-samples/${editItem.id}` : '/api/rnd/retained-samples'; const r = await fetch(url, { method: editItem ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) }); if (r.ok) { showToast('success', editItem ? '更新成功' : '创建成功'); setShowForm(false); refresh() } else { const d = await r.json(); showToast('error', d.error || '操作失败') } }
-  const del = async () => { if (!confirmDelete) return; const r = await fetch(`/api/rnd/retained-samples/${confirmDelete}`, { method: 'DELETE' }); if (r.ok) { showToast('success', '删除成功'); setConfirmDelete(null); refresh() } else showToast('error', '删除失败') }
+  const save = async () => { const url = editItem ? `/api/rnd/retained-samples/${editItem.id}` : '/api/rnd/retained-samples'; const r = await apiFetch(url, { method: editItem ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) }); if (r.ok) { showToast('success', editItem ? '更新成功' : '创建成功'); setShowForm(false); refresh() } else { const d = await r.json(); showToast('error', d.error || '操作失败') } }
+  const del = async () => { if (!confirmDelete) return; const r = await apiFetch(`/api/rnd/retained-samples/${confirmDelete}`, { method: 'DELETE' }); if (r.ok) { showToast('success', '删除成功'); setConfirmDelete(null); refresh() } else showToast('error', '删除失败') }
 
   const cols: Column<RetainedSample & { displayStatus?: string }>[] = [
     { key: 'p', label: '产品', render: i => <div className="font-medium text-[var(--color-text)]">{i.product?.name || '-'}</div> },
@@ -204,8 +205,8 @@ function StabilityTestTab() {
   const [f, setF] = useState({ productDesignId: '', batchNo: '', testType: 'ACCELERATED', startDate: new Date().toISOString().slice(0, 10), endDate: '', interval: '1', status: 'IN_PROGRESS', remark: '' })
   const emptyF = () => setF({ productDesignId: '', batchNo: '', testType: 'ACCELERATED', startDate: new Date().toISOString().slice(0, 10), endDate: '', interval: '1', status: 'IN_PROGRESS', remark: '' })
   const fillF = (item: StabilityTest) => setF({ productDesignId: item.productDesignId, batchNo: item.batchNo, testType: item.testType, startDate: item.startDate.slice(0, 10), endDate: item.endDate?.slice(0, 10) || '', interval: String(item.interval), status: item.status, remark: item.remark || '' })
-  const save = async () => { const url = editItem ? `/api/rnd/stability-tests/${editItem.id}` : '/api/rnd/stability-tests'; const r = await fetch(url, { method: editItem ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) }); if (r.ok) { showToast('success', editItem ? '更新成功' : '创建成功'); setShowForm(false); refresh() } else { const d = await r.json(); showToast('error', d.error || '操作失败') } }
-  const del = async () => { if (!confirmDelete) return; const r = await fetch(`/api/rnd/stability-tests/${confirmDelete}`, { method: 'DELETE' }); if (r.ok) { showToast('success', '删除成功'); setConfirmDelete(null); refresh() } else showToast('error', '删除失败') }
+  const save = async () => { const url = editItem ? `/api/rnd/stability-tests/${editItem.id}` : '/api/rnd/stability-tests'; const r = await apiFetch(url, { method: editItem ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) }); if (r.ok) { showToast('success', editItem ? '更新成功' : '创建成功'); setShowForm(false); refresh() } else { const d = await r.json(); showToast('error', d.error || '操作失败') } }
+  const del = async () => { if (!confirmDelete) return; const r = await apiFetch(`/api/rnd/stability-tests/${confirmDelete}`, { method: 'DELETE' }); if (r.ok) { showToast('success', '删除成功'); setConfirmDelete(null); refresh() } else showToast('error', '删除失败') }
   const getMonths = (t: StabilityTest) => Math.max(1, Math.ceil(((t.endDate ? new Date(t.endDate) : new Date()).getTime() - new Date(t.startDate).getTime()) / 2592000000))
 
   const cols: Column<StabilityTest>[] = [

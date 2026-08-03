@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
+import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface DashboardData {
   fiscalYear: number
@@ -79,7 +80,7 @@ export default function BudgetDashboardPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/finance/dashboard?fiscalYear=${fiscalYear}`)
+      const res = await apiFetch(`/api/finance/dashboard?fiscalYear=${fiscalYear}`)
       const json = await res.json()
       if (res.ok) setData(json.data)
       else showToast('error', json.error || '加载失败')
@@ -89,7 +90,7 @@ export default function BudgetDashboardPage() {
     setLoading(false)
   }, [fiscalYear, showToast])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
 
   if (loading) {
     return (

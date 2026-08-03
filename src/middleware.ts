@@ -1,12 +1,29 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { jwtVerify } from 'jose'
 
 const PUBLIC_ROUTES = ['/login', '/register', '/verify']
 
-export function middleware(request: NextRequest) {
+/**
+ * 校验 token 签名与有效期（jose，edge 兼容）。
+ * middleware 之前只查 cookie 存在性，导致过期 token 放行页面、API 401，
+ * 前端又无法清除 httpOnly cookie，形成 页面↔登录页 无限重定向循环。
+ */
+async function isTokenValid(token: string | undefined): Promise<boolean> {
+  if (!token) return false
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || '')
+    await jwtVerify(token, secret)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get('token')?.value
-  const isAuthenticated = !!token
+  const isAuthenticated = await isTokenValid(token)
 
   // 已登录用户访问登录页 → 跳转首页
   if (isAuthenticated && (pathname === '/login' || pathname === '/register')) {
