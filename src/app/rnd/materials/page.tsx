@@ -8,6 +8,8 @@ import Pagination from '@/components/Pagination'
 import PageHeader from '@/components/PageHeader'
 import { useList, useCreate, useUpdate, useDelete } from '@/lib/api-hooks'
 import { apiFetch } from '@/lib/api-client'
+import { MATERIAL_DOC_TYPES } from '@/lib/material-doc-types'
+import { Upload, X } from 'lucide-react'
 
 interface RawMaterial {
   id: string
@@ -46,7 +48,11 @@ export default function MaterialsPage() {
     { search, page: String(page) },
   )
   const { create } = useCreate('/api/rnd/materials', {
-    onSuccess: () => { fetchMaterials(); showToast('success', '创建成功') },
+    onSuccess: () => { fetchMaterials() },
+    onError: (err) => showToast('error', err),
+  })
+  const { update } = useUpdate('/api/rnd/materials', {
+    onSuccess: () => { fetchMaterials() },
     onError: (err) => showToast('error', err),
   })
   const { remove } = useDelete('/api/rnd/materials', {
@@ -67,6 +73,8 @@ export default function MaterialsPage() {
   }, [])
   const [showForm, setShowForm] = useState(false)
   const [editMaterial, setEditMaterial] = useState<RawMaterial | null>(null)
+  // 新增弹窗中预选的厂家资料（fileType → File[]，每类可多选，保存原料后统一上传）
+  const [draftFiles, setDraftFiles] = useState<Record<string, File[]>>({})
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [viewingRegulation, setViewingRegulation] = useState<RawMaterial | null>(null)
   const [regulationData, setRegulationData] = useState<any>(null)
@@ -114,18 +122,40 @@ export default function MaterialsPage() {
       remark: form.remark || undefined,
       isActive: true,
     }
-    if (editMaterial) {
-      // 编辑统一走详情页（保留此分支防御，正常流程不会到达）
-      router.push(`/rnd/materials/${editMaterial.id}`)
-      return
-    }
-    const created = await create(data)
+    const created = editMaterial
+      ? await update(editMaterial.id, data)
+      : await create(data)
+    const savedId = editMaterial?.id || created?.id
     setShowForm(false)
     setEditMaterial(null)
     setForm(emptyForm)
-    // 新建成功 → 跳转详情页补厂家资料（先建后补）
-    if (created?.id) {
-      router.push(`/rnd/materials/${created.id}`)
+    setDraftFiles({})
+    // 新建/编辑成功 → 上传弹窗中预选的厂家资料（先建后传）
+    if (savedId) {
+      const draftEntries = Object.entries(draftFiles)
+      // 兼容热重载残留的单 File 旧状态（正常为 File[]）
+      const toList = (v: unknown): File[] => Array.isArray(v) ? v : (v ? [v as File] : [])
+      const totalFiles = draftEntries.reduce((n, [, list]) => n + toList(list).length, 0)
+      if (totalFiles > 0) {
+        for (const [docType, fileList] of draftEntries) {
+          for (const file of toList(fileList)) {
+            try {
+              const fd = new FormData()
+              fd.append('file', file)
+              fd.append('entityType', 'RawMaterial')
+              fd.append('entityId', savedId)
+              fd.append('fileType', docType)
+              await apiFetch('/api/files', { method: 'POST', body: fd })
+            } catch {
+              /* 单个文件失败不阻断其余上传 */
+            }
+          }
+        }
+        showToast('success', editMaterial ? '修改成功，资料已上传' : '创建成功，资料已上传')
+      } else {
+        showToast('success', editMaterial ? '修改成功' : '创建成功')
+      }
+      fetchMaterials()
     }
   }
 
@@ -136,6 +166,21 @@ export default function MaterialsPage() {
   const openCreate = () => {
     setEditMaterial(null)
     setForm(emptyForm)
+    setDraftFiles({})
+    setShowForm(true)
+  }
+
+  const openEdit = (m: RawMaterial) => {
+    setEditMaterial(m)
+    setDraftFiles({})
+    setForm({
+      nameCn: m.nameCn, nameEn: m.nameEn || '', inciName: m.inciName || '',
+      casNo: m.casNo || '', filingNo: m['备案号'] || '', filingStatus: m['备案状态'] || 'UNRECORDED',
+      supplier: m.supplier || '', function: m.function || '',
+      specification: m.specification || '', unit: m.unit || 'kg',
+      limitChina: m.limitChina || '', limitEu: m.limitEu || '',
+      remark: m.remark || '',
+    })
     setShowForm(true)
   }
 
@@ -213,6 +258,44 @@ export default function MaterialsPage() {
                   <textarea value={form.remark} onChange={e => setForm({ ...form, remark: e.target.value })}
                     className="w-full px-3 py-1.5 border border-[var(--color-border)] rounded text-sm" rows={2} />
                 </div>
+                <div className="col-span-2">
+                  <label className="block text-[var(--color-text-secondary)] mb-1">厂家资料（保存后自动上传）</label>
+                  <div className="border border-[var(--color-border)] rounded-lg divide-y divide-[var(--color-border)]">
+                    {MATERIAL_DOC_TYPES.map(doc => (
+                      <div key={doc.type} className="flex items-center justify-between gap-2 px-3 py-1.5">
+                        <div className="min-w-0">
+                          <div className="text-xs font-medium">{doc.label}</div>
+                          {draftFiles[doc.type]?.length > 0 && (
+                            <div className="space-y-0.5">
+                              {draftFiles[doc.type].map((f, i) => (
+                                <div key={i} className="flex items-center gap-1">
+                                  <div className="text-[11px] text-[var(--color-text-secondary)] truncate max-w-[180px]">{f.name}</div>
+                                  <button
+                                    type="button"
+                                    title="移除已选文件"
+                                    onClick={() => setDraftFiles(prev => ({ ...prev, [doc.type]: (prev[doc.type] || []).filter((_, j) => j !== i) }))}
+                                    className="text-gray-400 hover:text-red-500 transition-colors"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <label className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 rounded border border-[var(--color-border)] hover:border-emerald-300 hover:text-emerald-600 text-xs text-[var(--color-text-secondary)] flex-shrink-0">
+                          <Upload className="w-3.5 h-3.5" />
+                          {draftFiles[doc.type]?.length ? '继续选择' : '选择文件'}
+                          <input type="file" multiple className="hidden" onChange={e => {
+                            const files = Array.from(e.target.files || [])
+                            if (files.length > 0) setDraftFiles(prev => ({ ...prev, [doc.type]: [...(prev[doc.type] || []), ...files] }))
+                            e.target.value = ''
+                          }} />
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
               <div className="flex gap-2 mt-4 justify-end">
                 <button onClick={() => setShowForm(false)} className="px-4 py-2 text-[var(--color-text-secondary)]">取消</button>
@@ -261,8 +344,9 @@ export default function MaterialsPage() {
                       <span className={m.currentStock <= m.minStock ? 'text-red-500 font-medium' : 'text-[var(--color-text-secondary)]'}>{m.currentStock}{m.unit}</span>
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <button onClick={() => router.push(`/rnd/materials/${m.id}`)} className="text-xs text-emerald-600 hover:text-emerald-800 font-medium mr-3">详情/资料</button>
                       <button onClick={() => viewRegulations(m)} className="text-xs text-emerald-500 hover:text-emerald-700 mr-2">法规</button>
+                      <button onClick={() => router.push(`/rnd/materials/${m.id}`)} className="text-xs text-emerald-600 hover:text-emerald-800 font-medium mr-2">查看</button>
+                      <button onClick={() => openEdit(m)} className="text-xs text-blue-500 hover:text-blue-700 mr-2">编辑</button>
                       <button onClick={() => handleDelete(m.id)} className="text-xs text-red-400 hover:text-red-600">删除</button>
                     </td>
                   </tr>
