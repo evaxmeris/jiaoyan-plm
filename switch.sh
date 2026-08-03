@@ -45,6 +45,7 @@ case "${1:-status}" in
       cd ~/clawd/jiaoyan-plm && docker compose -p jiaoyan-plm up -d jiaoyan-plm-db 2>/dev/null
     fi
     # 启动Docker生产容器
+    # 共享上传目录：bind mount 宿主 ~/clawd/data/uploads（与开发 UPLOAD_DIR 一致，文件互通）
     docker rm -f jiaoyan-plm 2>/dev/null
     docker run -d --name jiaoyan-plm \
       --network jiaoyan-plm_jiaoyan-plm-network \
@@ -55,7 +56,7 @@ case "${1:-status}" in
       -e JWT_SECRET="$JWT_SECRET" \
       -e SEED_DEFAULT_PASSWORD="${SEED_DEFAULT_PASSWORD:-Admin123!}" \
       -e UPLOAD_DIR=/app/data/uploads \
-      -v jiaoyan-plm-uploads:/app/data/uploads \
+      -v $HOME/clawd/data/uploads:/app/data/uploads \
       -p $PORT:$PORT \
       --restart unless-stopped \
       jiaoyan-plm:latest 2>&1 | tail -1
