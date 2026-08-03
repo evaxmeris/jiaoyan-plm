@@ -1,0 +1,96 @@
+services:
+  jiaoyan-plm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jiaoyan-plm
+    ports:
+      - "3002:3002"
+    volumes:
+      # 共享上传目录：bind mount 到宿主 ~/clawd/data/uploads（与开发环境 UPLOAD_DIR 一致，文件互通）
+      - ~/clawd/data/uploads:/app/data/uploads
+      - jiaoyan-plm-backups:/app/backups
+    environment:
+      - NODE_ENV=production
+      - UPLOAD_DIR=/app/data/uploads
+      - PORT=3002
+      - HOSTNAME=0.0.0.0
+      - DATABASE_URL=postgresql://jiaoyan_plm:***@jiaoyan-plm-db:5432/jiaoyan_plm?schema=public
+      # JWT 密钥（必须设置！）
+      - JWT_SECRET=${JWT_SECRET}
+      # Sentry（可选，不设则降级）
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - SENTRY_ORG=${SENTRY_ORG:-}
+      - SENTRY_PROJECT=${SENTRY_PROJECT:-}
+    depends_on:
+      jiaoyan-plm-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - jiaoyan-plm-network
+    # ─── 生产资源限制 ───
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # ─── 日志驱动 ───
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # ─── 健康检查 ───
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  jiaoyan-plm-db:
+    image: postgres:16-alpine
+    container_name: jiaoyan-plm-db
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: jiaoyan_plm
+      POSTGRES_USER: jiaoyan_plm
+      POSTGRES_PASSWORD: jiaoyan_plm_secret
+    volumes:
+      - jiaoyan-plm-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    # ─── 数据库资源限制 ───
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    # ─── 日志驱动 ───
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # ─── 健康检查 ───
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jiaoyan_plm -d jiaoyan_plm"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - jiaoyan-plm-network
+
+networks:
+  jiaoyan-plm-network:
+    driver: bridge
+
+volumes:
+  jiaoyan-plm-pgdata:
+  jiaoyan-plm-backups:
