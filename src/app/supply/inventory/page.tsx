@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import FileUploader, { type FileUploaderHandle } from '@/components/FileUploader'
 import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 const CATEGORIES = [
@@ -30,13 +31,16 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState({ rawMaterialId: '', batchNo: '', quantity: '', receiptDate: '', supplier: '', coaUrl: '', remark: '' })
+  const [form, setForm] = useState({ rawMaterialId: '', batchNo: '', quantity: '', receiptDate: '', supplier: '', remark: '' })
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  // 批次 COA 管理弹窗（当前批次）
+  const [coaBatch, setCoaBatch] = useState<{ id: string; label: string } | null>(null)
+  const coaUploaderRef = useRef<FileUploaderHandle | null>(null)
 
   // 物资库存相关
   const [supplies, setSupplies] = useState<any[]>([])
 
-  const defaultForm = { rawMaterialId: '', batchNo: '', quantity: '', receiptDate: '', supplier: '', coaUrl: '', remark: '' }
+  const defaultForm = { rawMaterialId: '', batchNo: '', quantity: '', receiptDate: '', supplier: '', remark: '' }
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -47,7 +51,7 @@ export default function InventoryPage() {
       ])
       const iData = await iRes.json()
       if (!iRes.ok) throw new Error(iData.error || '加载库存失败')
-      setItems(iData.items || [])
+      setItems(iData.data || iData.items || [])
       const mData = await mRes.json()
       if (!mRes.ok) throw new Error(mData.error || '加载原料失败')
       setMaterials(mData.rawMaterials || [])
@@ -76,7 +80,6 @@ export default function InventoryPage() {
       quantity: item.quantity?.toString() || '',
       receiptDate: item.receiptDate ? item.receiptDate.slice(0, 10) : '',
       supplier: item.supplier || '',
-      coaUrl: item.coaUrl || '',
       remark: item.remark || '',
     })
     setShowForm(true)
@@ -208,6 +211,7 @@ export default function InventoryPage() {
                         <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{new Date(i.receiptDate).toLocaleDateString('zh-CN')}</td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-1">
+                            <button onClick={() => setCoaBatch({ id: i.id, label: `${i.rawMaterial?.nameCn || '原料'} / ${i.batchNo || i.internalBatch}` })} className="px-2 py-1 text-xs border rounded text-emerald-600 hover:bg-emerald-50" title="管理该批次 COA 报告（溯源用）">COA</button>
                             <button onClick={() => openEdit(i)} className="px-2 py-1 text-xs border rounded text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]">编辑</button>
                             <button onClick={() => handleDelete(i.id)} className="px-2 py-1 text-xs border rounded text-red-500 hover:bg-red-50">删除</button>
                           </div>
@@ -277,6 +281,29 @@ export default function InventoryPage() {
         onConfirm={confirmDelete}
         onCancel={() => setConfirmDeleteId(null)}
       />
+
+      {/* 批次 COA 管理弹窗（随采购批次保留，溯源用） */}
+      {coaBatch && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setCoaBatch(null)}>
+          <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-lg font-semibold">批次 COA 报告</h2>
+              <button onClick={() => setCoaBatch(null)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)] text-sm">关闭</button>
+            </div>
+            <div className="text-xs text-[var(--color-text-secondary)] mb-3">
+              {coaBatch.label} — 厂家随批次提供的 COA 分析证书，随批次保留供溯源查询
+            </div>
+            <FileUploader
+              ref={coaUploaderRef}
+              entityType="RawMaterialBatch"
+              entityId={coaBatch.id}
+              fileTypeFilter="COA"
+              uploadFileType="COA"
+              compact
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

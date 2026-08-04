@@ -78,6 +78,8 @@ export default function MaterialsPage() {
   const [editMaterial, setEditMaterial] = useState<RawMaterial | null>(null)
   // 新增弹窗中预选的厂家资料（fileType → File[]，每类可多选，保存原料后统一上传）
   const [draftFiles, setDraftFiles] = useState<Record<string, File[]>>({})
+  // 编辑时已上传的厂家资料（fileType → 已传文件，编辑=新建+已填信息，已传资料一并显示）
+  const [existingFiles, setExistingFiles] = useState<Record<string, { id: string; originalName: string; url: string }[]>>({})
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [viewingRegulation, setViewingRegulation] = useState<RawMaterial | null>(null)
   const [regulationData, setRegulationData] = useState<any>(null)
@@ -134,6 +136,7 @@ export default function MaterialsPage() {
     setEditMaterial(null)
     setForm(emptyForm)
     setDraftFiles({})
+    setExistingFiles({})
     // 新建/编辑成功 → 上传弹窗中预选的厂家资料（先建后传）
     if (savedId) {
       const draftEntries = Object.entries(draftFiles)
@@ -171,6 +174,7 @@ export default function MaterialsPage() {
     setEditMaterial(null)
     setForm(emptyForm)
     setDraftFiles({})
+    setExistingFiles({})
     setShowForm(true)
   }
 
@@ -187,7 +191,33 @@ export default function MaterialsPage() {
       limitChina: m.limitChina || '', limitEu: m.limitEu || '',
       remark: m.remark || '',
     })
+    // 加载已传资料：编辑窗口 = 新建窗口 + 已填信息（含已上传文件，按资料分类显示）
+    setExistingFiles({})
+    apiFetch(`/api/files?entityType=RawMaterial&entityId=${m.id}`)
+      .then(r => r.json())
+      .then(json => {
+        const files = (json.data || {}).files || json.files || []
+        const grouped: Record<string, { id: string; originalName: string; url: string }[]> = {}
+        for (const f of files) {
+          const t = f.fileType || 'OTHER'
+          ;(grouped[t] = grouped[t] || []).push({ id: f.id, originalName: f.originalName, url: f.url })
+        }
+        setExistingFiles(grouped)
+      })
+      .catch(() => { /* 已传资料加载失败不阻塞编辑 */ })
     setShowForm(true)
+  }
+
+  // 删除已上传的资料（编辑弹窗内直接删除，立即生效）
+  const removeExistingFile = async (docType: string, fileId: string) => {
+    const res = await apiFetch(`/api/files/${fileId}`, { method: 'DELETE' })
+    if (res.ok) {
+      setExistingFiles(prev => ({ ...prev, [docType]: (prev[docType] || []).filter(f => f.id !== fileId) }))
+      showToast('success', '已删除')
+    } else {
+      const err = await res.json().catch(() => ({}))
+      showToast('error', err.error || '删除失败')
+    }
   }
 
   const statusBadge = (status: string) => {
@@ -273,8 +303,34 @@ export default function MaterialsPage() {
                       <div key={doc.type} className="flex items-center justify-between gap-2 px-3 py-1.5">
                         <div className="min-w-0">
                           <div className="text-xs font-medium">{doc.label}</div>
+                          {/* 已上传文件（编辑时显示，查看/删除立即生效） */}
+                          {existingFiles[doc.type]?.length > 0 && (
+                            <div className="space-y-0.5 mt-0.5">
+                              {existingFiles[doc.type].map(f => (
+                                <div key={f.id} className="flex items-center gap-1">
+                                  <a
+                                    href={`/api/files/download/${f.id}`}
+                                    target="_blank"
+                                    title="在新页面打开查看"
+                                    className="text-[11px] text-blue-600 hover:underline truncate max-w-[160px]"
+                                  >
+                                    {f.originalName}
+                                  </a>
+                                  <button
+                                    type="button"
+                                    title="删除已传文件"
+                                    onClick={() => removeExistingFile(doc.type, f.id)}
+                                    className="text-gray-400 hover:text-red-500 transition-colors"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {/* 待上传文件（选择后显示，保存后统一上传） */}
                           {draftFiles[doc.type]?.length > 0 && (
-                            <div className="space-y-0.5">
+                            <div className="space-y-0.5 mt-0.5">
                               {draftFiles[doc.type].map((f, i) => (
                                 <div key={i} className="flex items-center gap-1">
                                   <div className="text-[11px] text-[var(--color-text-secondary)] truncate max-w-[180px]">{f.name}</div>

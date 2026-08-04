@@ -12,6 +12,7 @@ type RawMaterialBatchInfo = {
   id: string; batchNo: string; internalBatch: string; quantity: number; supplier: string
   receiptDate: string; expireDate?: string; status: string
   rawMaterial: RawMaterialInfo
+  coaFiles?: { id: string; originalName: string }[]
 }
 
 type TraceItemInfo = {
@@ -299,6 +300,27 @@ export default function TraceabilityPage() {
                         <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded ${statusBadge(item.rawMaterialBatch?.status || '')}`}>
                           {statusLabel(item.rawMaterialBatch?.status || '')}
                         </span>
+                      </div>
+                      {/* 批次 COA（随采购批次保留，溯源查询） */}
+                      <div className="mt-1.5">
+                        {item.rawMaterialBatch?.coaFiles && item.rawMaterialBatch.coaFiles.length > 0 ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-medium text-emerald-600">COA:</span>
+                            {item.rawMaterialBatch.coaFiles.map(f => (
+                              <a
+                                key={f.id}
+                                href={`/api/files/download/${f.id}`}
+                                target="_blank"
+                                title="查看该批次 COA 报告"
+                                className="text-[11px] text-blue-600 hover:underline truncate max-w-[200px]"
+                              >
+                                {f.originalName}
+                              </a>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-[var(--color-text-secondary)]">COA 未上传（可在原料库存批次管理补传）</span>
+                        )}
                       </div>
                     </div>
                   </div>

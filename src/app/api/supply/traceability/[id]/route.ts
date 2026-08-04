@@ -57,6 +57,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   // 4. 构建完整链路数据结构
   // 链路：RawMaterialBatch → ProductBatch → SalesOrder
+  // 批次 COA 文件（File 模型 entityType=RawMaterialBatch，随采购批次保留）
+  const batchIds = productBatch.traceItems
+    .map(item => item.rawMaterialBatch?.id)
+    .filter((id): id is string => !!id)
+  const coaFiles = batchIds.length > 0
+    ? await prisma.file.findMany({
+        where: { entityType: 'RawMaterialBatch', entityId: { in: batchIds }, fileType: 'COA', isDeleted: false },
+        select: { id: true, originalName: true, entityId: true },
+      })
+    : []
+  const coaByBatch = new Map<string, { id: string; originalName: string }[]>()
+  for (const f of coaFiles) {
+    const arr = coaByBatch.get(f.entityId) || []
+    arr.push({ id: f.id, originalName: f.originalName })
+    coaByBatch.set(f.entityId, arr)
+  }
+
   const traceChain = productBatch.traceItems.map((item) => ({
     id: item.id,
     usagePercentage: item.usagePercentage,
@@ -72,6 +89,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           supplier: item.rawMaterialBatch.supplier,
           status: item.rawMaterialBatch.status,
           rawMaterial: item.rawMaterialBatch.rawMaterial,
+          coaFiles: coaByBatch.get(item.rawMaterialBatch.id) || [],
         }
       : null,
   }))
