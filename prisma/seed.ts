@@ -54,6 +54,33 @@ async function main() {
   }
   console.log(`✅ 供应商: ${suppliers.length} 个`)
 
+  // ── 物资（包材）种子：化妆品产品由原料+包材组成，包材为采购基础分类 ──
+  const packagingSupplies = [
+    { name: 'PET瓶', unit: '个', specification: '30ml / 50ml / 100ml' },
+    { name: '玻璃瓶', unit: '个', specification: '10ml / 30ml' },
+    { name: '真空瓶', unit: '个', specification: '30ml / 50ml' },
+    { name: '软管', unit: '支', specification: '30g / 50g' },
+    { name: '泵头', unit: '个', specification: '标准泵 / 真空泵' },
+    { name: '喷头', unit: '个', specification: '标准喷雾' },
+    { name: '瓶盖', unit: '个', specification: '旋盖 / 翻盖' },
+    { name: '滴管', unit: '支', specification: '标准滴管' },
+    { name: '标签', unit: '张', specification: '不干胶标签' },
+    { name: '彩盒', unit: '个', specification: '定制印刷' },
+    { name: '整瓶', unit: '套', specification: '瓶 + 泵头 + 盖 成套' },
+    { name: '铝箔袋', unit: '个', specification: '面膜 / 试用装' },
+    { name: '说明书', unit: '张', specification: '折页说明书' },
+    { name: '外箱', unit: '个', specification: '运输包装' },
+  ]
+  const existingSupplies = new Set((await prisma.supply.findMany({ select: { name: true } })).map(s => s.name))
+  let supplyCount = 0
+  for (const s of packagingSupplies) {
+    if (!existingSupplies.has(s.name)) {
+      await prisma.supply.create({ data: { ...s, category: 'PACKAGING', minStock: 0 } })
+      supplyCount++
+    }
+  }
+  console.log(`✅ 包材物资: ${packagingSupplies.length} 种（新增 ${supplyCount}）`)
+
   console.log('🎉 种子数据填充完毕！')
 }
 

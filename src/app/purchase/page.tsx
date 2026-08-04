@@ -107,6 +107,8 @@ export default function PurchasePage() {
   const [userName, setUserName] = useState<string>('')
   const [userId, setUserId] = useState<string>('')
   const [rawMaterials, setRawMaterials] = useState<{ id: string; nameCn: string; unit: string }[]>([])
+  // 按采购分类加载的物品（包材/实验用品/设备等，来自物资管理）
+  const [supplies, setSupplies] = useState<{ id: string; name: string; unit: string; category: string }[]>([])
   const [approvalFlow, setApprovalFlow] = useState<ApprovalFlow | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<string | null>(null)
@@ -276,10 +278,16 @@ export default function PurchasePage() {
           </div>
           <button onClick={async () => {
             setShowForm(true)
+            setForm({ ...form, category: 'RAW_MATERIAL' })
             try {
               const res = await apiFetch('/api/rnd/materials')
               const json = await res.json()
               setRawMaterials(json.rawMaterials || json.materials || [])
+              // 同时预加载包材物品（切换分类时即时可用）
+              const supRes = await apiFetch('/api/supply/supplies?category=PACKAGING')
+              const supJson = await supRes.json()
+              const list = supJson.supplies || supJson.data?.supplies || supJson.data || []
+              setSupplies(Array.isArray(list) ? list : [])
             } catch {}
           }} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm">+ 新建采购申请</button>
         </div>
@@ -328,7 +336,28 @@ export default function PurchasePage() {
               )}
               <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                 <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">采购标题 *</label><input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
-                <div><label className="block text-[var(--color-text-secondary)] mb-1">采购分类</label><select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">{Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
+                <div>
+                  <label className="block text-[var(--color-text-secondary)] mb-1">采购分类</label>
+                  <select
+                    value={form.category}
+                    onChange={async e => {
+                      const cat = e.target.value
+                      setForm({ ...form, category: cat })
+                      // 非原料分类：按分类加载物资物品（包材/实验用品/设备等）
+                      if (cat !== 'RAW_MATERIAL') {
+                        try {
+                          const res = await apiFetch(`/api/supply/supplies?category=${cat}`)
+                          const json = await res.json()
+                          const list = json.supplies || json.data?.supplies || json.data || []
+                          setSupplies(Array.isArray(list) ? list : [])
+                        } catch { setSupplies([]) }
+                      }
+                    }}
+                    className="w-full px-3 py-1.5 border rounded text-sm"
+                  >
+                    {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  </select>
+                </div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商</label><input type="text" value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">紧急程度</label><select value={form.urgency} onChange={e => setForm({...form, urgency: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"><option value="LOW">低</option><option value="NORMAL">普通</option><option value="HIGH">高</option><option value="URGENT">紧急</option></select></div>
                 <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">用途说明</label><textarea value={form.purpose} onChange={e => setForm({...form, purpose: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
@@ -339,20 +368,25 @@ export default function PurchasePage() {
                   <div key={i} className="flex gap-2 items-center text-xs">
                     <select value={item.rawMaterialId} onChange={e => {
                       const items = [...formItems]
-                      const rmId = e.target.value
-                      items[i].rawMaterialId = rmId
-                      if (rmId) {
-                        const rm = rawMaterials.find(m => m.id === rmId)
-                        if (rm) {
-                          items[i].name = rm.nameCn
-                          items[i].unit = rm.unit
+                      const selId = e.target.value
+                      items[i].rawMaterialId = selId
+                      if (selId) {
+                        // 原料分类 → 从原料列表取；其他分类 → 从物资列表取
+                        const picked = form.category === 'RAW_MATERIAL'
+                          ? rawMaterials.find(m => m.id === selId)
+                          : supplies.find(s => s.id === selId)
+                        if (picked) {
+                          items[i].name = form.category === 'RAW_MATERIAL' ? (picked as any).nameCn : (picked as any).name
+                          items[i].unit = (picked as any).unit || ''
                         }
                       }
                       setFormItems(items)
                     }} className="w-28 px-2 py-1.5 border rounded text-xs">
-                      <option value="">原料...</option>
-                      {rawMaterials.map(rm => (
-                        <option key={rm.id} value={rm.id}>{rm.nameCn}</option>
+                      <option value="">{form.category === 'RAW_MATERIAL' ? '原料...' : '物品...'}</option>
+                      {(form.category === 'RAW_MATERIAL' ? rawMaterials : supplies).map(opt => (
+                        <option key={opt.id} value={opt.id}>
+                          {form.category === 'RAW_MATERIAL' ? (opt as any).nameCn : (opt as any).name}
+                        </option>
                       ))}
                     </select>
                     <input type="text" placeholder="名称" value={item.name} onChange={e => { const items = [...formItems]; items[i].name = e.target.value; setFormItems(items) }} className="flex-1 px-2 py-1.5 border rounded" />
