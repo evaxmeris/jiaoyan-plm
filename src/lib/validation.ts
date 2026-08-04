@@ -42,7 +42,7 @@ const PurchaseItemSchema = z.object({
 
 export const PurchaseApplicationSchema = z.object({
   title: z.string().min(1, '标题不能为空').max(200),
-  category: z.enum(['RAW_MATERIAL', 'LAB_SUPPLIES', 'EQUIPMENT', 'OFFICE_SUPPLIES', 'GIFTS', 'OTHER']).default('RAW_MATERIAL'),
+  category: z.enum(['RAW_MATERIAL', 'PACKAGING', 'LAB_SUPPLIES', 'EQUIPMENT', 'OFFICE_SUPPLIES', 'GIFTS', 'OTHER']).default('RAW_MATERIAL'),
   supplier: z.string().nullable().optional(),
   supplierId: z.string().nullable().optional(),
   totalAmount: z.coerce.number().min(0, '金额不能为负'),

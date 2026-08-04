@@ -49,6 +49,7 @@ interface BudgetInfo {
 // 采购分类
 const CATEGORY_LABELS: Record<string, string> = {
   RAW_MATERIAL: '原料采购',
+  PACKAGING: '包材采购',
   LAB_SUPPLIES: '实验用品',
   EQUIPMENT: '生产设备',
   OFFICE_SUPPLIES: '办公物资',
@@ -58,6 +59,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const CATEGORY_COLORS: Record<string, string> = {
   RAW_MATERIAL: 'bg-rose-100 text-rose-700',
+  PACKAGING: 'bg-teal-100 text-teal-700',
   LAB_SUPPLIES: 'bg-blue-100 text-blue-700',
   EQUIPMENT: 'bg-purple-100 text-purple-700',
   OFFICE_SUPPLIES: 'bg-gray-100 text-gray-700',
