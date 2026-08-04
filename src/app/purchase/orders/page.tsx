@@ -27,6 +27,18 @@ interface Pagination {
   totalPages: number
 }
 
+/** 已审批采购申请（可生成 PO 的候选） */
+interface ApprovedApplication {
+  id: string
+  code: string
+  title: string
+  supplier: string | null
+  totalAmount: number
+  status: string
+  items: { id: string; name: string; quantity: number; unit: string }[]
+  purchaseOrder?: { id: string; poNo: string; status: string } | null
+}
+
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: '草稿',
   ISSUED: '已发出',
@@ -55,8 +67,23 @@ export default function PurchaseOrdersPage() {
   const [keyword, setKeyword] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState({ poNo: '', supplierName: '', remark: '' })
+  const [form, setForm] = useState({ applicationId: '', remark: '' })
+  // 已审批采购申请（生成 PO 的候选来源）
+  const [applications, setApplications] = useState<ApprovedApplication[]>([])
+  // 新建时当前选中的申请（用于展示摘要）
+  const [selectedApp, setSelectedApp] = useState<ApprovedApplication | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+  // 加载已审批且尚未生成 PO 的采购申请
+  useEffect(() => {
+    apiFetch('/api/purchase/applications?status=APPROVED&limit=100')
+      .then(r => r.json())
+      .then(j => {
+        const list = j.applications || j.data?.applications || []
+        setApplications(list)
+      })
+      .catch(() => { /* 申请列表加载失败不阻塞页面 */ })
+  }, [])
 
   const fetchOrders = useCallback(async (page: number = 1) => {
     setLoading(true)
@@ -75,33 +102,38 @@ export default function PurchaseOrdersPage() {
 
   const openCreate = () => {
     setEditingId(null)
-    setForm({ poNo: '', supplierName: '', remark: '' })
+    setForm({ applicationId: '', remark: '' })
+    setSelectedApp(null)
     setShowForm(true)
   }
 
-  const openEdit = (o: PurchaseOrder) => {
+  const openView = (o: PurchaseOrder) => {
     setEditingId(o.id)
-    setForm({ poNo: o.poNo, supplierName: o.supplierName, remark: o.remark || '' })
     setShowForm(true)
   }
 
   const handleSave = async () => {
-    if (!form.poNo || !form.supplierName) return
-    const url = editingId ? `/api/purchase/orders/${editingId}` : '/api/purchase/orders'
-    const method = editingId ? 'PUT' : 'POST'
-    const res = await apiFetch(url, {
-      method,
+    if (!form.applicationId) {
+      showToast('error', '请选择要生成订单的采购申请')
+      return
+    }
+    const res = await apiFetch('/api/purchase/orders', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ applicationId: form.applicationId, remark: form.remark || undefined }),
     })
     if (res.ok) {
+      const data = await res.json()
+      const order = data.order || data.data?.order
+      showToast('success', order?.poNo ? `采购订单 ${order.poNo} 已生成` : '采购订单已生成')
       setShowForm(false)
       setEditingId(null)
-      setForm({ poNo: '', supplierName: '', remark: '' })
+      setForm({ applicationId: '', remark: '' })
+      setSelectedApp(null)
       fetchOrders(pagination.page)
     } else {
       const data = await res.json()
-      showToast('error', data.error || (editingId ? '更新失败' : '创建失败'))
+      showToast('error', data.error || '创建失败')
     }
   }
 
@@ -173,25 +205,91 @@ export default function PurchaseOrdersPage() {
         {showForm && (
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
-              <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑采购订单' : '新建采购订单'}</h2>
-              <div className="grid grid-cols-1 gap-3 text-sm">
-                <div>
-                  <label className="block text-[var(--color-text-secondary)] mb-1">PO编号 *</label>
-                  <input type="text" value={form.poNo} onChange={e => setForm({ ...form, poNo: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" />
-                </div>
-                <div>
-                  <label className="block text-[var(--color-text-secondary)] mb-1">供应商名称 *</label>
-                  <input type="text" value={form.supplierName} onChange={e => setForm({ ...form, supplierName: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" />
-                </div>
-                <div>
-                  <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
-                  <textarea value={form.remark} onChange={e => setForm({ ...form, remark: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" rows={3} />
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4 justify-end">
-                <button onClick={() => { setShowForm(false); setEditingId(null) }} className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">取消</button>
-                <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm" disabled={!form.poNo || !form.supplierName}>{editingId ? '保存修改' : '创建'}</button>
-              </div>
+              {editingId ? (
+                /* ── 查看订单详情（只读，后端无编辑接口） ── */
+                <>
+                  <h2 className="text-lg font-semibold mb-4">采购订单详情</h2>
+                  {(() => {
+                    const o = orders.find(x => x.id === editingId)
+                    if (!o) return <p className="text-sm text-[var(--color-text-secondary)]">订单不存在</p>
+                    return (
+                      <div className="text-sm space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div><div className="text-[var(--color-text-secondary)] text-xs">PO 编号</div><div className="font-medium">{o.poNo}</div></div>
+                          <div><div className="text-[var(--color-text-secondary)] text-xs">状态</div><span className={`inline-block px-2 py-0.5 rounded text-xs ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_LABELS[o.status] || o.status}</span></div>
+                          <div><div className="text-[var(--color-text-secondary)] text-xs">供应商</div><div className="font-medium">{o.supplierName}</div></div>
+                          <div><div className="text-[var(--color-text-secondary)] text-xs">订单金额</div><div className="font-medium">¥{Number(o.totalAmount).toFixed(2)}</div></div>
+                          <div><div className="text-[var(--color-text-secondary)] text-xs">来源申请</div><div>{o.application?.code} · {o.application?.title}</div></div>
+                        </div>
+                        {(o.items?.length > 0) && (
+                          <div>
+                            <div className="text-[var(--color-text-secondary)] text-xs mb-1">订单明细</div>
+                            <div className="border rounded-lg divide-y">
+                              {o.items.map(it => (
+                                <div key={it.id} className="flex justify-between px-3 py-1.5 text-xs">
+                                  <span>{it.name}</span>
+                                  <span className="text-[var(--color-text-secondary)]">{it.quantity}{it.unit}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {o.remark && <div><div className="text-[var(--color-text-secondary)] text-xs">备注</div><div>{o.remark}</div></div>}
+                      </div>
+                    )
+                  })()}
+                  <div className="flex gap-2 mt-4 justify-end">
+                    <button onClick={() => { setShowForm(false); setEditingId(null) }} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">关闭</button>
+                  </div>
+                </>
+              ) : (
+                /* ── 新建：从已审批采购申请生成 PO ── */
+                <>
+                  <h2 className="text-lg font-semibold mb-4">新建采购订单</h2>
+                  <div className="grid grid-cols-1 gap-3 text-sm">
+                    <div>
+                      <label className="block text-[var(--color-text-secondary)] mb-1">采购申请 *（需已审批通过）</label>
+                      <select
+                        value={form.applicationId}
+                        onChange={e => {
+                          const app = applications.find(a => a.id === e.target.value) || null
+                          setForm({ ...form, applicationId: e.target.value })
+                          setSelectedApp(app)
+                        }}
+                        className="w-full px-3 py-1.5 border rounded text-sm bg-white"
+                      >
+                        <option value="">请选择采购申请</option>
+                        {applications
+                          .filter(a => !a.purchaseOrder) // 已生成 PO 的申请不可再选
+                          .map(a => (
+                            <option key={a.id} value={a.id}>
+                              {a.code} · {a.title}{a.supplier ? ` · ${a.supplier}` : ''}（¥{Number(a.totalAmount).toFixed(2)}）
+                            </option>
+                          ))}
+                      </select>
+                      {applications.filter(a => !a.purchaseOrder).length === 0 && (
+                        <p className="text-xs text-amber-600 mt-1">暂无已审批通过的采购申请，请先在采购管理创建申请并完成审批</p>
+                      )}
+                    </div>
+                    {selectedApp && (
+                      <div className="bg-[var(--color-bg)] rounded-lg p-3 text-xs space-y-1">
+                        <div className="font-medium">{selectedApp.title}</div>
+                        <div className="text-[var(--color-text-secondary)]">编号：{selectedApp.code} ｜ 供应商：{selectedApp.supplier || '未指定'}</div>
+                        <div className="text-[var(--color-text-secondary)]">金额：¥{Number(selectedApp.totalAmount).toFixed(2)} ｜ 明细：{selectedApp.items?.length || 0} 项</div>
+                        <div className="text-[var(--color-text-secondary)]">生成后自动带出明细与金额，PO 编号自动分配</div>
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
+                      <textarea value={form.remark} onChange={e => setForm({ ...form, remark: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" rows={3} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4 justify-end">
+                    <button onClick={() => { setShowForm(false); setEditingId(null) }} className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">取消</button>
+                    <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm" disabled={!form.applicationId}>生成采购订单</button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -243,10 +341,10 @@ export default function PurchaseOrdersPage() {
                     <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                       <span className="text-sm font-semibold text-rose-600">¥{o.totalAmount.toFixed(2)}</span>
                       <button
-                        onClick={() => openEdit(o)}
+                        onClick={() => openView(o)}
                         className="px-2.5 py-1 rounded text-xs border text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]"
                       >
-                        编辑
+                        查看
                       </button>
                       {o.status === 'DRAFT' && (
                         <button
