@@ -11,7 +11,7 @@ import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 const PAGE_SIZE = 20
 
 interface RawMaterial {
-  id: string; nameCn: string; unit: string
+  id: string; nameCn: string; unit: string; latestPrice: number | null
 }
 
 interface FormulaItem {
@@ -419,32 +419,59 @@ export default function FormulasPage() {
               {/* 原料成分 */}
               <h3 className="text-sm font-medium text-[var(--color-text)] mb-2">配方成分（总占比: {formItems.reduce((s, it) => s + (parseFloat(it.percentage) || 0), 0).toFixed(1)}%）</h3>
               <div className="space-y-2 mb-3">
-                {formItems.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-center text-sm">
-                    <select
-                      value={item.rawMaterialId}
-                      onChange={e => {
-                        const items = [...formItems]
-                        items[i].rawMaterialId = e.target.value
-                        setFormItems(items)
-                      }}
-                      className="flex-1 px-3 py-1.5 border rounded text-sm"
-                    >
-                      <option value="">选择原料</option>
-                      {materials.map(m => (
-                        <option key={m.id} value={m.id}>{m.nameCn}</option>
-                      ))}
-                    </select>
-                    <input type="number" step="0.01" placeholder="%" value={item.percentage}
-                      onChange={e => {
-                        const items = [...formItems]
-                        items[i].percentage = e.target.value
-                        setFormItems(items)
-                      }}
-                      className="w-20 px-2 py-1.5 border rounded text-sm text-right" />
-                    <button onClick={() => setFormItems(formItems.filter((_, j) => j !== i))} className="text-red-400 text-xs">删除</button>
-                  </div>
-                ))}
+                {formItems.map((item, i) => {
+                  const mat = materials.find(m => m.id === item.rawMaterialId)
+                  const unitPrice = mat?.latestPrice ?? null
+                  const pct = parseFloat(item.percentage) || 0
+                  const autoCost = unitPrice != null && pct > 0
+                    ? Math.round((pct / 100) * unitPrice * 100) / 100
+                    : null
+                  return (
+                    <div key={i} className="flex gap-2 items-center text-sm">
+                      <select
+                        value={item.rawMaterialId}
+                        onChange={e => {
+                          const items = [...formItems]
+                          items[i].rawMaterialId = e.target.value
+                          setFormItems(items)
+                        }}
+                        className="flex-1 px-3 py-1.5 border rounded text-sm"
+                      >
+                        <option value="">选择原料</option>
+                        {materials.map(m => (
+                          <option key={m.id} value={m.id}>{m.nameCn}</option>
+                        ))}
+                      </select>
+                      <input type="number" step="0.01" placeholder="%" value={item.percentage}
+                        onChange={e => {
+                          const items = [...formItems]
+                          items[i].percentage = e.target.value
+                          setFormItems(items)
+                        }}
+                        className="w-16 px-2 py-1.5 border rounded text-sm text-right" />
+                      {unitPrice != null ? (
+                        <span className="text-xs text-emerald-600 whitespace-nowrap" title="该原料行当前采购价">
+                          ¥{unitPrice}/{mat?.unit || 'kg'}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-red-500 whitespace-nowrap" title="该原料未录价格，成本按 0 计">未定价</span>
+                      )}
+                      <input
+                        type="number" step="0.01"
+                        placeholder={autoCost != null ? `自动 ¥${autoCost}` : ''}
+                        value={item.cost}
+                        onChange={e => {
+                          const items = [...formItems]
+                          items[i].cost = e.target.value
+                          setFormItems(items)
+                        }}
+                        title="成本（元/单位产品，默认按占比×单价自动计算，可手动覆盖）"
+                        className="w-24 px-2 py-1.5 border rounded text-sm text-right"
+                      />
+                      <button onClick={() => setFormItems(formItems.filter((_, j) => j !== i))} className="text-red-400 text-xs">删除</button>
+                    </div>
+                  )
+                })}
               </div>
               <button onClick={() => setFormItems([...formItems, { rawMaterialId: '', percentage: '', weight: '', cost: '' }])}
                 className="text-sm text-emerald-600 hover:text-emerald-700 mb-4 block">+ 添加原料</button>
@@ -537,8 +564,14 @@ export default function FormulasPage() {
                       {complianceBadge(f.id)}
                     </div>
                     <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-                      v{f.version} · {f.items.length} 种成分 · {f._count.versions} 次版本 · {f.batchSize ? `${f.batchSize}g` : '-'}
+                      {f.version} · {f.items.length} 种成分 · {f._count.versions} 次版本 · {f.batchSize ? `${f.batchSize}g` : '-'}
                       {f.targetProduct && <span> · 目标: {f.targetProduct}</span>}
+                      <span className="ml-3 font-medium text-emerald-600">单位成本 ¥{f.totalCost ?? 0}</span>
+                      {f.items.filter(it => (it.rawMaterial?.latestPrice ?? null) == null).length > 0 && (
+                        <span className="ml-2 text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] font-medium">
+                          {f.items.filter(it => (it.rawMaterial?.latestPrice ?? null) == null).length} 项未定价
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -560,7 +593,7 @@ export default function FormulasPage() {
                     <button onClick={() => openVersionHistory(f)} className="px-3 py-1 text-xs border rounded text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]">版本历史{f._count.versions > 0 ? ` (${f._count.versions})` : ''}</button>
                   </div>
                 </div>
-                {/* 成分预览 */}
+                {/* 成分预览 + 成本构成 */}
                 {f.items.length > 0 && (
                   <div className="mt-3 border-t pt-3">
                     <table className="w-full text-xs">
@@ -568,15 +601,39 @@ export default function FormulasPage() {
                         <tr className="text-[var(--color-text-secondary)]">
                           <th className="text-left pb-1">原料</th>
                           <th className="text-right pb-1">占比</th>
+                          <th className="text-right pb-1">单价</th>
+                          <th className="text-right pb-1">成本</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {f.items.map(item => (
-                          <tr key={item.id}>
-                            <td className="py-0.5">{item.rawMaterial?.nameCn || '-'}</td>
-                            <td className="text-right">{item.percentage}%</td>
-                          </tr>
-                        ))}
+                        {f.items.map(item => {
+                          const unitPrice = item.rawMaterial?.latestPrice ?? null
+                          return (
+                            <tr key={item.id}>
+                              <td className="py-0.5">
+                                {item.rawMaterial?.nameCn || '-'}
+                                {unitPrice == null && (
+                                  <span className="ml-1 text-[10px] text-red-500">未定价</span>
+                                )}
+                              </td>
+                              <td className="text-right">{item.percentage}%</td>
+                              <td className="text-right">
+                                {unitPrice != null ? (
+                                  <span className="text-emerald-600">¥{unitPrice}</span>
+                                ) : (
+                                  <span className="text-red-400">—</span>
+                                )}
+                              </td>
+                              <td className="text-right">{item.cost != null ? `¥${item.cost}` : '—'}</td>
+                            </tr>
+                          )
+                        })}
+                        <tr className="border-t border-[var(--color-border)] font-medium">
+                          <td className="py-1">单位成本合计</td>
+                          <td className="text-right">{f.items.reduce((s, it) => s + (it.percentage || 0), 0).toFixed(1)}%</td>
+                          <td />
+                          <td className="text-right text-emerald-600">¥{f.totalCost ?? 0}</td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
@@ -596,6 +653,16 @@ export default function FormulasPage() {
         confirmLabel="删除"
         onConfirm={confirmDelete}
         onCancel={() => setConfirmDeleteId(null)}
+      />
+
+      {/* 成分占比偏差确认（占比≠100% 时提示，缺失此弹窗会导致保存静默卡死） */}
+      <ConfirmDialog
+        open={confirmPercent}
+        title="成分占比偏差"
+        message="配方成分百分比总和与 100% 存在偏差，确认继续保存吗？"
+        confirmLabel="确认保存"
+        onConfirm={() => { setConfirmPercent(false); pendingSubmit?.() }}
+        onCancel={() => setConfirmPercent(false)}
       />
 
       {/* 合规扫描结果 */}

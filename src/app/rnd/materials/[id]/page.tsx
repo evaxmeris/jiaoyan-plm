@@ -324,6 +324,20 @@ export default function MaterialDetailPage() {
           )}
         </section>
 
+        {/* ===== 区块一.五：价格历史 ===== */}
+        <section className="bg-[var(--color-card)] rounded-xl border p-4 md:p-6">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-base font-semibold flex items-center gap-2">
+              <span className="w-1 h-4 bg-emerald-500 rounded-full inline-block" />
+              价格历史
+            </h2>
+          </div>
+          <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+            当前价 ¥{material.latestPrice ?? '未设置'}/{material.unit}。价格手动调整或采购收货时，旧价自动沉淀为历史。
+          </p>
+          <PriceHistory rawMaterialId={material.id} />
+        </section>
+
         {/* ===== 区块二：厂家资料 ===== */}
         <section className="bg-[var(--color-card)] rounded-xl border p-4 md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
@@ -379,6 +393,77 @@ export default function MaterialDetailPage() {
           </div>
         </section>
       </main>
+    </div>
+  )
+}
+
+// 价格历史列表（该原料行的价格变动记录）
+function PriceHistory({ rawMaterialId }: { rawMaterialId: string }) {
+  const [histories, setHistories] = useState<{
+    id: string
+    price: number
+    unit: string
+    supplier: string | null
+    purchaseOrderNo: string | null
+    remark: string | null
+    recordedAt: string
+  }[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    apiFetch(`/api/rnd/materials/${rawMaterialId}/price-history`)
+      .then(r => r.json())
+      .then(json => {
+        if (cancelled) return
+        const data = json.data || {}
+        setHistories(data.histories || [])
+      })
+      .catch(() => { /* 历史加载失败不阻塞页面 */ })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [rawMaterialId])
+
+  if (loading) return <div className="skeleton h-16 w-full" />
+
+  if (histories.length === 0) {
+    return (
+      <div className="text-sm text-[var(--color-text-secondary)] py-6 text-center border border-dashed border-[var(--color-border)] rounded-lg">
+        暂无价格历史 — 手动调整价格或采购收货后自动记录
+      </div>
+    )
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-xs text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+            <th className="py-2 pr-3 font-medium">日期</th>
+            <th className="py-2 pr-3 font-medium">价格</th>
+            <th className="py-2 pr-3 font-medium">来源</th>
+            <th className="py-2 font-medium">备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          {histories.map(h => (
+            <tr key={h.id} className="border-b border-[var(--color-border)] last:border-0">
+              <td className="py-2 pr-3 whitespace-nowrap">
+                {new Date(h.recordedAt).toLocaleDateString('zh-CN')}
+              </td>
+              <td className="py-2 pr-3 font-medium">¥{h.price}/{h.unit}</td>
+              <td className="py-2 pr-3">
+                {h.purchaseOrderNo ? (
+                  <span className="text-blue-600 text-xs">PO {h.purchaseOrderNo}</span>
+                ) : (
+                  <span className="text-xs text-[var(--color-text-secondary)]">手动调整</span>
+                )}
+              </td>
+              <td className="py-2 text-xs text-[var(--color-text-secondary)]">{h.remark || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
