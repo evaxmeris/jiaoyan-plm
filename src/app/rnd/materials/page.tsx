@@ -117,15 +117,15 @@ export default function MaterialsPage() {
   const handleSubmit = async () => {
     const matched = supplierOptions.find(s => s.name === form.supplier.trim())
     const data = {
-      nameCn: form.nameCn, nameEn: form.nameEn || undefined,
-      inciName: form.inciName || undefined, casNo: form.casNo || undefined,
-      filingNo: form.filingNo || undefined, filingCode: form.filingCode || undefined, filingStatus: form.filingStatus,
-      latestPrice: form.latestPrice ? Number(form.latestPrice) : undefined,
-      supplier: form.supplier || undefined, supplierId: matched?.id || undefined,
-      function: form.function || undefined,
-      specification: form.specification || undefined, unit: form.unit || 'kg',
-      limitChina: form.limitChina || undefined, limitEu: form.limitEu || undefined,
-      remark: form.remark || undefined,
+      nameCn: form.nameCn, nameEn: form.nameEn || null,
+      inciName: form.inciName || null, casNo: form.casNo || null,
+      filingNo: form.filingNo || null, filingCode: form.filingCode || null, filingStatus: form.filingStatus,
+      latestPrice: form.latestPrice ? Number(form.latestPrice) : null,
+      supplier: form.supplier || null, supplierId: matched?.id || null,
+      function: form.function || null,
+      specification: form.specification || null, unit: form.unit || 'kg',
+      limitChina: form.limitChina || null, limitEu: form.limitEu || null,
+      remark: form.remark || null,
       isActive: true,
     }
     const created = editMaterial
