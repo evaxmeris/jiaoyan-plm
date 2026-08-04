@@ -17,8 +17,10 @@ interface RawMaterial {
   nameEn: string | null
   inciName: string | null
   casNo: string | null
-  备案号: string | null
-  备案状态: string
+  filingNo: string | null
+  filingCode: string | null
+  latestPrice: number | null
+  filingStatus: string
   supplier: string | null
   function: string | null
   specification: string | null
@@ -34,6 +36,7 @@ interface RawMaterial {
 
 const emptyForm = {
   nameCn: '', nameEn: '', inciName: '', casNo: '', filingNo: '', filingStatus: 'UNRECORDED',
+  filingCode: '', latestPrice: '',
   supplier: '', function: '', specification: '', unit: 'kg',
   limitChina: '', limitEu: '', remark: '',
 }
@@ -114,7 +117,8 @@ export default function MaterialsPage() {
     const data = {
       nameCn: form.nameCn, nameEn: form.nameEn || undefined,
       inciName: form.inciName || undefined, casNo: form.casNo || undefined,
-      filingNo: form.filingNo || undefined, filingStatus: form.filingStatus,
+      filingNo: form.filingNo || undefined, filingCode: form.filingCode || undefined, filingStatus: form.filingStatus,
+      latestPrice: form.latestPrice ? Number(form.latestPrice) : undefined,
       supplier: form.supplier || undefined, supplierId: matched?.id || undefined,
       function: form.function || undefined,
       specification: form.specification || undefined, unit: form.unit || 'kg',
@@ -175,7 +179,9 @@ export default function MaterialsPage() {
     setDraftFiles({})
     setForm({
       nameCn: m.nameCn, nameEn: m.nameEn || '', inciName: m.inciName || '',
-      casNo: m.casNo || '', filingNo: m['备案号'] || '', filingStatus: m['备案状态'] || 'UNRECORDED',
+      casNo: m.casNo || '', filingNo: m.filingNo || '', filingCode: m.filingCode || '',
+      latestPrice: m.latestPrice != null ? String(m.latestPrice) : '',
+      filingStatus: m.filingStatus || 'UNRECORDED',
       supplier: m.supplier || '', function: m.function || '',
       specification: m.specification || '', unit: m.unit || 'kg',
       limitChina: m.limitChina || '', limitEu: m.limitEu || '',
@@ -221,6 +227,8 @@ export default function MaterialsPage() {
                   { label: 'INCI 中文名 *', key: 'nameCn', required: true },
                   { label: 'INCI 英文名', key: 'nameEn' }, { label: 'INCI 名(规范)', key: 'inciName' }, { label: 'CAS 号', key: 'casNo' },
                   { label: '备案码', key: 'filingNo' },
+                  { label: '原料报送码', key: 'filingCode' },
+                  { label: '采购单价', key: 'latestPrice' },
                   { label: '功能分类', key: 'function' }, { label: '规格参数', key: 'specification' },
                   { label: '单位', key: 'unit' }, { label: '中国限量', key: 'limitChina' },
                   { label: '欧盟限量', key: 'limitEu' },
@@ -337,7 +345,7 @@ export default function MaterialsPage() {
                       {m.nameEn && <div className="text-xs text-[var(--color-text-secondary)]">{m.nameEn}</div>}
                     </td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{m.casNo || '-'}</td>
-                    <td className="px-4 py-3">{statusBadge(m['备案状态'])}</td>
+                    <td className="px-4 py-3">{statusBadge(m.filingStatus)}</td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">{m.function || '-'}</td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">{m.supplier || '-'}</td>
                     <td className="px-4 py-3 text-right">

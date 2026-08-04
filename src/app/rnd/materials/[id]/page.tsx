@@ -24,6 +24,8 @@ interface RawMaterialDetail {
   inciName: string | null
   casNo: string | null
   filingNo: string | null
+  filingCode: string | null
+  latestPrice: number | null
   filingStatus: string
   filingExpireDate: string | null
   supplier: string | null
@@ -43,6 +45,7 @@ interface RawMaterialDetail {
 const EMPTY_FORM = {
   nameCn: '', nameEn: '', inciName: '', casNo: '',
   filingNo: '', filingStatus: 'UNRECORDED', filingExpireDate: '',
+  filingCode: '', latestPrice: '',
   supplier: '', function: '', specification: '', unit: 'kg',
   limitChina: '', limitEu: '', remark: '',
 }
@@ -73,6 +76,7 @@ export default function MaterialDetailPage() {
         setForm({
           nameCn: m.nameCn || '', nameEn: m.nameEn || '', inciName: m.inciName || '',
           casNo: m.casNo || '', filingNo: m.filingNo || '',
+          filingCode: m.filingCode || '', latestPrice: m.latestPrice != null ? String(m.latestPrice) : '',
           filingStatus: m.filingStatus || 'UNRECORDED',
           filingExpireDate: m.filingExpireDate ? String(m.filingExpireDate).slice(0, 10) : '',
           supplier: m.supplier || '', function: m.function || '',
@@ -116,6 +120,8 @@ export default function MaterialDetailPage() {
           inciName: form.inciName.trim() || undefined,
           casNo: form.casNo.trim() || undefined,
           filingNo: form.filingNo.trim() || undefined,
+          filingCode: form.filingCode.trim() || undefined,
+          latestPrice: form.latestPrice ? Number(form.latestPrice) : undefined,
           filingStatus: form.filingStatus,
           filingExpireDate: form.filingExpireDate ? new Date(form.filingExpireDate) : undefined,
           supplier: form.supplier.trim() || undefined,
@@ -209,6 +215,7 @@ export default function MaterialDetailPage() {
                   <button onClick={() => { setEditing(false); setForm({
                     nameCn: material.nameCn || '', nameEn: material.nameEn || '', inciName: material.inciName || '',
                     casNo: material.casNo || '', filingNo: material.filingNo || '',
+                    filingCode: material.filingCode || '', latestPrice: material.latestPrice != null ? String(material.latestPrice) : '',
                     filingStatus: material.filingStatus || 'UNRECORDED',
                     filingExpireDate: material.filingExpireDate ? String(material.filingExpireDate).slice(0, 10) : '',
                     supplier: material.supplier || '', function: material.function || '',
@@ -247,6 +254,8 @@ export default function MaterialDetailPage() {
               {editInput('inciName', 'INCI 名(规范)')}
               {editInput('casNo', 'CAS 号')}
               {editInput('filingNo', '备案码')}
+              {editInput('filingCode', '原料报送码')}
+              {editInput('latestPrice', '采购单价')}
               <div>
                 <label className="block text-xs text-[var(--color-text-secondary)] mb-1">备案状态</label>
                 <select
@@ -299,6 +308,8 @@ export default function MaterialDetailPage() {
               {field('INCI 名(规范)', material.inciName)}
               {field('CAS 号', material.casNo)}
               {field('备案码', material.filingNo)}
+              {field('原料报送码', material.filingCode)}
+              {field('采购单价', material.latestPrice != null ? `¥${material.latestPrice}${material.unit ? '/' + material.unit : ''}` : null)}
               {field('备案有效期', material.filingExpireDate ? String(material.filingExpireDate).slice(0, 10) : null)}
               {field('厂家/供应商', material.supplier)}
               {field('功能分类', material.function)}

@@ -164,6 +164,7 @@ model RawMaterial {
   nameEn              String?
   casNo               String?
   filingNo            String? // 备案号
+  filingCode          String? // 原料报送码（化妆品原料安全信息报送码）
   filingStatus        RecordStatus              @default(UNRECORDED) // 备案状态
   filingExpireDate    DateTime? // 备案有效期
   inciName            String? // INCI 英文名
