@@ -59,6 +59,35 @@ export async function POST(req: NextRequest) {
   const body = validated.data as any
   const code = `JY-FM-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random() * 999)).padStart(3,'0')}`
 
+  // 成分 cost 未填时自动按该行原料当前价计算：cost = (percentage/100) × latestPrice（与 PUT 保存逻辑对齐）
+  const rawItemIds = (body.items || []).map((item: any) => item.rawMaterialId).filter(Boolean)
+  const rawMats = rawItemIds.length > 0
+    ? await prisma.rawMaterial.findMany({
+        where: { id: { in: rawItemIds } },
+        select: { id: true, latestPrice: true },
+      })
+    : []
+  const priceMap = new Map<string, number | null>(
+    rawMats.map(r => [r.id, r.latestPrice]),
+  )
+
+  const normalizedItems = (body.items || []).map((item: any, i: number) => {
+    const autoCost = item.cost !== null && item.cost !== undefined
+      ? item.cost
+      : (priceMap.get(item.rawMaterialId) != null
+        ? Math.round((item.percentage / 100) * priceMap.get(item.rawMaterialId)! * 100) / 100
+        : null)
+    return {
+      rawMaterialId: item.rawMaterialId,
+      percentage: item.percentage,
+      weight: item.weight || null,
+      cost: autoCost,
+      orderIndex: i,
+      remark: item.remark || null,
+    }
+  })
+  const totalCost = normalizedItems.reduce((sum: number, it: any) => sum + (it.cost ?? 0), 0)
+
   const formula = await prisma.formula.create({
     data: {
       name: body.name,
@@ -68,15 +97,9 @@ export async function POST(req: NextRequest) {
       isCore: body.isCore || false,
       processParams: body.processParams || null,
       remark: body.remark || null,
+      totalCost,
       items: {
-        create: (body.items || []).map((item: any, i: number) => ({
-          rawMaterialId: item.rawMaterialId,
-          percentage: item.percentage,
-          weight: item.weight || null,
-          cost: item.cost || null,
-          orderIndex: i,
-          remark: item.remark || null,
-        })),
+        create: normalizedItems,
       },
     },
     include: { items: { include: { rawMaterial: true } } },

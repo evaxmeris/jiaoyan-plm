@@ -53,33 +53,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '无权访问核心保密配方' }, { status: 403 })
   }
 
-  // 收集所有原料ID，批量查询价格历史中的最新价格
-  const rawMaterialIds = formula.items
-    .map(item => item.rawMaterial.id)
-    .filter(Boolean)
-
-  // 从 RawMaterialPrice 取每原料的最新价格（按 recordedAt 降序取第一条）
-  const latestPrices = new Map<string, number>()
-  if (rawMaterialIds.length > 0) {
-    const priceRecords = await prisma.rawMaterialPrice.findMany({
-      where: { rawMaterialId: { in: rawMaterialIds } },
-      orderBy: { recordedAt: 'desc' },
-      select: { rawMaterialId: true, price: true },
-    })
-
-    // 去重：只取每个原料第一条（已按 recordedAt desc 排序）
-    for (const record of priceRecords) {
-      if (!latestPrices.has(record.rawMaterialId)) {
-        latestPrices.set(record.rawMaterialId, record.price)
-      }
-    }
-  }
-
-  // 计算每个原料的单位成本贡献 = (percentage/100) × 单价
-  // 价格优先级：价格历史最新价 > latestPrice
+  // 每个原料行的当前价 = 该行原料的 latestPrice（手输/采购收货维护，旧价沉淀在价格历史）
+  // 单位成本贡献 = (percentage/100) × 单价
   const items = formula.items.map((item) => {
-    const historyPrice = latestPrices.get(item.rawMaterial.id)
-    const unitPrice = historyPrice ?? item.rawMaterial.latestPrice ?? 0
+    const unitPrice = item.rawMaterial.latestPrice ?? 0
     const contribution = (item.percentage / 100) * unitPrice
     return {
       rawMaterialId: item.rawMaterial.id,
@@ -89,7 +66,7 @@ export async function POST(req: NextRequest) {
       unit: item.rawMaterial.unit,
       contribution, // 每单位产品的此原料成本
       hasPrice: unitPrice > 0,
-      priceSource: historyPrice !== undefined ? 'price_history' : (item.rawMaterial.latestPrice !== null ? 'latest_price' : 'none'),
+      priceSource: item.rawMaterial.latestPrice !== null ? 'latest_price' : 'none',
     }
   })
 

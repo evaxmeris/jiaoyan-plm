@@ -32,7 +32,8 @@ export async function autoCalculateCosting(
 
     if (!formula || formula.items.length === 0) return
 
-    // 计算 unitCost = Σ(percentage/100 × latestPrice)
+    // 计算 unitCost = Σ(percentage/100 × 行 latestPrice)
+    // 每个原料行 = 原料×厂家，价格即该行当前价（手输/采购维护）
     let hasMissingPrice = false
     const unitCost = formula.items.reduce((sum, item) => {
       const price = item.rawMaterial.latestPrice

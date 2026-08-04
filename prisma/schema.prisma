@@ -187,7 +187,7 @@ model RawMaterial {
   updatedAt           DateTime                  @updatedAt
   deletedAt           DateTime?
   isDeleted           Boolean                   @default(false)
-  latestPrice         Float? // 最新采购单价
+  latestPrice         Float? // 当前采购单价（手输/采购收货更新，旧价自动沉淀到价格历史）
   formulaItems        FormulaItem[]
   purchaseItems       PurchaseApplicationItem[]
   inventoryItems      RawMaterialBatch[]
@@ -198,16 +198,17 @@ model RawMaterial {
   @@map("raw_materials")
 }
 
-/// RawMaterialPrice — 原料采购价格记录（自动从PO收货写入）
+/// RawMaterialPrice — 原料采购价格历史记录（手输价格被替换时 / PO收货时自动写入）
 model RawMaterialPrice {
   id              String   @id @default(cuid())
   rawMaterialId   String
-  price           Float    // 单价（采购时的 unitPrice）
+  price           Float    // 单价（当时的采购价/手输价）
   unit            String   @default("kg")
-  supplier        String?  // 供应商名称
-  purchaseOrderNo String?  // PO编号
+  supplier        String?  // 供应商名称（冗余快照）
+  purchaseOrderNo String?  // PO编号（采购来源时带）
   batchNo         String?  // 原料批次号
-  recordedAt      DateTime @default(now()) // 记录时间（收货日期）
+  remark          String?  // 备注（来源/说明）
+  recordedAt      DateTime @default(now()) // 记录时间（手输调整日/收货日期）
   createdAt       DateTime @default(now())
   rawMaterial     RawMaterial @relation(fields: [rawMaterialId], references: [id], onDelete: Cascade)
 

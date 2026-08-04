@@ -372,7 +372,8 @@ const FormulaItemSchema = z.object({
 
 export const FormulaSchema = z.object({
   name: z.string().min(1, '配方名称不能为空').max(200),
-  type: z.string().min(1, '配方类型不能为空'),
+  // type 为历史遗留必填字段：Formula 模型无此列、前端亦不传，保留可选兼容
+  type: z.string().optional(),
   productDesignId: z.string().nullable().optional(),
   version: z.string().optional(),
   status: z.string().default('DEVELOPING'),

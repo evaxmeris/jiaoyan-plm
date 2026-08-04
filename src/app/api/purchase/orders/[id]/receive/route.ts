@@ -118,7 +118,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           },
         })
 
-        // 记录原料采购价格（自动写入价格历史）
+        // 记录原料采购价格（写价格历史 + 更新当前价）
+        // 采购收货发生在当下 → 晚于之前手输的价格 → 以采购价为准，旧价自然沉淀在历史
         if (orderItem.unitPrice > 0) {
           await tx.rawMaterialPrice.create({
             data: {
@@ -128,7 +129,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
               supplier: order.supplierName || null,
               purchaseOrderNo: order.poNo,
               recordedAt: new Date(),
+              remark: `PO ${order.poNo} 收货自动记录`,
             },
+          })
+
+          await tx.rawMaterial.update({
+            where: { id: orderItem.rawMaterialId },
+            data: { latestPrice: orderItem.unitPrice },
           })
         }
 

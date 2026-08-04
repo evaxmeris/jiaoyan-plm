@@ -112,36 +112,84 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     // 替换成分
     if (body.items !== undefined) {
       await tx.formulaItem.deleteMany({ where: { formulaId: id } })
-      await tx.formulaItem.createMany({
-        data: body.items.map(
-          (item: {
-            rawMaterialId: string
-            percentage: number
-            weight?: number | null
-            cost?: number | null
-            orderIndex?: number
-            remark?: string | null
-          }, idx: number) => ({
+
+      // 成分 cost 未填时自动按该行原料当前价计算：cost = (percentage/100) × latestPrice
+      const rawMaterialIds = body.items.map((i: { rawMaterialId: string }) => i.rawMaterialId).filter(Boolean)
+      const rawMats = await tx.rawMaterial.findMany({
+        where: { id: { in: rawMaterialIds } },
+        select: { id: true, latestPrice: true },
+      })
+      const priceMap = new Map<string, number | null>(
+        rawMats.map(r => [r.id, r.latestPrice]),
+      )
+
+      const normalizedItems = body.items.map(
+        (item: {
+          rawMaterialId: string
+          percentage: number
+          weight?: number | null
+          cost?: number | null
+          orderIndex?: number
+          remark?: string | null
+        }, idx: number) => {
+          const autoCost = item.cost !== null && item.cost !== undefined
+            ? item.cost
+            : (priceMap.get(item.rawMaterialId) != null
+              ? Math.round((item.percentage / 100) * priceMap.get(item.rawMaterialId)! * 100) / 100
+              : null)
+          return {
             formulaId: id,
             rawMaterialId: item.rawMaterialId,
             percentage: item.percentage,
             weight: item.weight ?? null,
-            cost: item.cost ?? null,
+            cost: autoCost,
             orderIndex: item.orderIndex ?? idx,
             remark: item.remark ?? null,
-          }),
-        ),
+          }
+        },
+      )
+
+      await tx.formulaItem.createMany({ data: normalizedItems })
+
+      // 重新计算 totalCost（用最新成分的 cost 汇总）
+      const totalCost = normalizedItems.reduce(
+        (sum: number, item: { cost?: number | null }) => sum + (item.cost ?? 0),
+        0,
+      )
+
+      // 更新 formula 元数据 + totalCost + 版本号
+      const updated = await tx.formula.update({
+        where: { id },
+        data: {
+          name: body.name ?? undefined,
+          batchSize: body.batchSize ?? undefined,
+          status: body.status ?? undefined,
+          isCore: body.isCore ?? undefined,
+          processParams: body.processParams ?? undefined,
+          remark: body.remark ?? undefined,
+          totalCost,
+          version: hasItemsChange ? nextVersion : undefined,
+        },
+        include: { items: { include: { rawMaterial: true } } },
       })
+
+      // 成分变更时创建版本快照
+      if (hasItemsChange) {
+        await tx.formulaVersion.create({
+          data: {
+            formulaId: id,
+            version: nextVersion,
+            snapshot: JSON.parse(JSON.stringify(updated.items)),
+            changedBy: user.name,
+            changeLog: `成分已更新（${oldFormula.items.length} → ${body.items.length} 项）`,
+          },
+        })
+      }
+
+      return updated
     }
 
-    // 重新计算 totalCost（用最新成分的 cost 汇总）
-    const costItems = body.items !== undefined ? body.items : oldFormula.items
-    const totalCost = costItems.reduce(
-      (sum: number, item: { cost?: number | null }) => sum + (item.cost ?? 0),
-      0,
-    )
-
-    // 更新 formula 元数据 + totalCost + 版本号
+    // 无成分变更：仅更新元数据
     const updated = await tx.formula.update({
       where: { id },
       data: {
@@ -151,24 +199,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         isCore: body.isCore ?? undefined,
         processParams: body.processParams ?? undefined,
         remark: body.remark ?? undefined,
-        totalCost,
+        totalCost: body.totalCost ?? undefined,
         version: hasItemsChange ? nextVersion : undefined,
       },
       include: { items: { include: { rawMaterial: true } } },
     })
-
-    // 成分变更时创建版本快照
-    if (hasItemsChange) {
-      await tx.formulaVersion.create({
-        data: {
-          formulaId: id,
-          version: nextVersion,
-          snapshot: JSON.parse(JSON.stringify(updated.items)),
-          changedBy: user.name,
-          changeLog: `成分已更新（${oldFormula.items.length} → ${body.items.length} 项）`,
-        },
-      })
-    }
 
     return updated
   })
