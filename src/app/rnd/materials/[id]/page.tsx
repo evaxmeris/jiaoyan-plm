@@ -309,7 +309,7 @@ export default function MaterialDetailPage() {
               {field('CAS 号', material.casNo)}
               {field('备案码', material.filingNo)}
               {field('原料报送码', material.filingCode)}
-              {field('采购单价', material.latestPrice != null ? `¥${material.latestPrice}${material.unit ? '/' + material.unit : ''}` : null)}
+              {field('采购单价 (元/kg)', material.latestPrice != null ? `¥${material.latestPrice}` : null)}
               {field('备案有效期', material.filingExpireDate ? String(material.filingExpireDate).slice(0, 10) : null)}
               {field('厂家/供应商', material.supplier)}
               {field('功能分类', material.function)}
