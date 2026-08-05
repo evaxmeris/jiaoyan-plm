@@ -592,46 +592,46 @@ export default function RegulationsPage() {
           </div>
         ) : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium w-12">#</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">市场</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium w-12 whitespace-nowrap">#</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">市场</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">中文名称</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">英文名称</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">CAS号</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">类型</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">CAS号</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">类型</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">原料功能</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">浓度限制</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">浓度限制</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">限制说明</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {regulations.map((r, idx) => (
                   <tr key={r.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{(page - 1) * 20 + idx + 1}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{(page - 1) * 20 + idx + 1}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
                         {MARKET_LABELS[r.market] || r.market}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-medium text-[var(--color-text)]">{r.nameCn}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{r.nameEn || '-'}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{r.casNo || '-'}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 font-medium text-[var(--color-text)] max-w-[200px] truncate" title={r.nameCn}>{r.nameCn}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs max-w-[200px] truncate" title={r.nameEn || '-'}>{r.nameEn || '-'}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{r.casNo || '-'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${TYPE_STYLES[r.regulationType] || ''}`}>
                         {TYPE_LABELS[r.regulationType] || r.regulationType}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{r.ingredientFunction || '-'}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs max-w-[160px] truncate" title={r.ingredientFunction || '-'}>{r.ingredientFunction || '-'}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">
                       {r.maxConcentration != null ? `${r.maxConcentration}%` : '-'}
                     </td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs max-w-[200px] truncate" title={r.restrictionNote || ''}>
                       {r.restrictionNote || '-'}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex gap-1">
                         <button onClick={() => openEdit(r)} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400">编辑</button>
                         <button onClick={() => handleDelete(r.id)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400">删除</button>

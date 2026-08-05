@@ -262,10 +262,10 @@ export default function AntiCounterfeitAdminPage() {
       {/* 数据表格 */}
       <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm table-auto">
             <thead>
               <tr className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
-                <th className="w-10 px-4 py-3 text-left">
+                <th className="w-10 px-4 py-3 text-left whitespace-nowrap">
                   <input
                     type="checkbox"
                     checked={codes.length > 0 && selectedIds.size === codes.length}
@@ -273,12 +273,12 @@ export default function AntiCounterfeitAdminPage() {
                     className="rounded border-[var(--color-border)]"
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium">防伪码</th>
-                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium">状态</th>
-                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium">查询次数</th>
-                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium">首次验证</th>
-                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium">有效期</th>
-                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium">创建时间</th>
+                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium whitespace-nowrap">防伪码</th>
+                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
+                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium whitespace-nowrap">查询次数</th>
+                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium whitespace-nowrap">首次验证</th>
+                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium whitespace-nowrap">有效期</th>
+                <th className="px-4 py-3 text-left text-[var(--color-text-secondary)] font-medium whitespace-nowrap">创建时间</th>
               </tr>
             </thead>
             <tbody>
@@ -295,7 +295,7 @@ export default function AntiCounterfeitAdminPage() {
                 </tr>
               ) : codes.map(code => (
                 <tr key={code.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]">
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={selectedIds.has(code.id)}
@@ -303,24 +303,24 @@ export default function AntiCounterfeitAdminPage() {
                       className="rounded border-[var(--color-border)]"
                     />
                   </td>
-                  <td className="px-4 py-3 font-mono text-[var(--color-text)]">{code.code}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 font-mono text-[var(--color-text)] whitespace-nowrap">{code.code}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`inline-block px-2 py-1 rounded-full text-xs ${STATUS_COLORS[code.status]}`}>
                       {STATUS_LABELS[code.status]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">{code.verifyCount}</td>
-                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{code.verifyCount}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">
                     {code.firstVerifiedAt
                       ? new Date(code.firstVerifiedAt).toLocaleString('zh-CN')
                       : '-'}
                   </td>
-                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">
                     {code.expiredAt
                       ? new Date(code.expiredAt).toLocaleDateString('zh-CN')
                       : '-'}
                   </td>
-                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">
                     {new Date(code.createdAt).toLocaleString('zh-CN')}
                   </td>
                 </tr>

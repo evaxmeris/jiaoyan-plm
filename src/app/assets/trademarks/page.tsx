@@ -150,17 +150,17 @@ export default function TrademarksPage() {
         )}
         {loading ? <div className="space-y-3 p-4">{[1,2,3].map(i => <div key={i} className="flex gap-4"><div className="skeleton h-4 w-32" /><div className="skeleton h-4 w-24" /><div className="skeleton h-4 w-20" /></div>)}</div> : items.length === 0 ? <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg><div className="empty-state-title">还没有商标</div><div className="empty-state-desc">点击下方按钮添加第一个商标</div><button onClick={handleOpenCreate} className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm">+ 新增商标</button></div> : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">商标名称</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">类别</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">申请号</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">申请日</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">有效期至</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">权利人</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">类别</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">申请号</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">申请日</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">有效期至</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">权利人</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,19 +168,19 @@ export default function TrademarksPage() {
                   const expireWarning = i.expireDate && new Date(i.expireDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
                   return (
                     <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                      <td className="px-4 py-3 font-medium">{i.name}</td>
-                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">第{i.category}类</td>
-                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono">{i.applicationNo || '-'}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={i.name}>{i.name}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">第{i.category}类</td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">{i.applicationNo || '-'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${COLORS[i.status] || ''}`}>{STATUS[i.status] || i.status}</span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{formatDate(i.applyDate)}</td>
-                      <td className={`px-4 py-3 text-xs ${expireWarning ? 'text-red-500 font-medium' : 'text-[var(--color-text-secondary)]'}`}>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{formatDate(i.applyDate)}</td>
+                      <td className={`px-4 py-3 text-xs whitespace-nowrap ${expireWarning ? 'text-red-500 font-medium' : 'text-[var(--color-text-secondary)]'}`}>
                         {formatDate(i.expireDate)}
                         {expireWarning && <span className="ml-1 text-red-500">⚠</span>}
                       </td>
-                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{i.owner}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] max-w-[160px] truncate" title={i.owner}>{i.owner}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex gap-1">
                           <button onClick={() => router.push(`/assets/trademarks/${i.id}`)} className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200">查看</button>
                           <button onClick={() => handleOpenEdit(i)} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">编辑</button>

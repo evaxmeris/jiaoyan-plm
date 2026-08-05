@@ -222,30 +222,30 @@ export default function EfficacyClaimsPage() {
           </div>
         ) : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">宣称名称</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">类别</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">类别</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">关联产品</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">证据</th>
-                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedItems.map((i: any) => (
                   <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="px-4 py-3 font-medium">{i.claimName}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={i.claimName}>{i.claimName}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${i.category === 'NEW' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
                         {CATEGORIES[i.category] || i.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{i.product?.name || '-'}</td>
-                    <td className="px-4 py-3">{badge(i.status)}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">{i.evidence || '-'}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={i.product?.name || '-'}>{i.product?.name || '-'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{badge(i.status)}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate" title={i.evidence || '-'}>{i.evidence || '-'}</td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       <div className="flex gap-1 justify-end flex-wrap">
                         {i.status === 'DRAFT' && (
                           <button onClick={() => updateStatus(i.id, 'REVIEWING')} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">提交审核</button>

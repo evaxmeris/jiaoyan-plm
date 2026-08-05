@@ -200,14 +200,14 @@ export default function ComplianceStandardsPage() {
           </div>
         ) : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">目标市场</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">检测项目</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">标准值/限值</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">法规依据</th>
-                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -217,7 +217,7 @@ export default function ComplianceStandardsPage() {
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">{TEST_ITEM_LABELS[item.testItem] || item.testItem}</td>
                     <td className="px-4 py-3">{item.standardValue}</td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate" title={item.regulationRef || ''}>{item.regulationRef || '-'}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       <div className="flex gap-1 justify-end flex-wrap">
                         <button onClick={() => openEdit(item)} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">编辑</button>
                         <button onClick={() => handleDelete(item.id)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">删除</button>

@@ -725,36 +725,36 @@ export default function ProductDetailPage() {
               <div className="bg-[var(--color-card)] rounded-xl border p-8 text-center text-[var(--color-text-secondary)] text-sm">暂无成本核算记录</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead>
                     <tr className="border-b text-[var(--color-text-secondary)]">
-                      <th className="text-left py-2 px-3">版本</th>
-                      <th className="text-right py-2 px-3">总成本</th>
-                      <th className="text-right py-2 px-3">单件成本</th>
-                      <th className="text-right py-2 px-3">目标毛利率</th>
-                      <th className="text-right py-2 px-3">建议售价</th>
-                      <th className="text-right py-2 px-3">实际售价</th>
-                      <th className="text-center py-2 px-3">状态</th>
-                      <th className="text-right py-2 px-3">核算日期</th>
+                      <th className="text-left py-2 px-3 whitespace-nowrap">版本</th>
+                      <th className="text-right py-2 px-3 whitespace-nowrap">总成本</th>
+                      <th className="text-right py-2 px-3 whitespace-nowrap">单件成本</th>
+                      <th className="text-right py-2 px-3 whitespace-nowrap">目标毛利率</th>
+                      <th className="text-right py-2 px-3 whitespace-nowrap">建议售价</th>
+                      <th className="text-right py-2 px-3 whitespace-nowrap">实际售价</th>
+                      <th className="text-center py-2 px-3 whitespace-nowrap">状态</th>
+                      <th className="text-right py-2 px-3 whitespace-nowrap">核算日期</th>
                     </tr>
                   </thead>
                   <tbody>
                     {costings.map((c: any) => (
                       <tr key={c.id} className="border-b hover:bg-[var(--color-bg)]">
-                        <td className="py-2 px-3">v{c.version}</td>
-                        <td className="py-2 px-3 text-right">¥{c.totalCost.toFixed(2)}</td>
-                        <td className="py-2 px-3 text-right">¥{c.unitCost.toFixed(2)}</td>
-                        <td className="py-2 px-3 text-right">{c.targetMargin !== null ? `${c.targetMargin}%` : '-'}</td>
-                        <td className="py-2 px-3 text-right font-medium text-emerald-700">¥{c.suggestedPrice.toFixed(2)}</td>
-                        <td className="py-2 px-3 text-right">
+                        <td className="py-2 px-3 whitespace-nowrap">v{c.version}</td>
+                        <td className="py-2 px-3 text-right whitespace-nowrap">¥{c.totalCost.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-right whitespace-nowrap">¥{c.unitCost.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-right whitespace-nowrap">{c.targetMargin !== null ? `${c.targetMargin}%` : '-'}</td>
+                        <td className="py-2 px-3 text-right whitespace-nowrap font-medium text-emerald-700">¥{c.suggestedPrice.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-right whitespace-nowrap">
                           {c.actualPrice !== null ? `¥${c.actualPrice.toFixed(2)}` : '-'}
                         </td>
-                        <td className="py-2 px-3 text-center">
+                        <td className="py-2 px-3 text-center whitespace-nowrap">
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${c.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
                             {c.status === 'DRAFT' ? '草稿' : '已定稿'}
                           </span>
                         </td>
-                        <td className="py-2 px-3 text-right text-[var(--color-text-secondary)]">{formatDate(c.costingDate)}</td>
+                        <td className="py-2 px-3 text-right whitespace-nowrap text-[var(--color-text-secondary)]">{formatDate(c.costingDate)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -328,7 +328,7 @@ export default function AuditLogPage() {
             <>
               {/* 桌面表格 */}
               <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-x-auto hidden md:block">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead>
                     <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-[var(--color-border)]">
                       <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] whitespace-nowrap">时间</th>
@@ -350,7 +350,7 @@ export default function AuditLogPage() {
                         <td className="px-4 py-3 text-xs whitespace-nowrap">
                           <span className="font-medium text-[var(--color-text-primary)]">{entry.userName || '—'}</span>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
                             ACTION_COLORS[entry.action] || 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
                           }`}>

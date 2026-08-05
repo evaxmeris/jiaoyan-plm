@@ -351,42 +351,42 @@ export default function CostingPage() {
           <div className="bg-[var(--color-card)] rounded-xl border p-8 text-center text-[var(--color-text-secondary)] text-sm">暂无成本核算记录</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="border-b text-[var(--color-text-secondary)]">
                   <th className="text-left py-2 px-3">产品</th>
-                  <th className="text-left py-2 px-3">版本</th>
-                  <th className="text-right py-2 px-3">总成本</th>
-                  <th className="text-right py-2 px-3">单件成本</th>
-                  <th className="text-right py-2 px-3">目标毛利率</th>
-                  <th className="text-right py-2 px-3">建议售价</th>
-                  <th className="text-right py-2 px-3">实际售价</th>
-                  <th className="text-center py-2 px-3">状态</th>
-                  <th className="text-center py-2 px-3">操作</th>
+                  <th className="text-left py-2 px-3 whitespace-nowrap">版本</th>
+                  <th className="text-right py-2 px-3 whitespace-nowrap">总成本</th>
+                  <th className="text-right py-2 px-3 whitespace-nowrap">单件成本</th>
+                  <th className="text-right py-2 px-3 whitespace-nowrap">目标毛利率</th>
+                  <th className="text-right py-2 px-3 whitespace-nowrap">建议售价</th>
+                  <th className="text-right py-2 px-3 whitespace-nowrap">实际售价</th>
+                  <th className="text-center py-2 px-3 whitespace-nowrap">状态</th>
+                  <th className="text-center py-2 px-3 whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {costings.map((c) => (
                   <tr key={c.id} className="border-b hover:bg-[var(--color-bg)]">
-                    <td className="py-2 px-3 font-medium">{c.product.name}</td>
-                    <td className="py-2 px-3">v{c.version}</td>
-                    <td className="py-2 px-3 text-right">{formatMoney(c.totalCost)}</td>
-                    <td className="py-2 px-3 text-right">{formatMoney(c.unitCost)}</td>
-                    <td className="py-2 px-3 text-right">{c.targetMargin !== null ? `${c.targetMargin}%` : '-'}</td>
-                    <td className="py-2 px-3 text-right font-medium text-emerald-700">{formatMoney(c.suggestedPrice)}</td>
-                    <td className="py-2 px-3 text-right">
+                    <td className="py-2 px-3 font-medium max-w-[200px] truncate" title={c.product.name}>{c.product.name}</td>
+                    <td className="py-2 px-3 whitespace-nowrap">v{c.version}</td>
+                    <td className="py-2 px-3 text-right whitespace-nowrap">{formatMoney(c.totalCost)}</td>
+                    <td className="py-2 px-3 text-right whitespace-nowrap">{formatMoney(c.unitCost)}</td>
+                    <td className="py-2 px-3 text-right whitespace-nowrap">{c.targetMargin !== null ? `${c.targetMargin}%` : '-'}</td>
+                    <td className="py-2 px-3 text-right whitespace-nowrap font-medium text-emerald-700">{formatMoney(c.suggestedPrice)}</td>
+                    <td className="py-2 px-3 text-right whitespace-nowrap">
                       {c.actualPrice !== null ? (
                         <span className="text-blue-700">{formatMoney(c.actualPrice)}</span>
                       ) : (
                         <span className="text-[var(--color-text-secondary)]">-</span>
                       )}
                     </td>
-                    <td className="py-2 px-3 text-center">
+                    <td className="py-2 px-3 text-center whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[c.status] || ''}`}>
                         {STATUS_LABELS[c.status] || c.status}
                       </span>
                     </td>
-                    <td className="py-2 px-3 text-center">
+                    <td className="py-2 px-3 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-2">
                         <button onClick={() => openEdit(c)} className="px-2 py-1 text-xs border rounded text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]">编辑</button>
                         <button onClick={() => toggleStatus(c)} className="px-2 py-1 text-xs border rounded text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]">
@@ -691,28 +691,28 @@ export default function CostingPage() {
 
                 {/* 计算结果 */}
                 {calcResult && (
-                  <div className="border rounded-lg p-4 space-y-2 bg-gray-50 dark:bg-zinc-800">
+                  <div className="border rounded-lg p-4 space-y-2 bg-gray-50 dark:bg-zinc-800 overflow-x-auto">
                     <div className="font-medium text-sm">{calcResult.formulaName} ({calcResult.formulaCode})</div>
                     {calcResult.items.length > 0 && (
-                      <table className="w-full text-xs">
+                      <table className="w-full text-xs table-auto">
                         <thead>
                           <tr className="border-b text-[var(--color-text-secondary)]">
-                            <th className="text-left py-1">原料</th>
-                            <th className="text-right py-1">配比%</th>
-                            <th className="text-right py-1">单价</th>
-                            <th className="text-right py-1">贡献</th>
+                            <th className="text-left py-1 whitespace-nowrap">原料</th>
+                            <th className="text-right py-1 whitespace-nowrap">配比%</th>
+                            <th className="text-right py-1 whitespace-nowrap">单价</th>
+                            <th className="text-right py-1 whitespace-nowrap">贡献</th>
                           </tr>
                         </thead>
                         <tbody>
                           {calcResult.items.map((item, i) => (
                             <tr key={i} className="border-b border-gray-200 dark:border-zinc-700">
-                              <td className="py-1 pr-2">
+                              <td className="py-1 pr-2 max-w-[200px] truncate" title={item.rawMaterialName}>
                                 <span className={item.hasPrice ? '' : 'text-orange-500'}>{item.rawMaterialName}</span>
                                 {!item.hasPrice && <span className="text-orange-500 ml-1">(无价格)</span>}
                               </td>
-                              <td className="text-right py-1">{item.percentage}%</td>
-                              <td className="text-right py-1">¥{item.unitPrice.toFixed(2)}</td>
-                              <td className="text-right py-1 font-medium">¥{item.contribution.toFixed(4)}</td>
+                              <td className="text-right py-1 whitespace-nowrap">{item.percentage}%</td>
+                              <td className="text-right py-1 whitespace-nowrap">¥{item.unitPrice.toFixed(2)}</td>
+                              <td className="text-right py-1 whitespace-nowrap font-medium">¥{item.contribution.toFixed(4)}</td>
                             </tr>
                           ))}
                         </tbody>

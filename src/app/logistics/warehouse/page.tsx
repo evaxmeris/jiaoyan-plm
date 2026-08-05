@@ -364,22 +364,22 @@ export default function WarehousePage() {
                 该区域暂无仓位，点击"新增仓位"添加
               </div>
             ) : (
-              <div className="bg-[var(--color-card)] rounded-xl border overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
+                <table className="w-full text-sm table-auto">
                   <thead>
                     <tr className="border-b bg-[var(--color-bg)]">
-                      <th className="text-left px-4 py-2 font-medium">编码</th>
+                      <th className="text-left px-4 py-2 font-medium whitespace-nowrap">编码</th>
                       <th className="text-left px-4 py-2 font-medium">描述</th>
-                      <th className="text-left px-4 py-2 font-medium">状态</th>
-                      <th className="text-center px-4 py-2 font-medium">操作</th>
+                      <th className="text-left px-4 py-2 font-medium whitespace-nowrap">状态</th>
+                      <th className="text-center px-4 py-2 font-medium whitespace-nowrap">操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     {selectedLocations.map(l => (
                       <tr key={l.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                        <td className="px-4 py-2.5 font-mono font-medium">{l.code}</td>
-                        <td className="px-4 py-2.5 text-[var(--color-text-secondary)]">{l.description || '-'}</td>
-                        <td className="px-4 py-2.5">
+                        <td className="px-4 py-2.5 font-mono font-medium whitespace-nowrap">{l.code}</td>
+                        <td className="px-4 py-2.5 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={l.description || '-'}>{l.description || '-'}</td>
+                        <td className="px-4 py-2.5 whitespace-nowrap">
                           <button
                             onClick={() => handleToggleOccupied(l)}
                             className={`px-2 py-0.5 rounded text-xs font-medium ${
@@ -391,7 +391,7 @@ export default function WarehousePage() {
                             {l.isOccupied ? '已占用' : '空闲'}
                           </button>
                         </td>
-                        <td className="px-4 py-2.5 text-center">
+                        <td className="px-4 py-2.5 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center gap-1">
                             <button onClick={() => openLocationEdit(l)} className="px-2 py-1 rounded text-xs border text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]">编辑</button>
                             <button onClick={() => setDeleteLocationId(l.id)} className="px-2 py-1 rounded text-xs border text-red-500 hover:bg-red-50">删除</button>

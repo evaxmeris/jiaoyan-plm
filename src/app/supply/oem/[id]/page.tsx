@@ -228,21 +228,21 @@ export default function OEMContractDetailPage() {
               <div className="text-center py-12 text-[var(--color-text-secondary)] bg-[var(--color-card)] rounded-xl border">暂无报价历史</div>
             ) : (
               <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead><tr className="bg-[var(--color-bg)] border-b">
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">产品名称</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">单价</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">MOQ</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">生效日期</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">单价</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">MOQ</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">生效日期</th>
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">备注</th>
                   </tr></thead>
                   <tbody>{prices.map((p: any) => (
                     <tr key={p.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                      <td className="px-4 py-3">{p.productName}</td>
-                      <td className="px-4 py-3 font-medium">¥{Number(p.unitPrice).toFixed(2)}</td>
-                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{p.moq ?? '-'}</td>
-                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{new Date(p.effectiveDate).toLocaleDateString('zh-CN')}</td>
-                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{p.remark || '-'}</td>
+                      <td className="px-4 py-3 max-w-[200px] truncate" title={p.productName}>{p.productName}</td>
+                      <td className="px-4 py-3 font-medium whitespace-nowrap">¥{Number(p.unitPrice).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{p.moq ?? '-'}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{new Date(p.effectiveDate).toLocaleDateString('zh-CN')}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={p.remark || '-'}>{p.remark || '-'}</td>
                     </tr>
                   ))}</tbody>
                 </table>
@@ -281,29 +281,29 @@ export default function OEMContractDetailPage() {
               <div className="text-center py-12 text-[var(--color-text-secondary)] bg-[var(--color-card)] rounded-xl border">暂无排产计划</div>
             ) : (
               <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead><tr className="bg-[var(--color-bg)] border-b">
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">产品</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">数量</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">计划日期</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">完成日期</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">数量</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">计划日期</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">完成日期</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">备注</th>
-                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                   </tr></thead>
                   <tbody>{schedules.map((s: any) => (
                     <tr key={s.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                      <td className="px-4 py-3">{s.productName}</td>
-                      <td className="px-4 py-3">{s.orderQty}</td>
-                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{new Date(s.plannedDate).toLocaleDateString('zh-CN')}</td>
-                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{s.completedDate ? new Date(s.completedDate).toLocaleDateString('zh-CN') : '-'}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 max-w-[200px] truncate" title={s.productName}>{s.productName}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{s.orderQty}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{new Date(s.plannedDate).toLocaleDateString('zh-CN')}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{s.completedDate ? new Date(s.completedDate).toLocaleDateString('zh-CN') : '-'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${SCHEDULE_COLORS[s.status] || ''}`}>
                           {SCHEDULE_STATUS[s.status] || s.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{s.remark || '-'}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={s.remark || '-'}>{s.remark || '-'}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
                         {s.status === 'PLANNED' && <button onClick={() => updateScheduleStatus(s.id, 'IN_PROGRESS')} className="text-xs text-blue-600 hover:text-blue-800 mr-2">开始生产</button>}
                         {s.status === 'IN_PROGRESS' && (
                           <button onClick={() => updateScheduleStatus(s.id, 'COMPLETED', new Date().toISOString().split('T')[0])} className="text-xs text-green-600 hover:text-green-800">完成</button>

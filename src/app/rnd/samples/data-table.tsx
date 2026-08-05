@@ -70,11 +70,11 @@ export default function DataTable<T extends { id?: string }>({
 
       <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm table-auto">
             <thead className="bg-[var(--color-bg)]">
               <tr>
                 {columns.map(col => (
-                  <th key={col.key} className="text-left px-4 py-3 font-medium text-[var(--color-text-secondary)]">
+                  <th key={col.key} className={`text-left px-4 py-3 font-medium text-[var(--color-text-secondary)] ${col.className || ''}`}>
                     {col.label}
                   </th>
                 ))}

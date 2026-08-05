@@ -489,38 +489,38 @@ export default function IncomingInspectionPage() {
           <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div className="empty-state-title">暂无质检记录</div><div className="empty-state-desc">点击右上角"新建质检"开始</div></div>
         ) : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">原料</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商批次</th>
-                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">到货量</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">到货日</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">COA</th>
-                  <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">结果</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">处置</th>
-                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">供应商批次</th>
+                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">到货量</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">到货日</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">COA</th>
+                  <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">结果</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">处置</th>
+                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((i: any) => (
                   <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="px-4 py-3 font-medium">{i.rawMaterial?.nameCn || '-'}</td>
-                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono">{i.supplierBatchNo}</td>
-                    <td className="px-4 py-3 text-right">{i.quantityReceived}{i.unit}</td>
-                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{new Date(i.receiptDate).toLocaleDateString('zh-CN')}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={i.rawMaterial?.nameCn || '-'}>{i.rawMaterial?.nameCn || '-'}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">{i.supplierBatchNo}</td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">{i.quantityReceived}{i.unit}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{new Date(i.receiptDate).toLocaleDateString('zh-CN')}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-block w-2 h-2 rounded-full ${i.coaVerified ? 'bg-green-500' : 'bg-yellow-400'}`} title={i.coaVerified ? '已核对' : '未核对'} />
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 py-3 text-center whitespace-nowrap">
                       <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${RESULT_COLORS[i.result] || 'text-[var(--color-text-secondary)] bg-[var(--color-card)]'}`}>
                         {RESULT_LABELS[i.result] || i.result}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">
                       {i.disposition ? (DISPOSITION_LABELS[i.disposition] || i.disposition) : '-'}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       <button onClick={() => setShowDetail(i)} className="text-emerald-600 hover:text-emerald-800 text-xs">编辑</button>
                     </td>
                   </tr>

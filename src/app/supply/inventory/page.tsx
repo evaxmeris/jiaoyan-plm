@@ -190,26 +190,26 @@ export default function InventoryPage() {
               <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg><div className="empty-state-title">暂无库存记录</div><div className="empty-state-desc">点击右上角"入库"添加库存</div></div>
             ) : (
               <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead><tr className="bg-[var(--color-bg)] border-b">
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">原料</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">内部批次</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商批次</th>
-                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">数量</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">内部批次</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">供应商批次</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">数量</th>
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">入库日期</th>
-                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">入库日期</th>
+                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                   </tr></thead>
                   <tbody>
                     {items.map((i: any) => (
                       <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                        <td className="px-4 py-3 font-medium">{i.rawMaterial?.nameCn || '-'}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono">{i.internalBatch}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{i.batchNo}</td>
-                        <td className="px-4 py-3 text-right">{i.quantity}{i.rawMaterial?.unit || ''}</td>
-                        <td className="px-4 py-3 text-[var(--color-text-secondary)]">{i.supplier}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{new Date(i.receiptDate).toLocaleDateString('zh-CN')}</td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={i.rawMaterial?.nameCn || '-'}>{i.rawMaterial?.nameCn || '-'}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">{i.internalBatch}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{i.batchNo}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">{i.quantity}{i.rawMaterial?.unit || ''}</td>
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={i.supplier}>{i.supplier}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{new Date(i.receiptDate).toLocaleDateString('zh-CN')}</td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center gap-1">
                             <button onClick={() => setCoaBatch({ id: i.id, label: `${i.rawMaterial?.nameCn || '原料'} / ${i.batchNo || i.internalBatch}` })} className="px-2 py-1 text-xs border rounded text-emerald-600 hover:bg-emerald-50" title="管理该批次 COA 报告（溯源用）">COA</button>
                             <button onClick={() => openEdit(i)} className="px-2 py-1 text-xs border rounded text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]">编辑</button>
@@ -232,15 +232,15 @@ export default function InventoryPage() {
               <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg><div className="empty-state-title">暂无物资库存</div><div className="empty-state-desc">前往 <a href="/supply/supplies" className="text-emerald-600 underline">物资管理</a> 添加</div></div>
             ) : (
               <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead><tr className="bg-[var(--color-bg)] border-b">
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">名称</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">分类</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">分类</th>
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">规格</th>
-                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">库存</th>
-                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">最低库存</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">库存</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">最低库存</th>
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商</th>
-                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                   </tr></thead>
                   <tbody>
                     {supplies.map((s: any) => {
@@ -248,18 +248,18 @@ export default function InventoryPage() {
                       const isLowStock = s.minStock > 0 && s.currentStock < s.minStock
                       return (
                         <tr key={s.id} className={`border-b last:border-0 hover:bg-[var(--color-bg)] ${isLowStock ? 'bg-red-50 dark:bg-red-900/10' : ''}`}>
-                          <td className="px-4 py-3 font-medium">{s.name}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={s.name}>{s.name}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${catInfo.color}`}>{catInfo.label}</span>
                           </td>
-                          <td className="px-4 py-3 text-[var(--color-text-secondary)]">{s.specification || '-'}</td>
-                          <td className={`px-4 py-3 text-right font-mono ${isLowStock ? 'text-red-600 font-bold' : ''}`}>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={s.specification || '-'}>{s.specification || '-'}</td>
+                          <td className={`px-4 py-3 text-right font-mono whitespace-nowrap ${isLowStock ? 'text-red-600 font-bold' : ''}`}>
                             {s.currentStock}{s.unit}
                             {isLowStock && <span className="ml-1 text-xs text-red-500">⚠️</span>}
                           </td>
-                          <td className="px-4 py-3 text-right text-[var(--color-text-secondary)]">{s.minStock > 0 ? `${s.minStock}${s.unit}` : '-'}</td>
-                          <td className="px-4 py-3 text-[var(--color-text-secondary)]">{s.supplier || '-'}</td>
-                          <td className="px-4 py-3 text-center">
+                          <td className="px-4 py-3 text-right text-[var(--color-text-secondary)] whitespace-nowrap">{s.minStock > 0 ? `${s.minStock}${s.unit}` : '-'}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={s.supplier || '-'}>{s.supplier || '-'}</td>
+                          <td className="px-4 py-3 text-center whitespace-nowrap">
                             <button onClick={() => router.push('/supply/supplies')} className="px-2 py-1 text-xs border rounded text-emerald-600 hover:bg-emerald-50">管理</button>
                           </td>
                         </tr>

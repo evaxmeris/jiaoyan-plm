@@ -260,26 +260,26 @@ export default function ServiceContractsPage() {
           <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg><div className="empty-state-title">暂无服务合同</div><div className="empty-state-desc">点击右上角"新建服务合同"开始</div></div>
         ) : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">合同名称</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">服务方</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">类型</th>
-                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">金额</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">类型</th>
+                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">金额</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((c: any) => (
                   <tr key={c.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="px-4 py-3 font-medium">{c.name}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{c.contractor}</td>
-                    <td className="px-4 py-3"><span className="px-2 py-0.5 rounded text-xs bg-[var(--color-card)] text-[var(--color-text-secondary)]">{TYPES[c.type] || c.type}</span></td>
-                    <td className="px-4 py-3 text-right font-medium">¥{c.amount?.toFixed(2)}</td>
-                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${COLORS[c.status] || ''}`}>{STATUS[c.status] || c.status}</span></td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={c.name}>{c.name}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={c.contractor}>{c.contractor}</td>
+                    <td className="px-4 py-3 whitespace-nowrap"><span className="px-2 py-0.5 rounded text-xs bg-[var(--color-card)] text-[var(--color-text-secondary)]">{TYPES[c.type] || c.type}</span></td>
+                    <td className="px-4 py-3 text-right font-medium whitespace-nowrap">¥{c.amount?.toFixed(2)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap"><span className={`px-2 py-0.5 rounded text-xs font-medium ${COLORS[c.status] || ''}`}>{STATUS[c.status] || c.status}</span></td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex gap-1 justify-end flex-wrap">
                         <button onClick={() => handleView(c)} className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200">查看</button>
                         {canEdit(c.status) && <button onClick={() => openEdit(c)} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">编辑</button>}

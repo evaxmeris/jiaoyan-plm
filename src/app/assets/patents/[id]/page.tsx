@@ -261,30 +261,30 @@ export default function PatentDetailPage() {
 
           {officeActions.length > 0 ? (
 <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
                   <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">类型</th>
-                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">发文日</th>
-                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">答复截止日</th>
-                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">状态</th>
-                  <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">发文日</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">答复截止日</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
+                  <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {officeActions.map((oa: any, i: number) => (
                   <tr key={i} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="px-4 py-3 font-medium">{oa.type}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{oa.date ? new Date(oa.date).toLocaleDateString('zh-CN') : '-'}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{oa.responseDate ? new Date(oa.responseDate).toLocaleDateString('zh-CN') : '-'}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 font-medium max-w-[160px] truncate" title={oa.type}>{oa.type}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{oa.date ? new Date(oa.date).toLocaleDateString('zh-CN') : '-'}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{oa.responseDate ? new Date(oa.responseDate).toLocaleDateString('zh-CN') : '-'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                         oa.status === 'RESPONDED' ? 'bg-green-100 text-green-700' :
                         oa.status === 'CLOSED' ? 'bg-[var(--color-card)] text-[var(--color-text-secondary)]' :
                         'bg-yellow-100 text-yellow-700'
                       }`}>{OA_STATUS[oa.status] || oa.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       {oa.status === 'PENDING' && (
                         <button onClick={() => handleUpdateOAStatus(i, 'RESPONDED')} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 mr-1">已答复</button>
                       )}
@@ -325,28 +325,28 @@ export default function PatentDetailPage() {
 
           {(data.fees || []).length > 0 ? (
 <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
-                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">年度</th>
-                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">金额</th>
-                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">到期日</th>
-                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">缴费日</th>
-                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">状态</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">年度</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">金额</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">到期日</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">缴费日</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
                   <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">备注</th>
-                  <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {(data.fees || []).map((fee: any) => (
                   <tr key={fee.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="px-4 py-3 font-medium">{fee.year}年</td>
-                    <td className="px-4 py-3">¥{fee.amount.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{new Date(fee.dueDate).toLocaleDateString('zh-CN')}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{fee.paidDate ? new Date(fee.paidDate).toLocaleDateString('zh-CN') : '-'}</td>
-                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${FEE_COLORS[fee.status] || ''}`}>{FEE_STATUS[fee.status] || fee.status}</span></td>
-                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{fee.remark || '-'}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 font-medium whitespace-nowrap">{fee.year}年</td>
+                    <td className="px-4 py-3 whitespace-nowrap">¥{fee.amount.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{new Date(fee.dueDate).toLocaleDateString('zh-CN')}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{fee.paidDate ? new Date(fee.paidDate).toLocaleDateString('zh-CN') : '-'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap"><span className={`px-2 py-0.5 rounded text-xs font-medium ${FEE_COLORS[fee.status] || ''}`}>{FEE_STATUS[fee.status] || fee.status}</span></td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] max-w-[160px] truncate" title={fee.remark || '-'}>{fee.remark || '-'}</td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       {fee.status === 'PENDING' && (
                         <button onClick={() => handleMarkPaid(fee.id)} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">标记已缴</button>
                       )}

@@ -455,24 +455,24 @@ export default function UsersPage() {
                   待审批用户（{pendingUsers.length}）
                 </h2>
                 <div className="bg-[var(--color-card)] rounded-xl border border-amber-200 overflow-x-auto">
-                  <table className="w-full text-sm min-w-[640px]">
+                  <table className="w-full text-sm table-auto min-w-[640px]">
                     <thead>
                       <tr className="bg-amber-50 border-b">
                         <th className="text-left px-4 py-3 text-amber-700 font-medium">姓名</th>
                         <th className="text-left px-4 py-3 text-amber-700 font-medium">邮箱</th>
-                        <th className="text-left px-4 py-3 text-amber-700 font-medium">部门</th>
-                        <th className="text-left px-4 py-3 text-amber-700 font-medium">注册时间</th>
-                        <th className="text-right px-4 py-3 text-amber-700 font-medium">操作</th>
+                        <th className="text-left px-4 py-3 text-amber-700 font-medium whitespace-nowrap">部门</th>
+                        <th className="text-left px-4 py-3 text-amber-700 font-medium whitespace-nowrap">注册时间</th>
+                        <th className="text-right px-4 py-3 text-amber-700 font-medium whitespace-nowrap">操作</th>
                       </tr>
                     </thead>
                     <tbody>
                       {pendingUsers.map(u => (
                         <tr key={u.id} className="border-b last:border-0 hover:bg-amber-50/50">
-                          <td className="px-4 py-3 font-medium">{u.name}</td>
-                          <td className="px-4 py-3 text-[var(--color-text-secondary)]">{u.email}</td>
-                          <td className="px-4 py-3 text-[var(--color-text-secondary)]">{u.department || '-'}</td>
-                          <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{new Date(u.createdAt).toLocaleDateString('zh-CN')}</td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 font-medium max-w-[160px] truncate" title={u.name}>{u.name}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate" title={u.email}>{u.email}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{u.department || '-'}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString('zh-CN')}</td>
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
                             <div className="flex gap-2 justify-end">
                               <button
                                 onClick={() => { setApproveTarget(u); setApproveRole('DEVELOPER') }}
@@ -502,28 +502,28 @@ export default function UsersPage() {
                 已审批用户（{activeUsers.length}）
               </h2>
               <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm min-w-[720px]">
+                <table className="w-full text-sm table-auto min-w-[720px]">
                   <thead>
                     <tr className="bg-[var(--color-bg)] border-b">
                       <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">姓名</th>
                       <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">邮箱</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">角色</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">部门</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">创建时间</th>
-                      <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">角色</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">部门</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">创建时间</th>
+                      <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeUsers.map(u => (
                       <tr key={u.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                        <td className="px-4 py-3 font-medium">{u.name}</td>
-                        <td className="px-4 py-3 text-[var(--color-text-secondary)]">{u.email}</td>
-                        <td className="px-4 py-3">{roleBadge(u.role)}</td>
-                        <td className="px-4 py-3 text-[var(--color-text-secondary)]">{u.department || '-'}</td>
-                        <td className="px-4 py-3">{statusBadge(u.status)}</td>
-                        <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{new Date(u.createdAt).toLocaleDateString('zh-CN')}</td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 font-medium max-w-[160px] truncate" title={u.name}>{u.name}</td>
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate" title={u.email}>{u.email}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">{roleBadge(u.role)}</td>
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{u.department || '-'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">{statusBadge(u.status)}</td>
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString('zh-CN')}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
                           {userRole === 'CEO' && (
                             <div className="flex gap-2 justify-end flex-wrap">
                               <button onClick={() => handleOpenPerm(u)} className="text-xs text-emerald-500 hover:text-emerald-700">权限</button>

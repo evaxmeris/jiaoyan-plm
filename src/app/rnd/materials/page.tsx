@@ -381,30 +381,31 @@ export default function MaterialsPage() {
           </div>
         ) : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            {/* 列宽按内容自适应：徽章/数字列 nowrap 不换行，长文本列 truncate 限宽，总体贴合视口 */}
+            <table className="w-full text-sm table-auto">
               <thead>
                 <tr className="bg-[var(--color-bg)] border-b">
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">INCI 名称</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">CAS号</th>
-                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">备案</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium min-w-[140px]">INCI 名称</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">CAS号</th>
+                  <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">备案</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">功能</th>
                   <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商</th>
-                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">库存</th>
-                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">库存</th>
+                  <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {materials.map(m => (
                   <tr key={m.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{m.nameCn}</div>
-                      {m.nameEn && <div className="text-xs text-[var(--color-text-secondary)]">{m.nameEn}</div>}
+                    <td className="px-4 py-3 max-w-[220px]">
+                      <div className="font-medium truncate" title={m.nameCn}>{m.nameCn}</div>
+                      {m.nameEn && <div className="text-xs text-[var(--color-text-secondary)] truncate" title={m.nameEn}>{m.nameEn}</div>}
                     </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{m.casNo || '-'}</td>
-                    <td className="px-4 py-3">{statusBadge(m.filingStatus)}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{m.function || '-'}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{m.supplier || '-'}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{m.casNo || '-'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{statusBadge(m.filingStatus)}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[110px] truncate" title={m.function || ''}>{m.function || '-'}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={m.supplier || ''}>{m.supplier || '-'}</td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       <span className={m.currentStock <= m.minStock ? 'text-red-500 font-medium' : 'text-[var(--color-text-secondary)]'}>{m.currentStock}{m.unit}</span>
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">

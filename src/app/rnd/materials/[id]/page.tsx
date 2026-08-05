@@ -436,12 +436,12 @@ function PriceHistory({ rawMaterialId }: { rawMaterialId: string }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm table-auto">
         <thead>
           <tr className="text-left text-xs text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
-            <th className="py-2 pr-3 font-medium">日期</th>
-            <th className="py-2 pr-3 font-medium">价格</th>
-            <th className="py-2 pr-3 font-medium">来源</th>
+            <th className="py-2 pr-3 font-medium whitespace-nowrap">日期</th>
+            <th className="py-2 pr-3 font-medium whitespace-nowrap">价格</th>
+            <th className="py-2 pr-3 font-medium whitespace-nowrap">来源</th>
             <th className="py-2 font-medium">备注</th>
           </tr>
         </thead>
@@ -451,15 +451,15 @@ function PriceHistory({ rawMaterialId }: { rawMaterialId: string }) {
               <td className="py-2 pr-3 whitespace-nowrap">
                 {new Date(h.recordedAt).toLocaleDateString('zh-CN')}
               </td>
-              <td className="py-2 pr-3 font-medium">¥{h.price}/{h.unit}</td>
-              <td className="py-2 pr-3">
+              <td className="py-2 pr-3 font-medium whitespace-nowrap">¥{h.price}/{h.unit}</td>
+              <td className="py-2 pr-3 whitespace-nowrap">
                 {h.purchaseOrderNo ? (
                   <span className="text-blue-600 text-xs">PO {h.purchaseOrderNo}</span>
                 ) : (
                   <span className="text-xs text-[var(--color-text-secondary)]">手动调整</span>
                 )}
               </td>
-              <td className="py-2 text-xs text-[var(--color-text-secondary)]">{h.remark || '—'}</td>
+              <td className="py-2 text-xs text-[var(--color-text-secondary)] max-w-[160px] truncate" title={h.remark || '—'}>{h.remark || '—'}</td>
             </tr>
           ))}
         </tbody>

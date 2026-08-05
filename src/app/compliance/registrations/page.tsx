@@ -181,26 +181,26 @@ export default function RegistrationsPage() {
           </div>
         ) : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead><tr className="bg-[var(--color-bg)] border-b">
                 <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">产品</th>
-                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">备案编号</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">备案编号</th>
                 <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">类型</th>
-                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
-                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">申请日</th>
-                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">检测</th>
-                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">申请日</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">检测</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
               </tr></thead>
               <tbody>
                 {paginatedRegistrations.map(r => (
                   <tr key={r.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="px-4 py-3 font-medium">{r.product?.name || '-'}</td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{r.registerNo || '-'}</td>
+                    <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={r.product?.name || '-'}>{r.product?.name || '-'}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{r.registerNo || '-'}</td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">{r.registerType}</td>
-                    <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColor(r.status)}`}>{statusLabel(r.status)}</span></td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{r.applyDate ? new Date(r.applyDate).toLocaleDateString('zh-CN') : '-'}</td>
-                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{r.testEntrustments?.length || 0} 项</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap"><span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColor(r.status)}`}>{statusLabel(r.status)}</span></td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{r.applyDate ? new Date(r.applyDate).toLocaleDateString('zh-CN') : '-'}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{r.testEntrustments?.length || 0} 项</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex gap-1">
                         <button onClick={() => openEdit(r)} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">编辑</button>
                         <button onClick={() => handleDelete(r.id)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">删除</button>

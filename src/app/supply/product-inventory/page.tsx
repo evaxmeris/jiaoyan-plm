@@ -526,18 +526,18 @@ export default function ProductInventoryPage() {
         ) : (
           <>
             <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-auto">
                 <thead>
                   <tr className="bg-[var(--color-bg)] border-b">
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">产品名称</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">批号</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">生产日期</th>
-                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">保质期至</th>
-                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">数量</th>
-                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">预警阈值</th>
-                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">批号</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">生产日期</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">保质期至</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">数量</th>
+                    <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">预警阈值</th>
+                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
                     <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">备注</th>
-                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                    <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -550,15 +550,15 @@ export default function ProductInventoryPage() {
                         key={i.id}
                         className={`border-b last:border-0 hover:bg-[var(--color-bg)] ${isLowStock ? 'bg-red-50 dark:bg-red-950/20' : ''}`}
                       >
-                        <td className="px-4 py-3 font-medium">
+                        <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={i.product?.name || '-'}>
                           {isLowStock && <span className="inline-block mr-1" title="库存不足">⚠️</span>}
                           {i.product?.name || '-'}
                         </td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono">{i.batchNo}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">{i.batchNo}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">
                           {new Date(i.productionDate).toLocaleDateString('zh-CN')}
                         </td>
-                        <td className={`px-4 py-3 text-xs ${nearExpiry ? 'bg-yellow-100 dark:bg-yellow-900/30 rounded' : ''}`}>
+                        <td className={`px-4 py-3 text-xs whitespace-nowrap ${nearExpiry ? 'bg-yellow-100 dark:bg-yellow-900/30 rounded' : ''}`}>
                           {i.expireDate ? (
                             <span className="inline-flex items-center gap-1">
                               {new Date(i.expireDate).toLocaleDateString('zh-CN')}
@@ -568,21 +568,21 @@ export default function ProductInventoryPage() {
                             </span>
                           ) : '-'}
                         </td>
-                        <td className="px-4 py-3 text-right font-mono">
+                        <td className="px-4 py-3 text-right font-mono whitespace-nowrap">
                           {isLowStock ? <span className="text-red-600 font-bold">⚠️ {i.quantity}</span> : i.quantity}
                         </td>
-                        <td className="px-4 py-3 text-right font-mono text-[var(--color-text-secondary)]">
+                        <td className="px-4 py-3 text-right font-mono text-[var(--color-text-secondary)] whitespace-nowrap">
                           {i.minStock || '-'}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
                           <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusInfo.color}`}>
                             {statusInfo.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] max-w-[120px] truncate">
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] max-w-[120px] truncate" title={i.remark || '-'}>
                           {i.remark || '-'}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center gap-1 flex-wrap">
                             <button onClick={() => openEdit(i)} className="px-2 py-1 text-xs border rounded text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]">编辑</button>
                             <button onClick={() => openStockOut(i)} className="px-2 py-1 text-xs border rounded text-blue-600 hover:bg-blue-50">出库</button>

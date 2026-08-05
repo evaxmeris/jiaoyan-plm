@@ -521,12 +521,12 @@ export default function FormulasPage() {
                       {v.snapshot?.items && (
                         <details className="mt-2">
                           <summary className="text-xs text-[var(--color-text-secondary)] cursor-pointer hover:text-[var(--color-text-secondary)]">查看成分快照 ({v.snapshot.items.length} 项)</summary>
-                          <div className="mt-1 text-xs">
-                            <table className="w-full">
-                              <thead><tr className="text-[var(--color-text-secondary)]"><th className="text-left">原料</th><th className="text-right">占比</th></tr></thead>
+                          <div className="mt-1 text-xs overflow-x-auto">
+                            <table className="w-full table-auto">
+                              <thead><tr className="text-[var(--color-text-secondary)]"><th className="text-left whitespace-nowrap">原料</th><th className="text-right whitespace-nowrap">占比</th></tr></thead>
                               <tbody>
                                 {v.snapshot.items.map((si: any, idx: number) => (
-                                  <tr key={idx}><td className="py-0.5">{si.rawMaterial?.nameCn || '-'}</td><td className="text-right">{si.percentage}%</td></tr>
+                                  <tr key={idx}><td className="py-0.5 max-w-[200px] truncate" title={si.rawMaterial?.nameCn || '-'}>{si.rawMaterial?.nameCn || '-'}</td><td className="text-right whitespace-nowrap">{si.percentage}%</td></tr>
                                 ))}
                               </tbody>
                             </table>
@@ -595,14 +595,14 @@ export default function FormulasPage() {
                 </div>
                 {/* 成分预览 + 成本构成 */}
                 {f.items.length > 0 && (
-                  <div className="mt-3 border-t pt-3">
-                    <table className="w-full text-xs">
+                  <div className="mt-3 border-t pt-3 overflow-x-auto">
+                    <table className="w-full text-xs table-auto">
                       <thead>
                         <tr className="text-[var(--color-text-secondary)]">
-                          <th className="text-left pb-1">原料</th>
-                          <th className="text-right pb-1">占比</th>
-                          <th className="text-right pb-1">单价</th>
-                          <th className="text-right pb-1">成本</th>
+                          <th className="text-left pb-1 whitespace-nowrap">原料</th>
+                          <th className="text-right pb-1 whitespace-nowrap">占比</th>
+                          <th className="text-right pb-1 whitespace-nowrap">单价</th>
+                          <th className="text-right pb-1 whitespace-nowrap">成本</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -610,29 +610,29 @@ export default function FormulasPage() {
                           const unitPrice = item.rawMaterial?.latestPrice ?? null
                           return (
                             <tr key={item.id}>
-                              <td className="py-0.5">
+                              <td className="py-0.5 max-w-[200px] truncate" title={item.rawMaterial?.nameCn || '-'}>
                                 {item.rawMaterial?.nameCn || '-'}
                                 {unitPrice == null && (
                                   <span className="ml-1 text-[10px] text-red-500">未定价</span>
                                 )}
                               </td>
-                              <td className="text-right">{item.percentage}%</td>
-                              <td className="text-right">
+                              <td className="text-right whitespace-nowrap">{item.percentage}%</td>
+                              <td className="text-right whitespace-nowrap">
                                 {unitPrice != null ? (
                                   <span className="text-emerald-600">¥{unitPrice}</span>
                                 ) : (
                                   <span className="text-red-400">—</span>
                                 )}
                               </td>
-                              <td className="text-right">{item.cost != null ? `¥${item.cost}` : '—'}</td>
+                              <td className="text-right whitespace-nowrap">{item.cost != null ? `¥${item.cost}` : '—'}</td>
                             </tr>
                           )
                         })}
                         <tr className="border-t border-[var(--color-border)] font-medium">
-                          <td className="py-1">单位成本合计</td>
-                          <td className="text-right">{f.items.reduce((s, it) => s + (it.percentage || 0), 0).toFixed(1)}%</td>
+                          <td className="py-1 whitespace-nowrap">单位成本合计</td>
+                          <td className="text-right whitespace-nowrap">{f.items.reduce((s, it) => s + (it.percentage || 0), 0).toFixed(1)}%</td>
                           <td />
-                          <td className="text-right text-emerald-600">¥{f.totalCost ?? 0}</td>
+                          <td className="text-right whitespace-nowrap text-emerald-600">¥{f.totalCost ?? 0}</td>
                         </tr>
                       </tbody>
                     </table>

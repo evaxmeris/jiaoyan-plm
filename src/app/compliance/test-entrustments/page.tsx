@@ -168,23 +168,23 @@ export default function TestEntrustmentsPage() {
         )}
         {loading ? <div className="space-y-3 p-4">{[1,2,3].map(i => <div key={i} className="flex gap-4"><div className="skeleton h-4 w-32" /><div className="skeleton h-4 w-24" /><div className="skeleton h-4 w-20" /></div>)}</div> : items.length === 0 ? <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg><div className="empty-state-title">暂无检测记录</div><div className="empty-state-desc">点击右上角"送检"开始</div></div> : (
           <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-auto">
               <thead><tr className="bg-[var(--color-bg)] border-b">
                 <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">类型</th>
                 <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">产品</th>
                 <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">机构</th>
-                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">状态</th>
-                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">结果</th>
-                <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">状态</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">结果</th>
+                <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
               </tr></thead>
               <tbody>{paginatedItems.map((i: any) => (
                 <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                  <td className="px-4 py-3">{TYPES[i.type] || i.type}</td>
-                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">{i.product?.name || '-'}</td>
-                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">{i.institution}</td>
-                  <td className="px-4 py-3">{badge(i.status)}</td>
-                  <td className="px-4 py-3">{resultBadge(i.result)}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 whitespace-nowrap">{TYPES[i.type] || i.type}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={i.product?.name || '-'}>{i.product?.name || '-'}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={i.institution}>{i.institution}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{badge(i.status)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{resultBadge(i.result)}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex gap-1 justify-end flex-wrap">
                       {i.status === 'PENDING' && <button onClick={() => updateStatus(i.id, { status: 'IN_PROGRESS' })} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">开始检测</button>}
                       {i.status === 'IN_PROGRESS' && <button onClick={() => updateStatus(i.id, { status: 'COMPLETED', result: 'PASS' })} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">通过</button>}

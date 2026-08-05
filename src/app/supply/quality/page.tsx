@@ -648,30 +648,30 @@ export default function QualityPage() {
               <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div className="empty-state-title">暂无来料质检记录</div><div className="empty-state-desc">点击上方"新建来料质检"开始</div></div>
             ) : (
               <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead>
                     <tr className="bg-[var(--color-bg)] border-b">
                       <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">原料</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">供应商批次</th>
-                      <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">到货量</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">到货日</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">COA</th>
-                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">结果</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">处置</th>
-                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">供应商批次</th>
+                      <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">到货量</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">到货日</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">COA</th>
+                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">结果</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">处置</th>
+                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     {iqcItems.map(i => (
                       <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                        <td className="px-4 py-3 font-medium">{i.rawMaterial?.nameCn || '-'}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono">{i.supplierBatchNo}</td>
-                        <td className="px-4 py-3 text-right">{i.quantityReceived}{i.unit}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{new Date(i.receiptDate).toLocaleDateString('zh-CN')}</td>
-                        <td className="px-4 py-3"><span className={`inline-block w-2 h-2 rounded-full ${i.coaVerified ? 'bg-green-500' : 'bg-yellow-400'}`} title={i.coaVerified ? '已核对' : '未核对'} /></td>
-                        <td className="px-4 py-3 text-center"><span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${RESULT_COLORS[i.result] || ''}`}>{RESULT_LABELS[i.result] || i.result}</span></td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{i.disposition ? (DISPOSITION_LABELS_IQC[i.disposition] || i.disposition) : '-'}</td>
-                        <td className="px-4 py-3 text-center"><button onClick={() => setIqcShowDetail(i)} className="text-emerald-600 hover:text-emerald-800 text-xs">编辑</button></td>
+                        <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={i.rawMaterial?.nameCn || '-'}>{i.rawMaterial?.nameCn || '-'}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">{i.supplierBatchNo}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">{i.quantityReceived}{i.unit}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{new Date(i.receiptDate).toLocaleDateString('zh-CN')}</td>
+                        <td className="px-4 py-3 whitespace-nowrap"><span className={`inline-block w-2 h-2 rounded-full ${i.coaVerified ? 'bg-green-500' : 'bg-yellow-400'}`} title={i.coaVerified ? '已核对' : '未核对'} /></td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${RESULT_COLORS[i.result] || ''}`}>{RESULT_LABELS[i.result] || i.result}</span></td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{i.disposition ? (DISPOSITION_LABELS_IQC[i.disposition] || i.disposition) : '-'}</td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><button onClick={() => setIqcShowDetail(i)} className="text-emerald-600 hover:text-emerald-800 text-xs">编辑</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -925,28 +925,28 @@ export default function QualityPage() {
               <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div className="empty-state-title">暂无制程检验记录</div><div className="empty-state-desc">点击上方"新建制程检验"开始</div></div>
             ) : (
               <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead>
                     <tr className="bg-[var(--color-bg)] border-b">
                       <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">产品</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">批次号</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">工序</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">检验人</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">检验日</th>
-                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">结果</th>
-                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">批次号</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">工序</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">检验人</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">检验日</th>
+                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">结果</th>
+                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     {ipqcItems.map(i => (
                       <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                        <td className="px-4 py-3 font-medium">{i.product?.name || '-'}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono">{i.batchNo}</td>
-                        <td className="px-4 py-3 text-xs">{IPQC_STAGE_LABELS[i.stage] || i.stage}</td>
-                        <td className="px-4 py-3 text-xs">{i.inspector || '-'}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{i.checkDate ? new Date(i.checkDate).toLocaleDateString('zh-CN') : '-'}</td>
-                        <td className="px-4 py-3 text-center"><span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${RESULT_COLORS[i.result] || ''}`}>{RESULT_LABELS[i.result] || i.result}</span></td>
-                        <td className="px-4 py-3 text-center"><button onClick={() => setIpqcShowDetail(i)} className="text-emerald-600 hover:text-emerald-800 text-xs">编辑</button></td>
+                        <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={i.product?.name || '-'}>{i.product?.name || '-'}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">{i.batchNo}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap">{IPQC_STAGE_LABELS[i.stage] || i.stage}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap">{i.inspector || '-'}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{i.checkDate ? new Date(i.checkDate).toLocaleDateString('zh-CN') : '-'}</td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${RESULT_COLORS[i.result] || ''}`}>{RESULT_LABELS[i.result] || i.result}</span></td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><button onClick={() => setIpqcShowDetail(i)} className="text-emerald-600 hover:text-emerald-800 text-xs">编辑</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -1239,32 +1239,32 @@ export default function QualityPage() {
               <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div className="empty-state-title">暂无出厂检验记录</div><div className="empty-state-desc">点击上方"新建出厂检验"开始</div></div>
             ) : (
               <div className="bg-[var(--color-card)] rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-auto">
                   <thead>
                     <tr className="bg-[var(--color-bg)] border-b">
                       <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">产品</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">批次号</th>
-                      <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">总数</th>
-                      <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium">抽检</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">检验人</th>
-                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">日期</th>
-                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">结果</th>
-                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">处置</th>
-                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium">操作</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">批次号</th>
+                      <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">总数</th>
+                      <th className="text-right px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">抽检</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">检验人</th>
+                      <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">日期</th>
+                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">结果</th>
+                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">处置</th>
+                      <th className="text-center px-4 py-3 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     {oqcItems.map(i => (
                       <tr key={i.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                        <td className="px-4 py-3 font-medium">{i.product?.name || '-'}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono">{i.batchNo}</td>
-                        <td className="px-4 py-3 text-right">{i.quantityTotal}</td>
-                        <td className="px-4 py-3 text-right">{i.quantitySampled}</td>
-                        <td className="px-4 py-3 text-xs">{i.inspector || '-'}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{i.checkDate ? new Date(i.checkDate).toLocaleDateString('zh-CN') : '-'}</td>
-                        <td className="px-4 py-3 text-center"><span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${RESULT_COLORS[i.result] || ''}`}>{RESULT_LABELS[i.result] || i.result}</span></td>
-                        <td className="px-4 py-3 text-center text-xs">{i.disposition ? (OQC_DISPOSITION_LABELS[i.disposition] || i.disposition) : '-'}</td>
-                        <td className="px-4 py-3 text-center"><button onClick={() => setOqcShowDetail(i)} className="text-emerald-600 hover:text-emerald-800 text-xs">编辑</button></td>
+                        <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={i.product?.name || '-'}>{i.product?.name || '-'}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">{i.batchNo}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">{i.quantityTotal}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">{i.quantitySampled}</td>
+                        <td className="px-4 py-3 text-xs whitespace-nowrap">{i.inspector || '-'}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{i.checkDate ? new Date(i.checkDate).toLocaleDateString('zh-CN') : '-'}</td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${RESULT_COLORS[i.result] || ''}`}>{RESULT_LABELS[i.result] || i.result}</span></td>
+                        <td className="px-4 py-3 text-center text-xs whitespace-nowrap">{i.disposition ? (OQC_DISPOSITION_LABELS[i.disposition] || i.disposition) : '-'}</td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><button onClick={() => setOqcShowDetail(i)} className="text-emerald-600 hover:text-emerald-800 text-xs">编辑</button></td>
                       </tr>
                     ))}
                   </tbody>
