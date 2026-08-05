@@ -4,6 +4,7 @@ import { PurchaseStatus } from '@prisma/client'
 import { verifyAuth, verifyPermission } from '@/lib/auth'
 import { PurchaseApplicationSchema, validateBody } from '@/lib/validation'
 import { successResponse, errorResponse } from '@/lib/api-response'
+import { createApprovalFromFlow } from '@/lib/approval'
 
 export async function GET(req: NextRequest) {
   const user = await verifyAuth()
@@ -110,43 +111,70 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const app = await prisma.purchaseApplication.create({
-    data: {
-      code,
-      applicantId: user.id,
-      title: body.title,
-      category: body.category || 'RAW_MATERIAL',
-      supplier: body.supplier || null,
-      totalAmount: body.totalAmount || 0,
-      urgency: body.urgency || 'NORMAL',
-      purpose: body.purpose || '',
-      items: {
-        create: (body.items || []).map((item: any) => ({
-          name: item.name,
-          specification: item.specification || null,
-          quantity: item.quantity || 0,
-          unit: item.unit || '个',
-          estimatedPrice: item.estimatedPrice || 0,
-          totalPrice: (item.quantity || 0) * (item.estimatedPrice || 0),
-          rawMaterialId: item.rawMaterialId || null,
-          remark: item.remark || null,
-        })),
+  try {
+    // ── 防御：rawMaterialId 必须指向真实存在的原料（防物资 id 误入原料外键 → P2003） ──
+    const rawIds = (body.items || [])
+      .map((item: any) => item.rawMaterialId)
+      .filter((id: unknown): id is string => typeof id === 'string' && id.length > 0)
+    const validRawIds = rawIds.length > 0
+      ? await prisma.rawMaterial.findMany({ where: { id: { in: rawIds } }, select: { id: true } })
+      : []
+    const validRawSet = new Set(validRawIds.map(r => r.id))
+
+    const app = await prisma.purchaseApplication.create({
+      data: {
+        code,
+        applicantId: user.id,
+        title: body.title,
+        category: body.category || 'RAW_MATERIAL',
+        supplier: body.supplier || null,
+        totalAmount: body.totalAmount || 0,
+        urgency: body.urgency || 'NORMAL',
+        purpose: body.purpose || '',
+        items: {
+          create: (body.items || []).map((item: any) => ({
+            name: item.name,
+            specification: item.specification || null,
+            quantity: item.quantity || 0,
+            unit: item.unit || '个',
+            estimatedPrice: item.estimatedPrice || 0,
+            totalPrice: (item.quantity || 0) * (item.estimatedPrice || 0),
+            rawMaterialId: item.rawMaterialId && validRawSet.has(item.rawMaterialId) ? item.rawMaterialId : null,
+            remark: item.remark || null,
+          })),
+        },
       },
-    },
-    include: { items: true, applicant: { select: { name: true } } },
-  })
+      include: { items: true, applicant: { select: { name: true } } },
+    })
 
-  // 写入审计日志
-  const { writeAuditLog, extractIp } = await import('@/lib/audit')
-  await writeAuditLog({
-    userId: user.id,
-    userName: user.name,
-    action: 'CREATE',
-    entity: 'PurchaseApplication',
-    entityId: app.id,
-    detail: { code, title: body.title, totalAmount: body.totalAmount, itemCount: (body.items || []).length },
-    ip: extractIp(req),
-  })
+    // 写入审计日志
+    const { writeAuditLog, extractIp } = await import('@/lib/audit')
+    await writeAuditLog({
+      userId: user.id,
+      userName: user.name,
+      action: 'CREATE',
+      entity: 'PurchaseApplication',
+      entityId: app.id,
+      detail: { code, title: body.title, totalAmount: body.totalAmount, itemCount: (body.items || []).length },
+      ip: extractIp(req),
+    })
 
-  return NextResponse.json(successResponse({ application: app }), { status: 201 })
+    // 创建即提交：按已配置的审批流生成审批任务（无流程配置时静默跳过，不阻断创建）
+    await createApprovalFromFlow({
+      entityType: 'PurchaseApplication',
+      entityId: app.id,
+      title: `采购审批: ${app.title}`,
+      requesterId: user.id,
+      amount: Number(app.totalAmount) || 0,
+    }).catch((err) => console.error('自动创建审批请求失败:', err))
+
+    return NextResponse.json(successResponse({ application: app }), { status: 201 })
+  } catch (err: any) {
+    console.error('创建采购申请失败:', err)
+    // 外键/唯一约束等数据库错误 → 返回可读 JSON 错误（避免 500 HTML 前端解析失败"没反应"）
+    const msg = err?.meta?.constraint === 'purchase_application_items_rawMaterialId_fkey'
+      ? '物品关联的原料不存在，请重新选择'
+      : (err?.message || '创建采购申请失败')
+    return errorResponse(msg, 500)
+  }
 }

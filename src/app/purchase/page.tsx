@@ -369,14 +369,16 @@ export default function PurchasePage() {
                     <select value={item.rawMaterialId} onChange={e => {
                       const items = [...formItems]
                       const selId = e.target.value
-                      items[i].rawMaterialId = selId
+                      const isRaw = form.category === 'RAW_MATERIAL'
+                      // 仅原料分类关联原料；其他分类（包材/物资）选中物资只带名称单位，不写 rawMaterialId（否则物资 id 进原料外键报 P2003）
+                      items[i].rawMaterialId = isRaw ? selId : ''
                       if (selId) {
                         // 原料分类 → 从原料列表取；其他分类 → 从物资列表取
-                        const picked = form.category === 'RAW_MATERIAL'
+                        const picked = isRaw
                           ? rawMaterials.find(m => m.id === selId)
                           : supplies.find(s => s.id === selId)
                         if (picked) {
-                          items[i].name = form.category === 'RAW_MATERIAL' ? (picked as any).nameCn : (picked as any).name
+                          items[i].name = isRaw ? (picked as any).nameCn : (picked as any).name
                           items[i].unit = (picked as any).unit || ''
                         }
                       }
