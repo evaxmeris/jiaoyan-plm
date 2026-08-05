@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
+import { useAuth } from '@/lib/useAuth'
+import { useToast } from '@/components/Toast'
+import SupplierInput from '@/components/SupplierInput'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: '草稿',
@@ -52,6 +55,12 @@ export default function PurchaseOrderDetailPage() {
   const [auditLogs, setAuditLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [confirmStatus, setConfirmStatus] = useState<string | null>(null)
+  const { user } = useAuth()
+  const { showToast } = useToast()
+  // 供应商编辑弹窗（仅 CEO）
+  const [showSupplierModal, setShowSupplierModal] = useState(false)
+  const [supplierForm, setSupplierForm] = useState<{ name: string; supplierId: string | null }>({ name: '', supplierId: null })
+  const [savingSupplier, setSavingSupplier] = useState(false)
 
   // 到货登记弹窗状态
   const [showReceiveModal, setShowReceiveModal] = useState(false)
@@ -63,7 +72,8 @@ export default function PurchaseOrderDetailPage() {
     setLoading(true)
     const res = await apiFetch(`/api/purchase/orders/${id}`)
     const json = await res.json()
-    setData(json.data || json)
+    // 解包 successResponse({order, auditLogs})：data.order 才是订单本体
+    setData(json.data?.order || json.order || null)
     setAuditLogs(json.data?.auditLogs || json.auditLogs || [])
     setLoading(false)
   }, [id])
@@ -97,6 +107,38 @@ export default function PurchaseOrderDetailPage() {
     }
     setConfirmStatus(null)
     fetchData()
+  }
+
+  // 打开供应商编辑弹窗（回填当前值）
+  const openSupplierModal = () => {
+    setSupplierForm({
+      name: data.supplierName || '',
+      supplierId: data.supplierId || null,
+    })
+    setShowSupplierModal(true)
+  }
+
+  // 保存供应商（仅 CEO，后端校验；同步 PO + 回写关联申请）
+  const handleSaveSupplier = async () => {
+    setSavingSupplier(true)
+    try {
+      const res = await apiFetch(`/api/purchase/orders/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ supplier: supplierForm.name.trim() || null, supplierId: supplierForm.supplierId }),
+      })
+      const text = await res.text()
+      let json: any = {}
+      try { json = JSON.parse(text) } catch { json = { error: `服务器错误（HTTP ${res.status}），请稍后重试` } }
+      if (!res.ok) throw new Error(json.error || '保存失败')
+      showToast('success', '供应商已更新（已同步关联采购申请）')
+      setShowSupplierModal(false)
+      fetchData()
+    } catch (e: any) {
+      showToast('error', e.message || '保存失败')
+    } finally {
+      setSavingSupplier(false)
+    }
   }
 
   const handleReceive = async () => {
@@ -188,7 +230,17 @@ export default function PurchaseOrderDetailPage() {
             </div>
             <div>
               <span className="text-[var(--color-text-secondary)]">供应商</span>
-              <p className="font-medium">{data.supplierName || '-'}</p>
+              <p className="font-medium flex items-center gap-2">
+                {data.supplierName || '-'}
+                {user?.role === 'CEO' && (
+                  <button
+                    onClick={openSupplierModal}
+                    className="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded hover:bg-emerald-100 border border-emerald-200"
+                  >
+                    编辑
+                  </button>
+                )}
+              </p>
             </div>
             <div>
               <span className="text-[var(--color-text-secondary)]">订单总额</span>
@@ -238,16 +290,16 @@ export default function PurchaseOrderDetailPage() {
           </h2>
           {(data.items || []).length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-auto">
                 <thead>
                   <tr className="bg-[var(--color-bg)] border-b">
                     <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">名称</th>
-                    <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium">订购数量</th>
-                    <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium">已收货</th>
-                    <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">单位</th>
-                    <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium">单价</th>
-                    <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium">小计</th>
-                    <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">备注</th>
+                    <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">订购数量</th>
+                    <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">已收货</th>
+                    <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">单位</th>
+                    <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">单价</th>
+                    <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">小计</th>
+                    <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium whitespace-nowrap">备注</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -257,18 +309,18 @@ export default function PurchaseOrderDetailPage() {
                     const remaining = ordered - received
                     return (
                       <tr key={item.id} className="border-b last:border-0 hover:bg-[var(--color-bg)]">
-                        <td className="px-4 py-3 font-medium">{item.name}</td>
-                        <td className="px-4 py-3 text-right">{ordered}</td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={item.name}>{item.name}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">{ordered}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
                           <span className={received >= ordered ? 'text-emerald-600 font-medium' : 'text-orange-500'}>
                             {received}
                             {received > 0 && received < ordered && <span className="text-xs text-[var(--color-text-secondary)] ml-1">/{remaining}</span>}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[var(--color-text-secondary)]">{item.unit}</td>
-                        <td className="px-4 py-3 text-right">¥{Number(item.unitPrice).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-right font-medium">¥{Number(item.totalPrice).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{item.remark || '-'}</td>
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)] whitespace-nowrap">{item.unit}</td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">¥{Number(item.unitPrice).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-medium whitespace-nowrap">¥{Number(item.totalPrice).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] max-w-[160px] truncate" title={item.remark || ''}>{item.remark || '-'}</td>
                       </tr>
                     )
                   })}
@@ -321,6 +373,32 @@ export default function PurchaseOrderDetailPage() {
           ) : <p className="text-sm text-[var(--color-text-secondary)]">暂无操作日志</p>}
         </div>
       </main>
+
+      {/* 供应商编辑弹窗（仅 CEO；输入自动联想供应商档案） */}
+      {showSupplierModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowSupplierModal(false)}>
+          <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-1">编辑供应商</h3>
+            <p className="text-xs text-[var(--color-text-secondary)] mb-4">修改后将同步更新本PO及关联采购申请；输入名称可自动匹配供应商档案。</p>
+            <SupplierInput
+              value={supplierForm.name}
+              onChange={(name, supplierId) => setSupplierForm({ name, supplierId })}
+              placeholder="输入供应商名称"
+              className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm mb-4"
+            />
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowSupplierModal(false)} className="px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)]" disabled={savingSupplier}>取消</button>
+              <button
+                onClick={handleSaveSupplier}
+                disabled={savingSupplier || !supplierForm.name.trim()}
+                className="px-4 py-2 text-sm rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {savingSupplier ? '保存中...' : '保存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 确认弹窗（状态变更） */}
       {confirmStatus && confirmStatus !== '__RECEIVE__' && (

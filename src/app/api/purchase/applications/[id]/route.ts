@@ -98,6 +98,54 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   })
   if (!oldApp) return errorResponse('采购申请不存在', 404)
 
+  // ── 仅 CEO 可编辑供应商（审批通过后也可改；自动关联供应商档案） ──
+  if (body.supplier !== undefined && !status) {
+    if (user.role !== 'CEO') {
+      return errorResponse('仅总经理可修改供应商', 403)
+    }
+    const name = typeof body.supplier === 'string' ? body.supplier.trim() : null
+    // 自动关联：优先用传入 supplierId；否则按名称精确匹配已有档案
+    let supplierId: string | null = body.supplierId || null
+    if (name && !supplierId) {
+      const matched = await prisma.supplier.findFirst({
+        where: { name: { equals: name, mode: 'insensitive' }, isDeleted: false },
+      })
+      if (matched) supplierId = matched.id
+    }
+
+    const updated = await prisma.purchaseApplication.update({
+      where: { id },
+      data: { supplier: name, supplierId },
+      include: { supplierR: { select: { id: true, name: true } } },
+    })
+
+    // 级联同步已生成 PO 的供应商名称（PO 是快照，须保持一致）
+    const existingPo = await prisma.purchaseOrder.findUnique({
+      where: { applicationId: id },
+      select: { id: true },
+    })
+    if (existingPo) {
+      await prisma.purchaseOrder.update({
+        where: { id: existingPo.id },
+        data: { supplierName: name || '未知供应商' },
+      })
+    }
+
+    // 审计日志
+    const { writeAuditLog, extractIp } = await import('@/lib/audit')
+    await writeAuditLog({
+      userId: user.id,
+      userName: user.name,
+      action: 'UPDATE',
+      entity: 'PurchaseApplication',
+      entityId: id,
+      detail: { field: 'supplier', from: oldApp.supplier, to: name, supplierId },
+      ip: extractIp(req),
+    })
+
+    return NextResponse.json(successResponse({ application: updated }))
+  }
+
   // ── 第一次提交审批: 创建 ApprovalRequest ──
   if (status === 'PENDING') {
     // 检查是否已有审批请求，避免重复创建

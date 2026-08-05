@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Pagination from '@/components/Pagination'
 import { useCrud } from '@/lib/useCrud'
 import PageHeader from '@/components/PageHeader'
+import { useToast } from '@/components/Toast'
 
 const PAGE_SIZE = 20
 
@@ -17,6 +18,7 @@ export default function SuppliersPage() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ name: '', type: 'RAW_MATERIAL', contact: '', phone: '', email: '', address: '', rating: '', remark: '' })
   const router = useRouter()
+  const { showToast } = useToast()
 
   useEffect(() => { setPage(1) }, [search])
 
@@ -53,9 +55,16 @@ export default function SuppliersPage() {
   }
 
   const onSave = async () => {
-    await handleSave(form)
-    setShowForm(false)
-    resetForm()
+    try {
+      // rating 空字符串转 null（Prisma Float 字段不接受 ''，否则编辑保存必 400）
+      const payload = { ...form, rating: form.rating === '' ? null : Number(form.rating) }
+      await handleSave(payload)
+      setShowForm(false)
+      resetForm()
+      showToast('success', '保存成功')
+    } catch (e: any) {
+      showToast('error', e.message || '保存失败')
+    }
   }
 
   const handleDeleteClick = async (id: string, name: string) => {

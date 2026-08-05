@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
+import SupplierInput from '@/components/SupplierInput'
 
 interface PurchaseApp {
   id: string
@@ -101,7 +102,7 @@ export default function PurchasePage() {
   const [apps, setApps] = useState<PurchaseApp[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', supplier: '', purpose: '', urgency: 'NORMAL', category: 'RAW_MATERIAL' })
+  const [form, setForm] = useState({ title: '', supplier: '', supplierId: null as string | null, purpose: '', urgency: 'NORMAL', category: 'RAW_MATERIAL' })
   const [formItems, setFormItems] = useState<{ name: string; specification: string; quantity: string; unit: string; estimatedPrice: string; rawMaterialId: string }[]>([])
   const [budget, setBudget] = useState<BudgetInfo | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
@@ -115,6 +116,8 @@ export default function PurchasePage() {
   const [confirmAction, setConfirmAction] = useState<string | null>(null)
   const [filterCategory, setFilterCategory] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('')
+  // 当前激活的标签页：pending=待审批 / handled=我已审批 / created=我创建的
+  const [activeTab, setActiveTab] = useState<'pending' | 'handled' | 'created'>('pending')
   const router = useRouter()
   const { user } = useAuth()
   const { showToast } = useToast()
@@ -202,11 +205,16 @@ export default function PurchasePage() {
   const applyFilters = (list: PurchaseApp[]) => list
     .filter(a => !filterCategory || a.category === filterCategory)
     .filter(a => !filterStatus || a.status === filterStatus)
-  const visibleSections = [
-    { title: '待审批', count: myPending.length, items: applyFilters(myPending), empty: '暂无待审批的申请' },
-    { title: '我已审批', count: myHandled.length, items: applyFilters(myHandled), empty: '暂无你审批过的申请' },
-    { title: '我创建的', count: myCreated.length, items: applyFilters(myCreated), empty: '暂无你创建的申请' },
+  const tabs = [
+    { key: 'pending' as const, title: '待审批', raw: myPending, count: myPending.length, items: applyFilters(myPending), empty: '暂无待审批的申请' },
+    { key: 'handled' as const, title: '我已审批', raw: myHandled, count: myHandled.length, items: applyFilters(myHandled), empty: '暂无你审批过的申请' },
+    { key: 'created' as const, title: '我创建的', raw: myCreated, count: myCreated.length, items: applyFilters(myCreated), empty: '暂无你创建的申请' },
   ]
+  // 当前激活标签页的分区内容（徽章显示分区原始数量，列表显示筛选后数量）
+  const activeSection = tabs.find(t => t.key === activeTab) || tabs[0]
+  // 筛选选项按当前标签页的实际数据动态生成（分类/状态取本分区出现过的值）
+  const categoryOptions = [...new Set(activeSection.raw.map(a => a.category))].filter(c => CATEGORY_LABELS[c])
+  const statusOptions = [...new Set(activeSection.raw.map(a => a.status))]
 
   const handleCreate = async () => {
     const items = formItems.map(i => ({
@@ -224,7 +232,6 @@ export default function PurchasePage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, items, totalAmount }),
     })
-
     if (!res.ok) {
       const err = await res.json()
       showToast('error', err.error || '创建失败')
@@ -232,7 +239,7 @@ export default function PurchasePage() {
     }
 
     setShowForm(false)
-    setForm({ title: '', supplier: '', purpose: '', urgency: 'NORMAL', category: 'RAW_MATERIAL' })
+    setForm({ title: '', supplier: '', supplierId: null, purpose: '', urgency: 'NORMAL', category: 'RAW_MATERIAL' })
     setFormItems([])
     fetchData()
   }
@@ -526,7 +533,7 @@ export default function PurchasePage() {
                     {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </div>
-                <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商</label><input type="text" value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商</label><SupplierInput value={form.supplier} onChange={(name, id) => setForm({ ...form, supplier: name, supplierId: id })} placeholder="输入名称自动匹配档案" className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">紧急程度</label><select value={form.urgency} onChange={e => setForm({...form, urgency: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"><option value="LOW">低</option><option value="NORMAL">普通</option><option value="HIGH">高</option><option value="URGENT">紧急</option></select></div>
                 <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">用途说明</label><textarea value={form.purpose} onChange={e => setForm({...form, purpose: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
               </div>
@@ -596,32 +603,53 @@ export default function PurchasePage() {
           </div>
         )}
 
-        {/* 筛选栏 */}
-        {apps.length > 0 && (
-          <div className="flex gap-3 mb-4 flex-wrap">
-            <select
-              value={filterCategory}
-              onChange={e => setFilterCategory(e.target.value)}
-              className="px-3 py-1.5 border rounded text-sm bg-[var(--color-card)]"
-            >
-              <option value="">全部分类</option>
-              {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
+        {/* 标签页切换 + 筛选同一行：左侧三Tab，右侧分类/状态筛选（选项按本标签页实际数据动态生成） */}
+        {!loading && apps.length > 0 && (
+          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap border-b border-[var(--color-border)]">
+            <div className="flex gap-1">
+              {tabs.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => { setActiveTab(tab.key); setFilterCategory(''); setFilterStatus('') }}
+                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium -mb-px border-b-2 transition-colors ${
+                    activeTab === tab.key
+                      ? 'border-emerald-600 text-emerald-600'
+                      : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border)]'
+                  }`}
+                >
+                  {tab.title}
+                  <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+                    activeTab === tab.key ? 'bg-emerald-100 text-emerald-700' : 'bg-[var(--color-border)] text-[var(--color-text-secondary)]'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
               ))}
-            </select>
-            <select
-              value={filterStatus}
-              onChange={e => setFilterStatus(e.target.value)}
-              className="px-3 py-1.5 border rounded text-sm bg-[var(--color-card)]"
-            >
-              <option value="">全部状态</option>
-              <option value="PENDING">待审批</option>
-              <option value="APPROVED">已通过</option>
-              <option value="REJECTED">已驳回</option>
-              <option value="ORDERED">已采购</option>
-              <option value="RECEIVED">已到货</option>
-              <option value="REIMBURSED">已报销</option>
-            </select>
+            </div>
+            {activeSection.raw.length > 0 && (categoryOptions.length > 0 || statusOptions.length > 0) && (
+              <div className="flex gap-3">
+                {categoryOptions.length > 0 && (
+                  <select
+                    value={filterCategory}
+                    onChange={e => setFilterCategory(e.target.value)}
+                    className="px-3 py-1.5 border rounded text-sm bg-[var(--color-card)]"
+                  >
+                    <option value="">全部分类</option>
+                    {categoryOptions.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+                  </select>
+                )}
+                {statusOptions.length > 0 && (
+                  <select
+                    value={filterStatus}
+                    onChange={e => setFilterStatus(e.target.value)}
+                    className="px-3 py-1.5 border rounded text-sm bg-[var(--color-card)]"
+                  >
+                    <option value="">全部状态</option>
+                    {statusOptions.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
+                  </select>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -630,19 +658,12 @@ export default function PurchasePage() {
         ) : apps.length === 0 ? (
           <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125V9M17.25 6v6m2-3v6m-10.5 4.5h7.5" /></svg><div className="empty-state-title">还没有采购申请</div><div className="empty-state-desc">点击右上角"新建采购申请"开始</div></div>
         ) : (
-          <div className="space-y-6">
-            {visibleSections.map(section => (
-              <div key={section.title}>
-                <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-3">
-                  {section.title}（{section.items.length}）
-                </h2>
-                {section.items.length > 0 ? (
-                  <div className="space-y-3">{section.items.map(renderAppCard)}</div>
-                ) : (
-                  <div className="bg-[var(--color-card)] rounded-xl border p-4 text-center text-sm text-[var(--color-text-secondary)]">{section.empty}</div>
-                )}
-              </div>
-            ))}
+          <div key={activeSection.key} className="fade-in">
+            {activeSection.items.length > 0 ? (
+              <div className="space-y-3">{activeSection.items.map(renderAppCard)}</div>
+            ) : (
+              <div className="bg-[var(--color-card)] rounded-xl border p-4 text-center text-sm text-[var(--color-text-secondary)]">{activeSection.empty}</div>
+            )}
           </div>
         )}
       </main>

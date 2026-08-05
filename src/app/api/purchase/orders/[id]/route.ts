@@ -53,6 +53,54 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json()
   const { status, remark } = body
 
+  // ── 仅 CEO 可编辑供应商（同步更新 PO 名称 + 回写关联申请，保持源头一致） ──
+  if (body.supplier !== undefined && !status) {
+    if (user.role !== 'CEO') {
+      return errorResponse('仅总经理可修改供应商', 403)
+    }
+    const name = typeof body.supplier === 'string' ? body.supplier.trim() : null
+    // 自动关联：优先用传入 supplierId；否则按名称精确匹配已有档案
+    let supplierId: string | null = body.supplierId || null
+    if (name && !supplierId) {
+      const matched = await prisma.supplier.findFirst({
+        where: { name: { equals: name, mode: 'insensitive' }, isDeleted: false },
+      })
+      if (matched) supplierId = matched.id
+    }
+
+    const currentPo = await prisma.purchaseOrder.findUnique({
+      where: { id },
+      select: { poNo: true, supplierName: true, applicationId: true },
+    })
+    if (!currentPo) return errorResponse('采购订单不存在', 404)
+
+    const [updatedPo] = await prisma.$transaction([
+      prisma.purchaseOrder.update({
+        where: { id },
+        data: { supplierName: name || '未知供应商', supplierId },
+      }),
+      // 回写关联申请（源头一致：申请是生成PO的母单）
+      prisma.purchaseApplication.update({
+        where: { id: currentPo.applicationId },
+        data: { supplier: name, supplierId },
+      }),
+    ])
+
+    // 审计日志
+    const { writeAuditLog, extractIp } = await import('@/lib/audit')
+    await writeAuditLog({
+      userId: user.id,
+      userName: user.name,
+      action: 'UPDATE',
+      entity: 'PurchaseOrder',
+      entityId: id,
+      detail: { field: 'supplier', poNo: currentPo.poNo, from: currentPo.supplierName, to: name, supplierId, syncedApplication: currentPo.applicationId },
+      ip: extractIp(req),
+    })
+
+    return NextResponse.json(successResponse({ order: updatedPo }))
+  }
+
   // 有效的状态流转
   const validTransitions: Record<string, string[]> = {
     DRAFT: ['ISSUED', 'CANCELLED'],

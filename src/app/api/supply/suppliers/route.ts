@@ -5,7 +5,7 @@ export const { GET, POST } = createCrudHandlers({
   model: 'supplier',
   permissions: { view: 'supplier.view', create: 'supplier.create', update: 'supplier.update', delete: 'supplier.delete' },
   beforeCreate: autoValidate(SupplierSchema),
-  searchFields: ['name', 'contactPerson'],
+  searchFields: ['name', 'contact'],
   orderBy: { createdAt: 'desc' },
   softDeleteField: 'isDeleted',
 })

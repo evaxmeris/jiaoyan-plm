@@ -121,6 +121,15 @@ export async function POST(req: NextRequest) {
       : []
     const validRawSet = new Set(validRawIds.map(r => r.id))
 
+    // ── 供应商自动关联：优先用传入 supplierId；否则按名称精确匹配已有档案（不强制建档） ──
+    let supplierId: string | null = body.supplierId || null
+    if (body.supplier && !supplierId) {
+      const matched = await prisma.supplier.findFirst({
+        where: { name: { equals: body.supplier.trim(), mode: 'insensitive' }, isDeleted: false },
+      })
+      if (matched) supplierId = matched.id
+    }
+
     const app = await prisma.purchaseApplication.create({
       data: {
         code,
@@ -128,6 +137,7 @@ export async function POST(req: NextRequest) {
         title: body.title,
         category: body.category || 'RAW_MATERIAL',
         supplier: body.supplier || null,
+        supplierId,
         totalAmount: body.totalAmount || 0,
         urgency: body.urgency || 'NORMAL',
         purpose: body.purpose || '',
