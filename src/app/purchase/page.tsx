@@ -128,8 +128,10 @@ export default function PurchasePage() {
     if (!appsRes.ok) throw new Error(appsData.error || '加载申请失败')
     const budgetData = await budgetRes.json()
     if (!budgetRes.ok) throw new Error(budgetData.error || '加载预算失败')
-    setApps(appsData.applications || [])
-    setApprovalFlow(appsData.approvalFlow || null)
+    // 解包标准响应 {success, data:{applications}}，兼容旧格式顶层字段
+    const appPayload = appsData.data || appsData
+    setApps(appPayload.applications || appsData.applications || [])
+    setApprovalFlow(appPayload.approvalFlow || appsData.approvalFlow || null)
     if (budgetData.budgets && budgetData.budgets.length > 0) {
       setBudget((budgetData.data?.budgets || budgetData.budgets || [])[0])
     }
