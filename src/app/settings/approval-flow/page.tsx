@@ -83,8 +83,10 @@ export default function ApprovalFlowPage() {
     try {
       const res = await apiFetch('/api/settings/approval-flow')
       const json = await res.json()
-      setAllFlows(json.flows || [])
-      setUsers(json.users || [])
+      // 解包标准响应 {success, data:{flows, users}}，兼容旧格式顶层字段
+      const data = json.data || json
+      setAllFlows(data.flows || json.flows || [])
+      setUsers(data.users || json.users || [])
     } catch (e) {
       setMessage({ type: 'error', text: '加载审批流程配置失败' })
     } finally {
