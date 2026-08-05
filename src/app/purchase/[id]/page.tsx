@@ -23,8 +23,8 @@ export default function PurchaseDetailPage() {
     setLoading(true)
     const res = await apiFetch(`/api/purchase/applications/${id}`)
     const json = await res.json()
-    setData(json.application)
-    setAuditLogs(json.auditLogs || [])
+    setData(json.data?.application || json.application)
+    setAuditLogs(json.data?.auditLogs || json.auditLogs || [])
     setLoading(false)
   }, [id])
 

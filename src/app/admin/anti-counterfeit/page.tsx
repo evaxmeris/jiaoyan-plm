@@ -104,7 +104,7 @@ export default function AntiCounterfeitAdminPage() {
       })
       const data = await res.json()
       if (res.ok) {
-        showToast('success', `成功生成 ${data.count} 个防伪码`)
+        showToast('success', `成功生成 ${data.data?.count ?? data.count ?? 0} 个防伪码`)
         setShowGenerate(false)
         fetchCodes()
       } else {

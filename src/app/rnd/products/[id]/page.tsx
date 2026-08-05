@@ -190,22 +190,22 @@ export default function ProductDetailPage() {
       apiFetch(`/api/rnd/costing?productId=${id}`),
     ])
     const p = await pRes.json()
-    if (pRes.ok) setProduct(p.product)
+    if (pRes.ok) setProduct(p.data || p.product)
     if (cRes.ok) {
       const c = await cRes.json()
-      setCertifications(c.certifications || [])
+      setCertifications(c.data?.certifications || c.certifications || [])
     }
     if (mRes.ok) {
       const m = await mRes.json()
-      setMilestones(m.milestones || [])
+      setMilestones(m.data?.milestones || m.milestones || [])
     }
     if (fRes.ok) {
       const f = await fRes.json()
-      setFiles(f.files || [])
+      setFiles(f.data?.files || f.files || [])
     }
     if (prRes.ok) {
       const pr = await prRes.json()
-      setPilotRuns(pr.pilotRuns || [])
+      setPilotRuns(pr.data?.pilotRuns || pr.pilotRuns || [])
     }
     if (crRes.ok) {
       const cr = await crRes.json()

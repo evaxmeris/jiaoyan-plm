@@ -59,7 +59,7 @@ export default function OEMPage() {
     const [cRes, sRes] = await Promise.all([apiFetch('/api/supply/oem'), apiFetch('/api/supply/suppliers')])
     const cData = await cRes.json()
     if (!cRes.ok) throw new Error(cData.error || '加载合同失败')
-    const contractsList = cData.contracts || []
+    const contractsList = cData.data || cData.contracts || []
     setContracts(contractsList)
     const sData = await sRes.json()
     if (!sRes.ok) throw new Error(sData.error || '加载供应商失败')
@@ -77,7 +77,7 @@ export default function OEMPage() {
           }),
         })
         const mData = await mRes.json()
-        if (mRes.ok) setMilestoneMap(mData.milestones || {})
+        if (mRes.ok) setMilestoneMap(mData.data?.milestones || mData.milestones || {})
       } catch (e) {
         console.error('获取里程碑失败', e)
       }

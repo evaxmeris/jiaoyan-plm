@@ -39,7 +39,7 @@ export default function RndPage() {
   useEffect(() => {
     apiFetch('/api/auth/me')
       .then(r => r.json())
-      .then(d => d.user ? setUser(d.user) : router.push('/login'))
+      .then(d => { const u = d.data?.user || d.user; u ? setUser(u) : router.push('/login') })
       .catch(() => router.push('/login'))
   }, [router])
 

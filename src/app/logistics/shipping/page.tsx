@@ -121,7 +121,7 @@ export default function LogisticsShippingPage() {
       // 过滤掉已存在发货单的订单
       const shippedRes = await apiFetch('/api/logistics/shipping', { credentials: 'include' })
       const shippedData = await shippedRes.json()
-      const shippedOrderIds = new Set((shippedData.orders || []).map((o: ShippingOrder) => o.salesOrderId))
+      const shippedOrderIds = new Set((shippedData.data || shippedData.orders || []).map((o: ShippingOrder) => o.salesOrderId))
       setConfirmedOrders((data.data?.orders || data.orders || []).filter((o: SalesOrder) => !shippedOrderIds.has(o.id)))
     }
   }, [])

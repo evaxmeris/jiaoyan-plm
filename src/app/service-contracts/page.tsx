@@ -45,7 +45,7 @@ export default function ServiceContractsPage() {
     const res = await apiFetch('/api/service-contracts')
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || '加载失败')
-    setItems(data.contracts || [])
+    setItems(data.data?.contracts || data.contracts || [])
     setLoading(false)
   }, [])
 

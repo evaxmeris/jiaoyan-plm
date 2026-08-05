@@ -64,7 +64,7 @@ export default function PurchaseOrderDetailPage() {
     const res = await apiFetch(`/api/purchase/orders/${id}`)
     const json = await res.json()
     setData(json.data || json)
-    setAuditLogs(json.auditLogs || [])
+    setAuditLogs(json.data?.auditLogs || json.auditLogs || [])
     setLoading(false)
   }, [id])
 

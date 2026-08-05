@@ -78,7 +78,7 @@ export default function RegistrationDetailPage() {
       const res = await apiFetch(`/api/compliance/registrations/${id}`)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || '加载失败')
-      setData(json.registration)
+      setData(json.data?.registration || json.registration)
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载备案详情失败')
     } finally {
@@ -422,7 +422,7 @@ function AssessmentSection({ registrationId }: { registrationId: string }) {
       const res = await apiFetch(`/api/compliance/registrations/${registrationId}/assessments`)
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || '加载失败')
-      setAssessments(json.assessments || [])
+      setAssessments(json.data?.assessments || json.assessments || [])
     } catch {
       setAssessments([])
     } finally {

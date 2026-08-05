@@ -70,7 +70,7 @@ function BudgetCategoriesContent() {
     try {
       const res = await apiFetch(`/api/finance/budget-categories?budgetId=${selectedBudgetId}`)
       const data = await res.json()
-      if (res.ok) setCategories(data.categories || [])
+      if (res.ok) setCategories(data.data?.categories || data.categories || [])
     } catch {
       showToast('error', '加载科目失败')
     }

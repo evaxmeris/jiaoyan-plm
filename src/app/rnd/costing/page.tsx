@@ -204,7 +204,7 @@ export default function CostingPage() {
     const res = await apiFetch(`/api/rnd/price-history?productId=${costing.productDesignId}`)
     if (res.ok) {
       const d = await res.json()
-      setPriceHistories(d.histories)
+      setPriceHistories(d.data || d.histories || [])
     }
     setShowPriceHistory(true)
   }
@@ -226,7 +226,7 @@ export default function CostingPage() {
       const r = await apiFetch(`/api/rnd/price-history?productId=${priceHistoryProduct.id}`)
       if (r.ok) {
         const d = await r.json()
-        setPriceHistories(d.histories)
+        setPriceHistories(d.data || d.histories || [])
       }
       fetchData() // 刷新成本列表（可能更新了 actualPrice）
     } else {

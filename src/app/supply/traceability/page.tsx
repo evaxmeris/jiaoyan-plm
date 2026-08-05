@@ -106,7 +106,7 @@ export default function TraceabilityPage() {
     ])
     const bData = await bRes.json()
     if (!bRes.ok) throw new Error(bData.error || '加载批次失败')
-    setBatches(bData.batches || [])
+    setBatches(bData.data || bData.batches || [])
     const pData = await pRes.json()
     if (!pRes.ok) throw new Error(pData.error || '加载产品失败')
     setProducts(pData.products || [])
@@ -196,7 +196,7 @@ export default function TraceabilityPage() {
     if (materialBatchesMap[materialId]) return
     const res = await apiFetch(`/api/supply/inventory?materialId=${materialId}`)
     const data = await res.json()
-    const batches = data.items || []
+    const batches = data.data || data.items || []
     setMaterialBatchesMap(prev => ({ ...prev, [materialId]: batches }))
   }
 

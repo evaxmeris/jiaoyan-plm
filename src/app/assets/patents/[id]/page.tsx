@@ -41,8 +41,8 @@ export default function PatentDetailPage() {
     setLoading(true)
     const res = await apiFetch(`/api/assets/patents/${id}`)
     const json = await res.json()
-    setData(json.patent)
-    setAuditLogs(json.auditLogs || [])
+    setData(json.data?.patent || json.patent)
+    setAuditLogs(json.data?.auditLogs || json.auditLogs || [])
     setLoading(false)
   }, [id])
 

@@ -22,7 +22,7 @@ export default function TradeSecretDetailPage() {
     const res = await apiFetch(`/api/assets/trade-secrets/${id}`)
     if (!res.ok) { setError('加载失败'); setLoading(false); return }
     const json = await res.json()
-    setData(json.secret)
+    setData(json.data?.secret || json.secret)
     setForm({ title: json.secret.title, content: json.secret.content, summary: json.secret.summary || '', level: json.secret.level })
     setLoading(false)
   }, [id])

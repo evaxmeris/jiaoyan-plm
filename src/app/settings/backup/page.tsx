@@ -26,7 +26,7 @@ export default function BackupPage() {
     try {
       const res = await apiFetch('/api/settings/backup')
       const data = await res.json()
-      setBackups(data.backups || [])
+      setBackups(data.data?.backups || data.backups || [])
     } catch {
       showToast('error', '加载备份列表失败')
     }
@@ -40,7 +40,7 @@ export default function BackupPage() {
     try {
       const res = await apiFetch('/api/settings/backup', { method: 'POST' })
       const data = await res.json()
-      if (data.success) {
+      if (data.data || data.success) {
         showToast('success', '备份创建成功')
         fetchBackups()
       } else {

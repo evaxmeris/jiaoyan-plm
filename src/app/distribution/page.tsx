@@ -61,7 +61,7 @@ export default function DistributionPage() {
     try {
       const res = await apiFetch('/api/distribution/orders')
       const data = await res.json()
-      const orders = data.orders || []
+      const orders = data.data || data.orders || []
       const now = new Date()
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
       const monthOrders = orders.filter((o: any) => new Date(o.orderDate) >= monthStart)

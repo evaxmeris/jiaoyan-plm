@@ -65,12 +65,12 @@ export default function OEMContractDetailPage() {
       apiFetch(`/api/supply/oem/${id}/schedules`),
     ])
     const cData = await cRes.json()
-    const contracts = (cData.contracts || []).filter((c: any) => c.id === id)
+    const contracts = (cData.data || cData.contracts || []).filter((c: any) => c.id === id)
     if (contracts.length > 0) setContract(contracts[0])
     const pData = await pRes.json()
-    setPrices(pData.prices || [])
+    setPrices(pData.data || pData.prices || [])
     const sData = await sRes.json()
-    setSchedules(sData.schedules || [])
+    setSchedules(sData.data || sData.schedules || [])
     setLoading(false)
   }, [id])
 

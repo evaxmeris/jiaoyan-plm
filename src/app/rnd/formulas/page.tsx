@@ -116,7 +116,7 @@ export default function FormulasPage() {
           })
           if (cRes.ok) {
             const cData = await cRes.json()
-            setComplianceMap(cData.results || {})
+            setComplianceMap(cData.data?.results || cData.results || {})
           }
         } catch (e) {
           console.error('[ComplianceBadge] 批量合规扫描异常:', e)
@@ -250,7 +250,7 @@ export default function FormulasPage() {
       const detailRes = await apiFetch(`/api/rnd/formulas/versions?formulaId=${f.id}`)
       if (detailRes.ok) {
         const vData = await detailRes.json()
-        setVersions(vData.versions || [])
+        setVersions(vData.data || vData.versions || [])
       } else {
         // Fallback: try another approach
         setVersions([])

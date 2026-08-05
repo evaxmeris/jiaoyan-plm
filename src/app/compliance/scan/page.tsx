@@ -45,7 +45,7 @@ export default function ComplianceScanPage() {
       const res = await apiFetch(`/api/compliance/ingredient-regulations?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
-        setResults(data.ingredientRegulations || [])
+        setResults(data.data?.regulations || data.ingredientRegulations || [])
       } else {
         const err = await res.json()
         setError(err.error || '查询失败')
