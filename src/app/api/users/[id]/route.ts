@@ -30,7 +30,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id },
     data: {
       ...(role !== undefined && { role }),
-      ...(isActive !== undefined && { isActive }),
+      // isActive 与 status 双字段同步：禁用→DISABLED，启用→ACTIVE（前端状态徽章读 status）
+      ...(isActive !== undefined && { isActive, status: isActive ? 'ACTIVE' : 'DISABLED' }),
       ...(name !== undefined && { name }),
       ...(department !== undefined && { department }),
     },
