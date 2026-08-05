@@ -197,10 +197,8 @@ export default function PurchasePage() {
     !myPending.includes(a) &&
     (a.approvals || []).some((ap: any) => ap.applicant?.id === userId && (ap.action === 'APPROVED' || ap.action === 'REJECTED'))
   )
-  // 我创建的：其余我创建的申请（已通过/已驳回/已采购等，跟踪状态用）
-  const myCreated = apps.filter(a =>
-    !myPending.includes(a) && !myHandled.includes(a) && a.applicant?.id === userId
-  )
+  // 我创建的：我创建的申请（含已通过/已驳回/已采购等，跟踪状态用；与「我已审批」可重叠——同一申请可能既是我创建又是我审批）
+  const myCreated = apps.filter(a => a.applicant?.id === userId)
   const applyFilters = (list: PurchaseApp[]) => list
     .filter(a => !filterCategory || a.category === filterCategory)
     .filter(a => !filterStatus || a.status === filterStatus)

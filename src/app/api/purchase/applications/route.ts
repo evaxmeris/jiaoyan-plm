@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       ...(statusFilter ? { status: statusFilter as PurchaseStatus } : {}),
     },
     include: {
-      applicant: { select: { name: true, email: true } },
+      applicant: { select: { id: true, name: true, email: true } },
       items: true,
       purchaseOrder: {
         select: { id: true, poNo: true, status: true },
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     },
     include: {
       approvals: {
-        include: { approver: { select: { name: true } } },
+        include: { approver: { select: { id: true, name: true } } },
         orderBy: { level: 'asc' },
       },
     },
