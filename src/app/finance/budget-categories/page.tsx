@@ -165,7 +165,7 @@ function BudgetCategoriesContent() {
             <button onClick={() => router.push('/finance/budget')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">预算科目管理</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <select
               value={selectedBudgetId}
               onChange={e => setSelectedBudgetId(e.target.value)}
@@ -278,7 +278,7 @@ function BudgetCategoriesContent() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 mb-2 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2 text-sm">
                     <div>
                       <div className="text-xs text-[var(--color-text-secondary)]">分配金额</div>
                       <div className="font-medium text-[var(--color-text)]">¥{cat.allocatedAmount.toFixed(2)}</div>

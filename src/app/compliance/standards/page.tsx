@@ -151,7 +151,7 @@ export default function ComplianceStandardsPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑标准' : '新增检测标准'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <label className="block text-[var(--color-text-secondary)] mb-1">目标市场 *</label>
                   <select value={form.market} onChange={e => setForm({ ...form, market: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm">

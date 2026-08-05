@@ -61,7 +61,7 @@ export default function TradeSecretDetailPage() {
             <h1 className="text-xl font-bold text-gray-800 truncate">{data.title}</h1>
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${LEVEL_COLORS[data.level] || ''}`}>{LEVEL_LABELS[data.level] || data.level}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button onClick={() => setEditing(!editing)} className="px-3 py-1.5 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200">
               {editing ? '取消编辑' : '编辑'}
             </button>

@@ -47,7 +47,7 @@ export default function DataTable<T extends { id?: string }>({
   return (
     <>
       {onSearchChange && (
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
           <div className="flex items-center gap-3">
             <input
               type="text"

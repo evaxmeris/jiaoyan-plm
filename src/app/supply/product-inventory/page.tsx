@@ -282,7 +282,7 @@ export default function ProductInventoryPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/supply')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">产品库存</h1>
@@ -329,8 +329,8 @@ export default function ProductInventoryPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑产品批次' : '产品入库'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">产品 *</label>
                   <select value={form.productId} onChange={e => setForm({...form, productId: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">
                     <option value="">选择产品</option>
@@ -368,11 +368,11 @@ export default function ProductInventoryPage() {
                     <option value="EXPIRED">已过期</option>
                   </select>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">备案/注册号</label>
                   <input type="text" value={form.registrationNo} onChange={e => setForm({...form, registrationNo: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                   <textarea value={form.remark} onChange={e => setForm({...form, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
                 </div>

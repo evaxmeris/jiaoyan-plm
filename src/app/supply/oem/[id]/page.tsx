@@ -122,7 +122,7 @@ export default function OEMContractDetailPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/supply/oem')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">{contract.productName}</h1>
@@ -154,7 +154,7 @@ export default function OEMContractDetailPage() {
         {/* 合同信息 */}
         {tab === 'info' && (
           <div className="bg-[var(--color-card)] rounded-xl border p-6">
-            <div className="grid grid-cols-2 gap-6 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
               <div>
                 <label className="block text-[var(--color-text-secondary)] mb-1">合同编号</label>
                 <div className="font-medium">{contract.contractNo}</div>
@@ -189,7 +189,7 @@ export default function OEMContractDetailPage() {
                   {new Date(contract.startDate).toLocaleDateString('zh-CN')} ~ {new Date(contract.endDate).toLocaleDateString('zh-CN')}
                 </div>
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                 <div className="font-medium">{contract.remark || '-'}</div>
               </div>
@@ -209,12 +209,12 @@ export default function OEMContractDetailPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowPriceForm(false)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
                   <h3 className="text-lg font-semibold mb-4">新增报价</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">产品名称 *</label><input type="text" value={priceForm.productName} onChange={e => setPriceForm({...priceForm, productName: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">产品名称 *</label><input type="text" value={priceForm.productName} onChange={e => setPriceForm({...priceForm, productName: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">单价(元) *</label><input type="number" value={priceForm.unitPrice} onChange={e => setPriceForm({...priceForm, unitPrice: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">MOQ</label><input type="number" value={priceForm.moq} onChange={e => setPriceForm({...priceForm, moq: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">生效日期 *</label><input type="date" value={priceForm.effectiveDate} onChange={e => setPriceForm({...priceForm, effectiveDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
-                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><input type="text" value={priceForm.remark} onChange={e => setPriceForm({...priceForm, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                    <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><input type="text" value={priceForm.remark} onChange={e => setPriceForm({...priceForm, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                   </div>
                   <div className="flex gap-2 mt-4 justify-end">
                     <button onClick={() => setShowPriceForm(false)} className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">取消</button>
@@ -263,11 +263,11 @@ export default function OEMContractDetailPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowScheduleForm(false)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
                   <h3 className="text-lg font-semibold mb-4">新增排产计划</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">产品名称 *</label><input type="text" value={scheduleForm.productName} onChange={e => setScheduleForm({...scheduleForm, productName: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">产品名称 *</label><input type="text" value={scheduleForm.productName} onChange={e => setScheduleForm({...scheduleForm, productName: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">订单数量 *</label><input type="number" value={scheduleForm.orderQty} onChange={e => setScheduleForm({...scheduleForm, orderQty: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">计划日期 *</label><input type="date" value={scheduleForm.plannedDate} onChange={e => setScheduleForm({...scheduleForm, plannedDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
-                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><input type="text" value={scheduleForm.remark} onChange={e => setScheduleForm({...scheduleForm, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                    <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><input type="text" value={scheduleForm.remark} onChange={e => setScheduleForm({...scheduleForm, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                   </div>
                   <div className="flex gap-2 mt-4 justify-end">
                     <button onClick={() => setShowScheduleForm(false)} className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">取消</button>

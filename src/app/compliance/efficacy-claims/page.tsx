@@ -164,7 +164,7 @@ export default function EfficacyClaimsPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑功效宣称' : '新增功效宣称'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">宣称名称 *</label>
                   <input type="text" value={form.claimName} onChange={e => setForm({...form, claimName: e.target.value})}

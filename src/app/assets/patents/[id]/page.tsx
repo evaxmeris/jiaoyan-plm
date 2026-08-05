@@ -395,7 +395,7 @@ export default function PatentDetailPage() {
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowEditModal(false)}>
           <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-semibold mb-4">编辑专利信息</h2>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">专利名称</label><input type="text" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>
               <div><label className="block text-[var(--color-text-secondary)] mb-1">类型</label><select value={editForm.type || 'INVENTION'} onChange={e => setEditForm({...editForm, type: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">{Object.entries(TYPES).map(([k,v]) => <option key={k} value={k}>{v}</option>)}</select></div>
               <div><label className="block text-[var(--color-text-secondary)] mb-1">状态</label><select value={editForm.status || 'DRAFT'} onChange={e => setEditForm({...editForm, status: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">{Object.entries(STATUS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}</select></div>

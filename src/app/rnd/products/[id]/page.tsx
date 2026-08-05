@@ -381,7 +381,7 @@ export default function ProductDetailPage() {
         {activeTab === 'info' && (
           <div className="bg-[var(--color-card)] rounded-xl border p-6">
             <h2 className="text-lg font-semibold mb-4">基本信息</h2>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div><span className="text-[var(--color-text-secondary)]">产品名称</span><p className="font-medium">{product.name}</p></div>
               <div><span className="text-[var(--color-text-secondary)]">品牌</span><p className="font-medium">{product.brand || '-'}</p></div>
               <div><span className="text-[var(--color-text-secondary)]">品类</span><p className="font-medium">{product.category || '-'}</p></div>
@@ -449,7 +449,7 @@ export default function ProductDetailPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowCertForm(false)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">{editCertId ? '编辑认证' : '添加认证'}</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div>
                       <label className="block text-[var(--color-text-secondary)] mb-1">市场 *</label>
                       <select value={certForm.market} onChange={(e) => setCertForm({ ...certForm, market: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm">
@@ -654,7 +654,7 @@ export default function ProductDetailPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowPilotRunForm(false)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">{editPilotRunId ? '编辑试产记录' : '新建试产记录'}</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div>
                       <label className="block text-[var(--color-text-secondary)] mb-1">试产规模 *</label>
                       <input type="text" value={pilotRunForm.scale} onChange={(e) => setPilotRunForm({ ...pilotRunForm, scale: e.target.value })}

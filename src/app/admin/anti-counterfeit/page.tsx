@@ -187,7 +187,7 @@ export default function AntiCounterfeitAdminPage() {
           <ShieldCheck className="w-7 h-7 text-emerald-600" />
           <h1 className="text-2xl font-bold text-[var(--color-text)]">防伪管理</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setShowGenerate(true)}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg
@@ -219,7 +219,7 @@ export default function AntiCounterfeitAdminPage() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {[
           { label: '全部', key: 'total', color: 'bg-blue-50 text-blue-700 border-blue-200' },
           { label: '生效中', key: 'active', color: 'bg-green-50 text-green-700 border-green-200' },

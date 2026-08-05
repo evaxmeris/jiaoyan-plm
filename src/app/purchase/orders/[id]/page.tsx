@@ -194,7 +194,7 @@ export default function PurchaseOrderDetailPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/purchase/orders')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)] font-mono">{data.poNo}</h1>
@@ -204,7 +204,7 @@ export default function PurchaseOrderDetailPage() {
           </div>
           {/* 状态流转按钮 */}
           {availableActions.length > 0 && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {availableActions.map(action => (
                 <button
                   key={action.nextStatus}

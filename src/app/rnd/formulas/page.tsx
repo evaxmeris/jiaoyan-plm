@@ -366,7 +366,7 @@ export default function FormulasPage() {
             <button onClick={() => router.push('/')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">配方管理</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <label className="text-xs text-[var(--color-text-secondary)] whitespace-nowrap">合规市场：</label>
               <select
@@ -397,7 +397,7 @@ export default function FormulasPage() {
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editFormula ? '编辑配方' : '新建配方'}</h2>
 
-              <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-4">
                 <div>
                   <label className="block text-[var(--color-text-secondary)] mb-1">配方名称 *</label>
                   <input type="text" value={form.name} onChange={e => setFormData({...form, name: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
@@ -767,7 +767,7 @@ export default function FormulasPage() {
             ) : (
               <>
                 {/* 市场一览摘要 */}
-                <div className="grid grid-cols-5 gap-2 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-6">
                   {MARKET_VALUES.map((mkt: string) => {
                     const mr = multiMarketResults[mkt]
                     const overall = mr?.data?.overall || mr?.overall

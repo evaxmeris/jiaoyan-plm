@@ -130,7 +130,7 @@ export default function AddressesPage() {
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
       <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑收货地址' : '新增收货地址'}</h2>
-        <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div>
             <label className="block text-[var(--color-text-secondary)] mb-1">地址标签 *</label>
             <input type="text" value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" placeholder="如：仓库地址、办公地址" />

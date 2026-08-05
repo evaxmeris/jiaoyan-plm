@@ -150,7 +150,7 @@ export default function TestEntrustmentsPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑检测' : '新建检测'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">检测类型</label><select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">{Object.entries(TYPES).map(([k,v]) => <option key={k} value={k}>{v}</option>)}</select></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">检测机构 *</label><input type="text" value={form.institution} onChange={e => setForm({...form, institution: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">关联产品</label><select value={form.productDesignId} onChange={e => setForm({...form, productDesignId: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"><option value="">不关联</option>{products.map((p:any) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>

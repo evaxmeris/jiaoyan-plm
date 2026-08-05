@@ -99,7 +99,7 @@ export default function SuppliersPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{form.name ? '编辑供应商' : '新增供应商'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">供应商名称 *</label><input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">类型</label><select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm">{Object.entries(TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">评分</label><input type="number" step="0.1" min="0" max="5" value={form.rating} onChange={e => setForm({ ...form, rating: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" /></div>

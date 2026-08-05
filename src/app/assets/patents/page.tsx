@@ -99,7 +99,7 @@ export default function PatentsPage() {
         </div>
         {localShowForm && (<div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setLocalShowForm(false)}><div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
           <h2 className="text-lg font-semibold mb-4">{editingItem ? '编辑专利' : '新增专利'}</h2>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">专利名称 *</label><input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
             <div><label className="block text-[var(--color-text-secondary)] mb-1">类型</label><select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm">{Object.entries(TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
             <div><label className="block text-[var(--color-text-secondary)] mb-1">技术领域</label><input type="text" value={form.techField} onChange={e => setForm({ ...form, techField: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" placeholder="S²R双酶技术" /></div>

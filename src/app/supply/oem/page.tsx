@@ -192,7 +192,7 @@ export default function OEMPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/supply')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">代工合作</h1>
@@ -268,10 +268,10 @@ export default function OEMPage() {
 
         {showForm && (<div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={()=>setShowForm(false)}><div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
           <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑代工合同' : '新建代工合同'}</h2>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">代工厂 *</label><select value={form.supplierId} onChange={e=>setForm({...form,supplierId:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"><option value="">选择</option>{suppliers.map((s:any)=> <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-            <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">合同编号 *</label><input type="text" value={form.contractNo} onChange={e=>setForm({...form,contractNo:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>
-            <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">产品名称 *</label><input type="text" value={form.productName} onChange={e=>setForm({...form,productName:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">代工厂 *</label><select value={form.supplierId} onChange={e=>setForm({...form,supplierId:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"><option value="">选择</option>{suppliers.map((s:any)=> <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+            <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">合同编号 *</label><input type="text" value={form.contractNo} onChange={e=>setForm({...form,contractNo:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>
+            <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">产品名称 *</label><input type="text" value={form.productName} onChange={e=>setForm({...form,productName:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>
             <div><label className="block text-[var(--color-text-secondary)] mb-1">单价(元)</label><input type="number" value={form.unitPrice} onChange={e=>setForm({...form,unitPrice:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>
             <div><label className="block text-[var(--color-text-secondary)] mb-1">起订量</label><input type="number" value={form.moq} onChange={e=>setForm({...form,moq:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>
             <div><label className="block text-[var(--color-text-secondary)] mb-1">交期(天)</label><input type="number" value={form.leadTime} onChange={e=>setForm({...form,leadTime:e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"/></div>

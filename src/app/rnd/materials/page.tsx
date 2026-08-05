@@ -252,7 +252,7 @@ export default function MaterialsPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editMaterial ? '编辑原料' : '新增原料'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 {[
                   { label: 'INCI 中文名 *', key: 'nameCn', required: true },
                   { label: 'INCI 英文名', key: 'nameEn' }, { label: 'INCI 名(规范)', key: 'inciName' }, { label: 'CAS 号', key: 'casNo' },

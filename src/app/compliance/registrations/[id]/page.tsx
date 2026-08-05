@@ -151,7 +151,7 @@ export default function RegistrationDetailPage() {
       {/* 头部 */}
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
         <div className="w-full mx-auto px-4 md:px-6 py-4">
-          <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] mb-2">
+          <div className="flex items-center gap-2 flex-wrap text-sm text-[var(--color-text-secondary)] mb-2">
             <button onClick={() => router.push('/compliance')} className="hover:text-blue-600">合规中心</button>
             <ChevronRight className="w-3 h-3" />
             <button onClick={() => router.push('/compliance/registrations')} className="hover:text-blue-600">备案管理</button>
@@ -541,7 +541,7 @@ function AssessmentSection({ registrationId }: { registrationId: string }) {
             <input type="text" value={formData.assessor} onChange={e => setFormData(p => ({ ...p, assessor: e.target.value }))}
                    className="w-full mt-0.5 px-3 py-1.5 text-sm border rounded-lg bg-transparent focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label className="text-xs font-medium text-[var(--color-text-secondary)]">评估日期</label>
               <input type="date" value={formData.assessDate} onChange={e => setFormData(p => ({ ...p, assessDate: e.target.value }))}

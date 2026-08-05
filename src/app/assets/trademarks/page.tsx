@@ -128,7 +128,7 @@ export default function TrademarksPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setLocalShowForm(false) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{form.name ? '编辑商标' : '新增商标'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">商标名称 *</label><input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">类型</label><select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm"><option value="WORD">文字</option><option value="FIGURE">图形</option><option value="COMBINED">组合</option></select></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">类别</label><select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm"><option value="3">3类(化妆品)</option><option value="5">5类(医药)</option><option value="35">35类(广告销售)</option></select></div>

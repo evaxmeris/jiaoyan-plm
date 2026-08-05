@@ -102,7 +102,7 @@ export default function BudgetDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             {[1,2,3,4].map(i => <div key={i} className="skeleton h-24 rounded-xl" />)}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1,2].map(i => <div key={i} className="skeleton h-64 rounded-xl" />)}
           </div>
         </main>

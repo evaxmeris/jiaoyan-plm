@@ -186,7 +186,7 @@ export default function BudgetPage() {
             <button onClick={() => router.push('/')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">预算管理</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {/* 导航链接 */}
             <button
               onClick={() => router.push('/finance/dashboard')}
@@ -323,7 +323,7 @@ export default function BudgetPage() {
                   </div>
 
                   {/* 金额信息 */}
-                  <div className="grid grid-cols-3 gap-3 mb-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 text-sm">
                     <div>
                       <div className="text-xs text-[var(--color-text-secondary)]">预算总额</div>
                       <div className="font-medium text-[var(--color-text)]">¥{b.totalAmount.toFixed(2)}</div>

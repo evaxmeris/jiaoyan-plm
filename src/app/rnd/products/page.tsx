@@ -229,7 +229,7 @@ export default function ProductsPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-3xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editProduct ? '编辑产品' : '新建产品'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">产品名称 *</label><input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">品牌</label><input type="text" value={form.brand} className="w-full px-3 py-1.5 border rounded text-sm bg-[var(--color-bg)]" disabled /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">品类</label>

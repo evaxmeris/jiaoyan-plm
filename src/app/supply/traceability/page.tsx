@@ -582,7 +582,7 @@ export default function TraceabilityPage() {
     <div className="min-h-screen bg-[var(--color-bg)] dark:bg-gray-950">
       <header className="bg-[var(--color-card)] dark:bg-gray-900 border-b border-[var(--color-border)] dark:border-gray-800 sticky top-16 z-10 shadow-sm">
         <div className="w-full mx-auto px-4 md:px-6 py-4">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-wrap items-center justify-between mb-3">
             <div className="flex items-center gap-4">
               <button onClick={() => router.push('/supply')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)] dark:hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
               <h1 className="text-xl font-bold text-[var(--color-text)] dark:text-gray-100">溯源系统</h1>
@@ -591,7 +591,7 @@ export default function TraceabilityPage() {
           </div>
 
           {/* 搜索栏 */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <div className="flex-1 relative">
               <input
                 type="text"
@@ -632,8 +632,8 @@ export default function TraceabilityPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
             <div className="bg-[var(--color-card)] dark:bg-gray-800 rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4 text-[var(--color-text)] dark:text-gray-100">新建产品批次</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-4">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] dark:text-[var(--color-text-secondary)] mb-1">关联产品 *</label>
                   <select value={form.productId} onChange={e => setForm({...form, productId: e.target.value})}
                     className="w-full px-3 py-1.5 border border-[var(--color-border)] dark:border-gray-700 rounded text-sm bg-[var(--color-card)] dark:bg-gray-700 text-[var(--color-text)] dark:text-gray-100">
@@ -651,7 +651,7 @@ export default function TraceabilityPage() {
                   <input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})}
                     className="w-full px-3 py-1.5 border border-[var(--color-border)] dark:border-gray-700 rounded text-sm bg-[var(--color-card)] dark:bg-gray-700 text-[var(--color-text)] dark:text-gray-100" />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] dark:text-[var(--color-text-secondary)] mb-1">备案编号</label>
                   <input type="text" value={form.registrationNo} onChange={e => setForm({...form, registrationNo: e.target.value})}
                     className="w-full px-3 py-1.5 border border-[var(--color-border)] dark:border-gray-700 rounded text-sm bg-[var(--color-card)] dark:bg-gray-700 text-[var(--color-text)] dark:text-gray-100" />

@@ -446,7 +446,7 @@ export default function PurchasePage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">采购审批</h1>
@@ -509,8 +509,8 @@ export default function PurchasePage() {
                   </div>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-                <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">采购标题 *</label><input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-3">
+                <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">采购标题 *</label><input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div>
                   <label className="block text-[var(--color-text-secondary)] mb-1">采购分类</label>
                   <select
@@ -535,7 +535,7 @@ export default function PurchasePage() {
                 </div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商</label><SupplierInput value={form.supplier} onChange={(name, id) => setForm({ ...form, supplier: name, supplierId: id })} placeholder="输入名称自动匹配档案" className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">紧急程度</label><select value={form.urgency} onChange={e => setForm({...form, urgency: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm"><option value="LOW">低</option><option value="NORMAL">普通</option><option value="HIGH">高</option><option value="URGENT">紧急</option></select></div>
-                <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">用途说明</label><textarea value={form.purpose} onChange={e => setForm({...form, purpose: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
+                <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">用途说明</label><textarea value={form.purpose} onChange={e => setForm({...form, purpose: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
               </div>
               <h3 className="text-sm font-medium text-[var(--color-text)] mb-2">采购物品</h3>
               <div className="space-y-2 mb-3">

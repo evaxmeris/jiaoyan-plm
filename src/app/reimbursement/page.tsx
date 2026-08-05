@@ -183,7 +183,7 @@ export default function ReimbursementPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">报销管理</h1>
@@ -198,8 +198,8 @@ export default function ReimbursementPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑报销' : '新建报销'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">申请人</label>
                   <select
                     value={form.applicantId}
@@ -212,7 +212,7 @@ export default function ReimbursementPage() {
                     ))}
                   </select>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">报销金额 (¥) *</label>
                   <input
                     type="number"
@@ -223,7 +223,7 @@ export default function ReimbursementPage() {
                     className="w-full px-3 py-1.5 border rounded text-sm"
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">报销说明 *</label>
                   <textarea
                     value={form.description}
@@ -232,7 +232,7 @@ export default function ReimbursementPage() {
                     rows={3}
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">关联采购申请（可选）</label>
                   <select
                     value={form.purchaseApplicationId}
@@ -247,7 +247,7 @@ export default function ReimbursementPage() {
                     ))}
                   </select>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">附件（每行一个URL/路径）</label>
                   <textarea
                     value={form.receipts}
@@ -278,7 +278,7 @@ export default function ReimbursementPage() {
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">报销详情</h2>
               <div className="space-y-3 text-sm mb-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <span className="text-[var(--color-text-secondary)]">编号</span>
                     <p className="font-medium">{viewing.code}</p>
@@ -299,17 +299,17 @@ export default function ReimbursementPage() {
                     <span className="text-[var(--color-text-secondary)]">金额</span>
                     <p className="font-medium">¥{Number(viewing.amount).toFixed(2)}</p>
                   </div>
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <span className="text-[var(--color-text-secondary)]">说明</span>
                     <p>{viewing.description}</p>
                   </div>
                   {viewing.purchaseApplication && (
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <span className="text-[var(--color-text-secondary)]">关联采购</span>
                       <p className="font-medium">{viewing.purchaseApplication.code} - {viewing.purchaseApplication.title} (¥{Number(viewing.purchaseApplication.totalAmount).toFixed(2)})</p>
                     </div>
                   )}
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <span className="text-[var(--color-text-secondary)]">创建时间</span>
                     <p>{new Date(viewing.createdAt).toLocaleString('zh-CN')}</p>
                   </div>

@@ -123,11 +123,11 @@ function SampleTaskTab() {
       onCreateLabel="新建打样" onCreate={() => { setEditItem(null); emptyF(); setShowForm(true) }} emptyMessage="暂无打样任务" />
     <FormModal open={showForm} title={editItem ? '编辑打样任务' : '新建打样任务'} onClose={() => setShowForm(false)} onSave={save} saveLabel={editItem ? '保存修改' : '创建'}>
       {productSelect(f.productDesignId, v => setF(p => ({ ...p, productDesignId: v })), products)}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">批次号</label><input type="text" value={f.batchNo} onChange={e => setF(p => ({ ...p, batchNo: e.target.value }))} placeholder="自动生成或手动输入" className={inputCls} /></div>
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">数量</label><input type="number" value={f.quantity} onChange={e => setF(p => ({ ...p, quantity: e.target.value }))} className={inputCls} /></div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">状态</label><select value={f.status} onChange={e => setF(p => ({ ...p, status: e.target.value }))} className={inputCls}>
           <option value="PENDING">待开始</option><option value="IN_PROGRESS">进行中</option><option value="COMPLETED">已完成</option><option value="FAILED">失败</option>
         </select></div>
@@ -177,12 +177,12 @@ function RetainedSampleTab() {
       onCreateLabel="新建留样" onCreate={() => { setEditItem(null); emptyF(); setShowForm(true) }} emptyMessage="暂无留样记录" />
     <FormModal open={showForm} title={editItem ? '编辑留样记录' : '新建留样记录'} onClose={() => setShowForm(false)} onSave={save}>
       {productSelect(f.productDesignId, v => setF(p => ({ ...p, productDesignId: v })), products)}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">批次号 *</label><input type="text" value={f.batchNo} onChange={e => setF(p => ({ ...p, batchNo: e.target.value }))} className={inputCls} /></div>
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">数量 *</label><input type="number" value={f.quantity} onChange={e => setF(p => ({ ...p, quantity: e.target.value }))} className={inputCls} /></div>
       </div>
       <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">留样位置</label><input type="text" value={f.storageLocation} onChange={e => setF(p => ({ ...p, storageLocation: e.target.value }))} placeholder="例如：留样室A-3-2" className={inputCls} /></div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">留样日期 *</label><input type="date" value={f.sampleDate} onChange={e => setF(p => ({ ...p, sampleDate: e.target.value }))} className={inputCls} /></div>
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">保质期</label><input type="date" value={f.expireDate} onChange={e => setF(p => ({ ...p, expireDate: e.target.value }))} className={inputCls} /></div>
       </div>
@@ -233,7 +233,7 @@ function StabilityTestTab() {
             <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div><span className="text-sm text-[var(--color-text-secondary)]">产品：</span><span className="text-sm text-[var(--color-text)]">{showDetail.product?.name}</span></div>
               <div><span className="text-sm text-[var(--color-text-secondary)]">批次：</span><span className="text-sm text-[var(--color-text)]">{showDetail.batchNo}</span></div>
               <div><span className="text-sm text-[var(--color-text-secondary)]">测试类型：</span>{badge(S.tc, S.tl, showDetail.testType)}</div>
@@ -276,13 +276,13 @@ function StabilityTestTab() {
 
     <FormModal open={showForm} title={editItem ? '编辑稳定性测试' : '新建稳定性测试'} onClose={() => setShowForm(false)} onSave={save} saveLabel={editItem ? '保存修改' : '创建'}>
       {productSelect(f.productDesignId, v => setF(p => ({ ...p, productDesignId: v })), products)}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">批次号 *</label><input type="text" value={f.batchNo} onChange={e => setF(p => ({ ...p, batchNo: e.target.value }))} className={inputCls} /></div>
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">测试类型</label><select value={f.testType} onChange={e => setF(p => ({ ...p, testType: e.target.value }))} className={inputCls}>
           <option value="ACCELERATED">加速测试</option><option value="LONG_TERM">长期测试</option><option value="CHALLENGE">挑战测试</option>
         </select></div>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">开始日期</label><input type="date" value={f.startDate} onChange={e => setF(p => ({ ...p, startDate: e.target.value }))} className={inputCls} /></div>
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">预计完成</label><input type="date" value={f.endDate} onChange={e => setF(p => ({ ...p, endDate: e.target.value }))} className={inputCls} /></div>
         <div><label className="block text-sm font-medium text-[var(--color-text)] mb-1">间隔(月)</label><input type="number" value={f.interval} onChange={e => setF(p => ({ ...p, interval: e.target.value }))} className={inputCls} /></div>

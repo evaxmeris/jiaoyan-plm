@@ -442,7 +442,7 @@ export default function CompliancePage() {
               {/* 备案进度详情 */}
               <div className="md:col-span-2 bg-[var(--color-card)] rounded-xl border p-5">
                 <div className="text-sm font-medium text-[var(--color-text)] mb-4">备案进度详情</div>
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                   <div>
                     <div className="text-2xl font-bold text-blue-600">{complianceStats.registration.needRegistration}</div>
                     <div className="text-xs text-[var(--color-text-secondary)] mt-1">需备案产品</div>

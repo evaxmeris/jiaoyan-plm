@@ -155,7 +155,7 @@ export default function PurchaseOrdersPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">采购订单</h1>
@@ -214,7 +214,7 @@ export default function PurchaseOrdersPage() {
                     if (!o) return <p className="text-sm text-[var(--color-text-secondary)]">订单不存在</p>
                     return (
                       <div className="text-sm space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div><div className="text-[var(--color-text-secondary)] text-xs">PO 编号</div><div className="font-medium">{o.poNo}</div></div>
                           <div><div className="text-[var(--color-text-secondary)] text-xs">状态</div><span className={`inline-block px-2 py-0.5 rounded text-xs ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_LABELS[o.status] || o.status}</span></div>
                           <div><div className="text-[var(--color-text-secondary)] text-xs">供应商</div><div className="font-medium">{o.supplierName}</div></div>

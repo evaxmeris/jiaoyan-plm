@@ -400,7 +400,7 @@ export default function QualityPage() {
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
         <div className="w-full mx-auto px-4 md:px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button onClick={() => router.push('/supply')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
               <h1 className="text-xl font-bold text-[var(--color-text)]">质量管理</h1>
@@ -457,9 +457,9 @@ export default function QualityPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setIqcShowForm(false)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">新建来料质检</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2 border-b pb-3 mb-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">基本信息</span></div>
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2 border-b pb-3 mb-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">基本信息</span></div>
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">原料 *</label>
                       <select value={iqcForm.rawMaterialId} onChange={e => handleMaterialChange(e.target.value)}
                         className="w-full px-3 py-1.5 border rounded text-sm">
@@ -500,20 +500,20 @@ export default function QualityPage() {
                       <input type="date" value={iqcForm.receiptDate} onChange={e => setIqcForm({...iqcForm, receiptDate: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">COA 核对</span></div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">COA 核对</span></div>
+                    <div className="sm:col-span-2">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={iqcForm.coaVerified} onChange={e => setIqcForm({...iqcForm, coaVerified: e.target.checked})}
                           className="rounded border-[var(--color-border)]" />
                         <span className="text-[var(--color-text)]">COA 已核对</span>
                       </label>
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">COA 结果</label>
                       <input type="text" value={iqcForm.coaResult} onChange={e => setIqcForm({...iqcForm, coaResult: e.target.value})}
                         placeholder="COA 符合性说明" className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">留样登记</span></div>
+                    <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">留样登记</span></div>
                     <div>
                       <label className="block text-[var(--color-text-secondary)] mb-1">留样数量</label>
                       <input type="number" value={iqcForm.sampleQty} onChange={e => setIqcForm({...iqcForm, sampleQty: e.target.value})}
@@ -529,7 +529,7 @@ export default function QualityPage() {
                       <input type="text" value={iqcForm.samplePerson} onChange={e => setIqcForm({...iqcForm, samplePerson: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验记录</span></div>
+                    <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验记录</span></div>
                     <div>
                       <label className="block text-[var(--color-text-secondary)] mb-1">检验日期</label>
                       <input type="date" value={iqcForm.inspectionDate} onChange={e => setIqcForm({...iqcForm, inspectionDate: e.target.value})}
@@ -540,7 +540,7 @@ export default function QualityPage() {
                       <input type="text" value={iqcForm.inspector} onChange={e => setIqcForm({...iqcForm, inspector: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span></div>
+                    <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span></div>
                     <div>
                       <label className="block text-[var(--color-text-secondary)] mb-1">检验结果 *</label>
                       <select value={iqcForm.result} onChange={e => setIqcForm({...iqcForm, result: e.target.value})}
@@ -563,14 +563,14 @@ export default function QualityPage() {
                             <option value="SCRAP">报废</option>
                           </select>
                         </div>
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                           <label className="block text-[var(--color-text-secondary)] mb-1">不合格项记录</label>
                           <textarea value={iqcForm.nonConformity} onChange={e => setIqcForm({...iqcForm, nonConformity: e.target.value})}
                             placeholder="描述不合格的具体项目..." className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
                         </div>
                       </>
                     )}
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                       <textarea value={iqcForm.remark} onChange={e => setIqcForm({...iqcForm, remark: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
@@ -590,8 +590,8 @@ export default function QualityPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setIqcShowDetail(null)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">来料质检详情</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2">
                       <span className="text-[var(--color-text-secondary)]">原料：</span>
                       <span className="font-medium">{iqcShowDetail.rawMaterial?.nameCn || '-'}</span>
                     </div>
@@ -599,17 +599,17 @@ export default function QualityPage() {
                     <div><span className="text-[var(--color-text-secondary)]">内部批次：</span><span className="font-mono text-xs">{iqcShowDetail.batch?.internalBatch || '-'}</span></div>
                     <div><span className="text-[var(--color-text-secondary)]">到货数量：</span><span>{iqcShowDetail.quantityReceived}{iqcShowDetail.unit}</span></div>
                     <div><span className="text-[var(--color-text-secondary)]">到货日期：</span><span>{new Date(iqcShowDetail.receiptDate).toLocaleDateString('zh-CN')}</span></div>
-                    <div className="col-span-2 border-t pt-3 mt-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">COA 核对</span></div>
+                    <div className="sm:col-span-2 border-t pt-3 mt-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">COA 核对</span></div>
                     <div><span className="text-[var(--color-text-secondary)]">COA 核对：</span><span className={iqcShowDetail.coaVerified ? 'text-green-600' : 'text-yellow-600'}>{iqcShowDetail.coaVerified ? '✓ 已核对' : '○ 未核对'}</span></div>
                     <div><span className="text-[var(--color-text-secondary)]">COA 结果：</span><span>{iqcShowDetail.coaResult || '-'}</span></div>
-                    <div className="col-span-2 border-t pt-3 mt-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">留样登记</span></div>
+                    <div className="sm:col-span-2 border-t pt-3 mt-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">留样登记</span></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">留样数量</label><input type="number" value={iqcShowDetail.sampleQty || ''} onChange={e => setIqcShowDetail({...iqcShowDetail, sampleQty: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">留样位置</label><input type="text" value={iqcShowDetail.sampleLocation || ''} onChange={e => setIqcShowDetail({...iqcShowDetail, sampleLocation: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">留样人</label><input type="text" value={iqcShowDetail.samplePerson || ''} onChange={e => setIqcShowDetail({...iqcShowDetail, samplePerson: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
-                    <div className="col-span-2 border-t pt-3 mt-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验记录</span></div>
+                    <div className="sm:col-span-2 border-t pt-3 mt-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验记录</span></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">检验日期</label><input type="date" value={iqcShowDetail.inspectionDate ? iqcShowDetail.inspectionDate.slice(0, 10) : ''} onChange={e => setIqcShowDetail({...iqcShowDetail, inspectionDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">检验人</label><input type="text" value={iqcShowDetail.inspector || ''} onChange={e => setIqcShowDetail({...iqcShowDetail, inspector: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
-                    <div className="col-span-2 border-t pt-3 mt-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span></div>
+                    <div className="sm:col-span-2 border-t pt-3 mt-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">检验结果</label>
                       <select value={iqcShowDetail.result} onChange={e => setIqcShowDetail({...iqcShowDetail, result: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">
                         <option value="PENDING">待检</option><option value="PASS">通过</option><option value="CONDITIONAL">让步接收</option><option value="FAIL">不合格</option>
@@ -622,14 +622,14 @@ export default function QualityPage() {
                             <option value="">选择处置</option><option value="USE_AS_IS">让步使用</option><option value="RETURN">退回</option><option value="SCRAP">报废</option>
                           </select>
                         </div>
-                        <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">不合格项</label>
+                        <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">不合格项</label>
                           <textarea value={Array.isArray(iqcShowDetail.nonConformity) ? iqcShowDetail.nonConformity.map((n: any) => n.item || '').join('\n') : ''}
                             onChange={e => setIqcShowDetail({...iqcShowDetail, nonConformity: e.target.value.split('\n').filter(Boolean).map((item: string) => ({ item }))})}
                             className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
                         </div>
                       </>
                     )}
-                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
+                    <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                       <textarea value={iqcShowDetail.remark || ''} onChange={e => setIqcShowDetail({...iqcShowDetail, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
                     </div>
                   </div>
@@ -710,9 +710,9 @@ export default function QualityPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setIpqcShowForm(false)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">新建制程检验</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2 border-b pb-3 mb-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">基本信息</span></div>
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2 border-b pb-3 mb-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">基本信息</span></div>
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">关联产品 *</label>
                       <select value={ipqcForm.productDesignId} onChange={e => setIpqcForm({...ipqcForm, productDesignId: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm">
@@ -755,16 +755,16 @@ export default function QualityPage() {
                     </div>
 
                     {/* 检验项目动态列表 */}
-                    <div className="col-span-2 border-b pb-3 mb-1 mt-2">
+                    <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2">
                       <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验项目</span>
                     </div>
                     {ipqcCheckItems.map((item, idx) => (
-                      <div key={idx} className="col-span-2 border rounded p-3 bg-[var(--color-bg)]">
+                      <div key={idx} className="sm:col-span-2 border rounded p-3 bg-[var(--color-bg)]">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-xs font-medium">项目 {idx + 1}</span>
                           <button onClick={() => removeIpqcCheckItem(idx)} className="text-red-500 text-xs">删除</button>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div><label className="block text-[var(--color-text-secondary)] mb-1 text-xs">项目名称</label>
                             <input type="text" value={item.name} onChange={e => updateIpqcCheckItem(idx, 'name', e.target.value)}
                               placeholder="如：外观" className="w-full px-2 py-1 border rounded text-xs" /></div>
@@ -780,11 +780,11 @@ export default function QualityPage() {
                         </div>
                       </div>
                     ))}
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <button onClick={addIpqcCheckItem} className="text-emerald-600 text-xs hover:underline">+ 添加检验项目</button>
                     </div>
 
-                    <div className="col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span></div>
+                    <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span></div>
                     <div>
                       <label className="block text-[var(--color-text-secondary)] mb-1">检验结果</label>
                       <select value={ipqcForm.result} onChange={e => setIpqcForm({...ipqcForm, result: e.target.value})}
@@ -800,7 +800,7 @@ export default function QualityPage() {
                       <input type="text" value={ipqcForm.imageUrls} onChange={e => setIpqcForm({...ipqcForm, imageUrls: e.target.value})}
                         placeholder="可选，逗号分隔" className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                       <textarea value={ipqcForm.remark} onChange={e => setIpqcForm({...ipqcForm, remark: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
@@ -820,8 +820,8 @@ export default function QualityPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setIpqcShowDetail(null)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">制程检验详情</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2">
                       <span className="text-[var(--color-text-secondary)]">产品：</span>
                       <span className="font-medium">{ipqcShowDetail.product?.name || '-'}</span>
                     </div>
@@ -833,11 +833,11 @@ export default function QualityPage() {
                     <div><span className="text-[var(--color-text-secondary)]">结果：</span><span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${RESULT_COLORS[ipqcShowDetail.result] || ''}`}>{RESULT_LABELS[ipqcShowDetail.result] || ipqcShowDetail.result}</span></div>
 
                     {ipqcShowDetail.items && Array.isArray(ipqcShowDetail.items) && ipqcShowDetail.items.length > 0 && (
-                      <div className="col-span-2 border-t pt-3 mt-1">
+                      <div className="sm:col-span-2 border-t pt-3 mt-1">
                         <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验项目</span>
                         <div className="mt-2 space-y-2">
                           {ipqcShowDetail.items.map((item: any, idx: number) => (
-                            <div key={idx} className="border rounded p-2 text-xs grid grid-cols-4 gap-2">
+                            <div key={idx} className="border rounded p-2 text-xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                               <div><span className="text-[var(--color-text-secondary)]">项目：</span>{item.name || '-'}</div>
                               <div><span className="text-[var(--color-text-secondary)]">标准：</span>{item.standard || '-'}</div>
                               <div><span className="text-[var(--color-text-secondary)]">结果：</span>{item.result || '-'}</div>
@@ -849,7 +849,7 @@ export default function QualityPage() {
                     )}
 
                     {ipqcShowDetail.imageUrls && Array.isArray(ipqcShowDetail.imageUrls) && ipqcShowDetail.imageUrls.length > 0 && (
-                      <div className="col-span-2 border-t pt-3 mt-1">
+                      <div className="sm:col-span-2 border-t pt-3 mt-1">
                         <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">现场照片</span>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {ipqcShowDetail.imageUrls.map((img: any, idx: number) => (
@@ -860,14 +860,14 @@ export default function QualityPage() {
                     )}
 
                     {ipqcShowDetail.remark && (
-                      <div className="col-span-2 border-t pt-3 mt-1">
+                      <div className="sm:col-span-2 border-t pt-3 mt-1">
                         <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">备注</span>
                         <p className="mt-1 text-sm">{ipqcShowDetail.remark}</p>
                       </div>
                     )}
 
                     {/* 编辑区域 */}
-                    <div className="col-span-2 border-t pt-3 mt-1">
+                    <div className="sm:col-span-2 border-t pt-3 mt-1">
                       <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">编辑</span>
                     </div>
                     <div>
@@ -902,7 +902,7 @@ export default function QualityPage() {
                         onChange={e => setIpqcShowDetail({...ipqcShowDetail, inspector: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                       <textarea value={ipqcShowDetail.remark || ''}
                         onChange={e => setIpqcShowDetail({...ipqcShowDetail, remark: e.target.value})}
@@ -977,9 +977,9 @@ export default function QualityPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setOqcShowForm(false)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">新建出厂检验</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2 border-b pb-3 mb-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">基本信息</span></div>
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2 border-b pb-3 mb-1"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">基本信息</span></div>
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">关联产品 *</label>
                       <select value={oqcForm.productDesignId} onChange={e => setOqcForm({...oqcForm, productDesignId: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm">
@@ -1014,16 +1014,16 @@ export default function QualityPage() {
                     </div>
 
                     {/* 检验项目动态列表 */}
-                    <div className="col-span-2 border-b pb-3 mb-1 mt-2">
+                    <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2">
                       <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验项目</span>
                     </div>
                     {oqcCheckItems.map((item, idx) => (
-                      <div key={idx} className="col-span-2 border rounded p-3 bg-[var(--color-bg)]">
+                      <div key={idx} className="sm:col-span-2 border rounded p-3 bg-[var(--color-bg)]">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-xs font-medium">项目 {idx + 1}</span>
                           <button onClick={() => removeOqcCheckItem(idx)} className="text-red-500 text-xs">删除</button>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div><label className="block text-[var(--color-text-secondary)] mb-1 text-xs">项目名称</label>
                             <input type="text" value={item.name} onChange={e => updateOqcCheckItem(idx, 'name', e.target.value)}
                               placeholder="如：外观" className="w-full px-2 py-1 border rounded text-xs" /></div>
@@ -1039,11 +1039,11 @@ export default function QualityPage() {
                         </div>
                       </div>
                     ))}
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <button onClick={addOqcCheckItem} className="text-emerald-600 text-xs hover:underline">+ 添加检验项目</button>
                     </div>
 
-                    <div className="col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span></div>
+                    <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2"><span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span></div>
                     <div>
                       <label className="block text-[var(--color-text-secondary)] mb-1">检验结果</label>
                       <select value={oqcForm.result} onChange={e => setOqcForm({...oqcForm, result: e.target.value})}
@@ -1089,7 +1089,7 @@ export default function QualityPage() {
                         ) : null}
                       </div>
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                       <textarea value={oqcForm.remark} onChange={e => setOqcForm({...oqcForm, remark: e.target.value})}
                         className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
@@ -1109,8 +1109,8 @@ export default function QualityPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setOqcShowDetail(null)}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">出厂检验详情</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2">
                       <span className="text-[var(--color-text-secondary)]">产品：</span>
                       <span className="font-medium">{oqcShowDetail.product?.name || '-'}</span>
                     </div>
@@ -1123,18 +1123,18 @@ export default function QualityPage() {
                     <div><span className="text-[var(--color-text-secondary)]">处置：</span><span>{oqcShowDetail.disposition ? (OQC_DISPOSITION_LABELS[oqcShowDetail.disposition] || oqcShowDetail.disposition) : '-'}</span></div>
 
                     {oqcShowDetail.reportUrl && (
-                      <div className="col-span-2 border-t pt-3 mt-1">
+                      <div className="sm:col-span-2 border-t pt-3 mt-1">
                         <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验报告</span>
                         <div className="mt-1"><a href={oqcShowDetail.reportUrl} target="_blank" rel="noreferrer" className="text-emerald-600 text-sm hover:underline">查看报告</a></div>
                       </div>
                     )}
 
                     {oqcShowDetail.items && Array.isArray(oqcShowDetail.items) && oqcShowDetail.items.length > 0 && (
-                      <div className="col-span-2 border-t pt-3 mt-1">
+                      <div className="sm:col-span-2 border-t pt-3 mt-1">
                         <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验项目</span>
                         <div className="mt-2 space-y-2">
                           {oqcShowDetail.items.map((item: any, idx: number) => (
-                            <div key={idx} className="border rounded p-2 text-xs grid grid-cols-4 gap-2">
+                            <div key={idx} className="border rounded p-2 text-xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                               <div><span className="text-[var(--color-text-secondary)]">项目：</span>{item.name || '-'}</div>
                               <div><span className="text-[var(--color-text-secondary)]">标准：</span>{item.standard || '-'}</div>
                               <div><span className="text-[var(--color-text-secondary)]">结果：</span>{item.result || '-'}</div>
@@ -1146,7 +1146,7 @@ export default function QualityPage() {
                     )}
 
                     {/* 编辑区域 */}
-                    <div className="col-span-2 border-t pt-3 mt-1">
+                    <div className="sm:col-span-2 border-t pt-3 mt-1">
                       <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">编辑</span>
                     </div>
                     <div>
@@ -1216,7 +1216,7 @@ export default function QualityPage() {
                         ) : null}
                       </div>
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                       <textarea value={oqcShowDetail.remark || ''}
                         onChange={e => setOqcShowDetail({...oqcShowDetail, remark: e.target.value})}

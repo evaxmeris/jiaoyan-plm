@@ -165,7 +165,7 @@ export default function IncomingInspectionPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/supply')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">到货质检</h1>
@@ -194,12 +194,12 @@ export default function IncomingInspectionPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">新建到货质检</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 {/* 基本信息 */}
-                <div className="col-span-2 border-b pb-3 mb-1">
+                <div className="sm:col-span-2 border-b pb-3 mb-1">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">基本信息</span>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">原料 *</label>
                   <select value={form.rawMaterialId} onChange={e => handleMaterialChange(e.target.value)}
                     className="w-full px-3 py-1.5 border rounded text-sm">
@@ -244,24 +244,24 @@ export default function IncomingInspectionPage() {
                 </div>
 
                 {/* COA核对 */}
-                <div className="col-span-2 border-b pb-3 mb-1 mt-2">
+                <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">COA 核对</span>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={form.coaVerified} onChange={e => setForm({...form, coaVerified: e.target.checked})}
                       className="rounded border-[var(--color-border)]" />
                     <span className="text-[var(--color-text)]">COA 已核对</span>
                   </label>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">COA 结果</label>
                   <input type="text" value={form.coaResult} onChange={e => setForm({...form, coaResult: e.target.value})}
                     placeholder="COA 符合性说明" className="w-full px-3 py-1.5 border rounded text-sm" />
                 </div>
 
                 {/* 留样登记 */}
-                <div className="col-span-2 border-b pb-3 mb-1 mt-2">
+                <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">留样登记</span>
                 </div>
                 <div>
@@ -281,7 +281,7 @@ export default function IncomingInspectionPage() {
                 </div>
 
                 {/* 检验记录 */}
-                <div className="col-span-2 border-b pb-3 mb-1 mt-2">
+                <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验记录</span>
                 </div>
                 <div>
@@ -296,7 +296,7 @@ export default function IncomingInspectionPage() {
                 </div>
 
                 {/* 判定结果 */}
-                <div className="col-span-2 border-b pb-3 mb-1 mt-2">
+                <div className="sm:col-span-2 border-b pb-3 mb-1 mt-2">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span>
                 </div>
                 <div>
@@ -321,14 +321,14 @@ export default function IncomingInspectionPage() {
                         <option value="SCRAP">报废</option>
                       </select>
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">不合格项记录</label>
                       <textarea value={form.nonConformity} onChange={e => setForm({...form, nonConformity: e.target.value})}
                         placeholder="描述不合格的具体项目..." className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
                     </div>
                   </>
                 ) : null}
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                   <textarea value={form.remark} onChange={e => setForm({...form, remark: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
@@ -348,8 +348,8 @@ export default function IncomingInspectionPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowDetail(null)}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">质检详情</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="sm:col-span-2">
                   <span className="text-[var(--color-text-secondary)]">原料：</span>
                   <span className="font-medium">{showDetail.rawMaterial?.nameCn || '-'}</span>
                 </div>
@@ -371,7 +371,7 @@ export default function IncomingInspectionPage() {
                 </div>
 
                 {/* COA */}
-                <div className="col-span-2 border-t pt-3 mt-1">
+                <div className="sm:col-span-2 border-t pt-3 mt-1">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">COA 核对</span>
                 </div>
                 <div>
@@ -386,7 +386,7 @@ export default function IncomingInspectionPage() {
                 </div>
 
                 {/* 留样 */}
-                <div className="col-span-2 border-t pt-3 mt-1">
+                <div className="sm:col-span-2 border-t pt-3 mt-1">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">留样登记</span>
                 </div>
                 <div>
@@ -409,7 +409,7 @@ export default function IncomingInspectionPage() {
                 </div>
 
                 {/* 检验记录 */}
-                <div className="col-span-2 border-t pt-3 mt-1">
+                <div className="sm:col-span-2 border-t pt-3 mt-1">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">检验记录</span>
                 </div>
                 <div>
@@ -426,7 +426,7 @@ export default function IncomingInspectionPage() {
                 </div>
 
                 {/* 判定 */}
-                <div className="col-span-2 border-t pt-3 mt-1">
+                <div className="sm:col-span-2 border-t pt-3 mt-1">
                   <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">判定结果</span>
                 </div>
                 <div>
@@ -452,7 +452,7 @@ export default function IncomingInspectionPage() {
                         <option value="SCRAP">报废</option>
                       </select>
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[var(--color-text-secondary)] mb-1">不合格项</label>
                       <textarea value={
                         Array.isArray(showDetail.nonConformity)
@@ -467,7 +467,7 @@ export default function IncomingInspectionPage() {
                     </div>
                   </>
                 )}
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                   <textarea value={showDetail.remark || ''}
                     onChange={e => setShowDetail({...showDetail, remark: e.target.value})}

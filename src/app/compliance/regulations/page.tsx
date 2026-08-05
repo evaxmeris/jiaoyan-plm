@@ -353,7 +353,7 @@ export default function RegulationsPage() {
             <button onClick={() => router.push('/compliance')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">法规数据库</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleExport}
               className="px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
@@ -487,7 +487,7 @@ export default function RegulationsPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑法规' : '新增法规'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-[var(--color-text-secondary)] mb-1">市场 *</label>
                   <select value={form.market} onChange={e => setForm({...form, market: e.target.value})} className="w-full px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 rounded text-sm bg-[var(--color-card)]">

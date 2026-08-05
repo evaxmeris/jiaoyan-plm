@@ -214,7 +214,7 @@ export default function ServiceContractsPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑服务合同' : '新建服务合同'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">合同名称 *</label><input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">服务方 *</label><input type="text" value={form.contractor} onChange={e => setForm({...form, contractor: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                 <div><label className="block text-[var(--color-text-secondary)] mb-1">合同类型</label><select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">{Object.entries(TYPES).map(([k,v]) => <option key={k} value={k}>{v}</option>)}</select></div>
@@ -304,7 +304,7 @@ export default function ServiceContractsPage() {
           <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-semibold mb-4">合同详情</h2>
             <div className="space-y-3 text-sm mb-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><span className="text-[var(--color-text-secondary)]">合同名称</span><p className="font-medium">{viewing.name}</p></div>
                 <div><span className="text-[var(--color-text-secondary)]">服务方</span><p className="font-medium">{viewing.contractor}</p></div>
                 <div><span className="text-[var(--color-text-secondary)]">类型</span><p>{TYPES[viewing.type] || viewing.type}</p></div>
@@ -347,7 +347,7 @@ export default function ServiceContractsPage() {
 
               {/* 申请付款审批表单 */}
               {showPaymentApproval && (
-                <div className="bg-amber-50 rounded-lg p-3 mb-3 grid grid-cols-2 gap-2 text-xs border border-amber-200">
+                <div className="bg-amber-50 rounded-lg p-3 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs border border-amber-200">
                   <div className="col-span-2"><label className="block text-amber-800 mb-1">请款说明 *</label><input type="text" value={paymentApprovalForm.title} onChange={e => setPaymentApprovalForm({...paymentApprovalForm, title: e.target.value})} className="w-full px-2 py-1 border rounded" placeholder="如：第一期开发费用请款" /></div>
                   <div><label className="block text-amber-800 mb-1">请款金额(¥) *</label><input type="number" step="0.01" value={paymentApprovalForm.amount} onChange={e => setPaymentApprovalForm({...paymentApprovalForm, amount: e.target.value})} className="w-full px-2 py-1 border rounded" /></div>
                   <div><label className="block text-amber-800 mb-1">请款附件</label><input type="text" value={paymentApprovalForm.evidenceFiles} onChange={e => setPaymentApprovalForm({...paymentApprovalForm, evidenceFiles: e.target.value})} className="w-full px-2 py-1 border rounded" placeholder="附件链接（选填）" /></div>
@@ -383,7 +383,7 @@ export default function ServiceContractsPage() {
 
               {/* 添加付款表单 */}
               {showPaymentForm && (
-                <div className="bg-gray-50 rounded-lg p-3 mb-3 grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-gray-50 rounded-lg p-3 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   <div><label className="block text-[var(--color-text-secondary)] mb-1">金额(¥) *</label><input type="number" step="0.01" value={paymentForm.amount} onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})} className="w-full px-2 py-1 border rounded" /></div>
                   <div><label className="block text-[var(--color-text-secondary)] mb-1">支付日期 *</label><input type="date" value={paymentForm.paymentDate} onChange={e => setPaymentForm({...paymentForm, paymentDate: e.target.value})} className="w-full px-2 py-1 border rounded" /></div>
                   <div><label className="block text-[var(--color-text-secondary)] mb-1">支付方式</label><select value={paymentForm.method} onChange={e => setPaymentForm({...paymentForm, method: e.target.value})} className="w-full px-2 py-1 border rounded">

@@ -146,7 +146,7 @@ export default function DistributionPage() {
 
       <main className="w-full mx-auto px-4 md:px-6 py-6 fade-in">
         {/* 统计卡片 */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-[var(--color-card)] rounded-xl border p-4">
             <div className="text-xs text-[var(--color-text-secondary)] mb-1">渠道总数</div>
             <div className="text-2xl font-bold">{stats.totalChannels}</div>
@@ -208,7 +208,7 @@ export default function DistributionPage() {
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
           <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑渠道' : '新建渠道'}</h2>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div className="col-span-2">
                 <label className="block text-[var(--color-text-secondary)] mb-1">渠道名称 *</label>
                 <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-1.5 border rounded text-sm" />

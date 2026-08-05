@@ -140,7 +140,7 @@ export default function SupplierDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/supply/suppliers')} className="text-gray-400 hover:text-gray-600">&larr; 返回</button>
             <h1 className="text-xl font-bold text-gray-800">{supplier.name}</h1>
@@ -167,16 +167,16 @@ export default function SupplierDetailPage() {
         {/* ===== 基本信息 ===== */}
         {tab === 'info' && (
           <div className="bg-white rounded-xl border p-6">
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div><span className="text-gray-400">供应商名称</span><p className="font-medium">{supplier.name}</p></div>
               <div><span className="text-gray-400">类型</span><p className="font-medium">{TYPES[supplier.type] || supplier.type}</p></div>
               {supplier.contact && <div><span className="text-gray-400">联系人</span><p className="font-medium">{supplier.contact}</p></div>}
               {supplier.phone && <div><span className="text-gray-400">电话</span><p className="font-medium">{supplier.phone}</p></div>}
               {supplier.email && <div><span className="text-gray-400">邮箱</span><p className="font-medium">{supplier.email}</p></div>}
-              {supplier.address && <div className="col-span-2"><span className="text-gray-400">地址</span><p className="font-medium">{supplier.address}</p></div>}
+              {supplier.address && <div className="sm:col-span-2"><span className="text-gray-400">地址</span><p className="font-medium">{supplier.address}</p></div>}
               {supplier.license && <div><span className="text-gray-400">营业执照</span><p className="font-medium">{supplier.license}</p></div>}
               {supplier.rating != null && supplier.rating !== '' && (() => { const r = Math.min(5, Math.max(0, Math.round(Number(supplier.rating)) || 0)); return <div><span className="text-gray-400">评分</span><p className="font-medium text-amber-500">{r > 0 ? '★'.repeat(r) + '☆'.repeat(5 - r) : '未评分'} {supplier.rating}</p></div> })()}
-              {supplier.remark && <div className="col-span-2"><span className="text-gray-400">备注</span><p className="font-medium">{supplier.remark}</p></div>}
+              {supplier.remark && <div className="sm:col-span-2"><span className="text-gray-400">备注</span><p className="font-medium">{supplier.remark}</p></div>}
               <div><span className="text-gray-400">创建时间</span><p className="font-medium">{new Date(supplier.createdAt).toLocaleDateString('zh-CN')}</p></div>
               <div><span className="text-gray-400">状态</span><p className={`font-medium ${supplier.isActive ? 'text-green-600' : 'text-red-500'}`}>{supplier.isActive ? '启用' : '禁用'}</p></div>
             </div>
@@ -230,7 +230,7 @@ export default function SupplierDetailPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowDocForm(false)}>
                 <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">新增资质文件</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div><label className="block text-gray-500 mb-1">类型 *</label>
                       <select value={docForm.type} onChange={e => setDocForm({...docForm, type: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">
                         {/* 先显示预设资质类型（基于供应商类型） */}
@@ -248,7 +248,7 @@ export default function SupplierDetailPage() {
                     <div><label className="block text-gray-500 mb-1">文件名称 *</label>
                       <input type="text" value={docForm.name} onChange={e => setDocForm({...docForm, name: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2"><label className="block text-gray-500 mb-1">文件链接</label>
+                    <div className="sm:col-span-2"><label className="block text-gray-500 mb-1">文件链接</label>
                       <input type="text" value={docForm.fileUrl} onChange={e => setDocForm({...docForm, fileUrl: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" placeholder="文件 URL 或上传路径" />
                     </div>
                     <div><label className="block text-gray-500 mb-1">签发日期</label>
@@ -260,7 +260,7 @@ export default function SupplierDetailPage() {
                     <div><label className="block text-gray-500 mb-1">提前提醒（天）</label>
                       <input type="number" value={docForm.notifyDays} onChange={e => setDocForm({...docForm, notifyDays: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2"><label className="block text-gray-500 mb-1">备注</label>
+                    <div className="sm:col-span-2"><label className="block text-gray-500 mb-1">备注</label>
                       <textarea value={docForm.remark} onChange={e => setDocForm({...docForm, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
                     </div>
                   </div>
@@ -314,7 +314,7 @@ export default function SupplierDetailPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowAuditForm(false)}>
                 <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">新增审计记录</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div><label className="block text-gray-500 mb-1">审计日期 *</label>
                       <input type="date" value={auditForm.auditDate} onChange={e => setAuditForm({...auditForm, auditDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
@@ -329,10 +329,10 @@ export default function SupplierDetailPage() {
                     <div><label className="block text-gray-500 mb-1">评分</label>
                       <input type="number" step="0.1" min="0" max="100" value={auditForm.score} onChange={e => setAuditForm({...auditForm, score: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2"><label className="block text-gray-500 mb-1">报告链接</label>
+                    <div className="sm:col-span-2"><label className="block text-gray-500 mb-1">报告链接</label>
                       <input type="text" value={auditForm.reportUrl} onChange={e => setAuditForm({...auditForm, reportUrl: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
-                    <div className="col-span-2"><label className="block text-gray-500 mb-1">审核发现 / 备注</label>
+                    <div className="sm:col-span-2"><label className="block text-gray-500 mb-1">审核发现 / 备注</label>
                       <textarea value={auditForm.remark} onChange={e => setAuditForm({...auditForm, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={3} />
                     </div>
                   </div>
@@ -379,7 +379,7 @@ export default function SupplierDetailPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowEvalForm(false)}>
                 <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">新增评价记录</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div><label className="block text-gray-500 mb-1">评价日期 *</label>
                       <input type="date" value={evalForm.evalDate} onChange={e => setEvalForm({...evalForm, evalDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
@@ -396,7 +396,7 @@ export default function SupplierDetailPage() {
                       <input type="number" min="0" max="100" value={evalForm.scoreService} onChange={e => setEvalForm({...evalForm, scoreService: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" />
                     </div>
                     <div></div>
-                    <div className="col-span-2"><label className="block text-gray-500 mb-1">备注</label>
+                    <div className="sm:col-span-2"><label className="block text-gray-500 mb-1">备注</label>
                       <textarea value={evalForm.remark} onChange={e => setEvalForm({...evalForm, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
                     </div>
                   </div>
@@ -419,7 +419,7 @@ export default function SupplierDetailPage() {
                         <div className="text-xs text-gray-400 mt-1">综合评分: <span className="font-semibold text-amber-600">{e.scoreTotal?.toFixed(1)}</span></div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3 mt-2 text-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2 text-xs">
                       <div className="bg-gray-50 rounded p-2 text-center">
                         <div className="text-gray-400">质量</div>
                         <div className="font-medium">{e.scoreQuality}</div>

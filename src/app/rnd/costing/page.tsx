@@ -409,7 +409,7 @@ export default function CostingPage() {
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editId ? '编辑成本核算' : '新建成本核算'}</h2>
 
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 {!editId && (
                   <div className="col-span-2">
                     <label className="block text-[var(--color-text-secondary)] mb-1">关联产品 *</label>
@@ -494,7 +494,7 @@ export default function CostingPage() {
               </div>
 
               {/* 定价 */}
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <label className="block text-[var(--color-text-secondary)] mb-1">目标毛利率 (%)</label>
                   <input type="number" step="1" value={form.targetMargin} onChange={(e) => setForm({ ...form, targetMargin: e.target.value })}
@@ -562,7 +562,7 @@ export default function CostingPage() {
               {showPriceForm && (
                 <div className="mt-4 border-t pt-4">
                   <h3 className="font-medium text-sm mb-3">添加价格记录</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div>
                       <label className="block text-[var(--color-text-secondary)] mb-1">售价 (¥) *</label>
                       <input type="number" step="0.01" value={priceForm.price}

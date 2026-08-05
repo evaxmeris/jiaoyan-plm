@@ -121,7 +121,7 @@ export default function InventoryPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/supply')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">库存管理</h1>
@@ -163,8 +163,8 @@ export default function InventoryPage() {
               <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
                 <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
                   <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑库存批次' : '原料入库'}</h2>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">原料 *</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">原料 *</label>
                       <select value={form.rawMaterialId} onChange={e => setForm({...form, rawMaterialId: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">
                         <option value="">选择原料</option>
                         {materials.map((m: any) => <option key={m.id} value={m.id}>{m.nameCn}</option>)}
@@ -174,7 +174,7 @@ export default function InventoryPage() {
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">数量 *</label><input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">入库日期 *</label><input type="date" value={form.receiptDate} onChange={e => setForm({...form, receiptDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商</label><input type="text" value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
-                    <div className="col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><textarea value={form.remark} onChange={e => setForm({...form, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
+                    <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><textarea value={form.remark} onChange={e => setForm({...form, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
                   </div>
                   <div className="flex gap-2 mt-4 justify-end">
                     <button onClick={() => { setShowForm(false); setEditingId(null) }} className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">取消</button>

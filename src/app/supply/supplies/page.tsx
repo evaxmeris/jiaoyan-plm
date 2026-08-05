@@ -145,12 +145,12 @@ export default function SuppliesPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="bg-[var(--color-card)] border-b sticky top-16 z-10 shadow-sm">
-        <div className="w-full mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+        <div className="w-full mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/supply')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">物资管理</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button onClick={() => openStockIn()} className="px-4 py-2 border border-emerald-600 text-emerald-600 rounded-lg hover:bg-emerald-50 text-sm">+ 入库</button>
             <button onClick={openCreate} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm">+ 新建物资</button>
           </div>
@@ -167,8 +167,8 @@ export default function SuppliesPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑物资' : '新建物资'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">名称 *</label>
                   <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm" />
@@ -195,12 +195,12 @@ export default function SuppliesPage() {
                   <input type="number" value={form.minStock} onChange={e => setForm({...form, minStock: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm" />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">供应商</label>
                   <input type="text" value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm" />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                   <textarea value={form.remark} onChange={e => setForm({...form, remark: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />
@@ -221,8 +221,8 @@ export default function SuppliesPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowStockIn(false)}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">物资入库</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">物资 *</label>
                   <select value={stockInForm.supplyId} onChange={e => setStockInForm({...stockInForm, supplyId: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm">
@@ -252,12 +252,12 @@ export default function SuppliesPage() {
                   <input type="date" value={stockInForm.expireDate} onChange={e => setStockInForm({...stockInForm, expireDate: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm" />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">供应商</label>
                   <input type="text" value={stockInForm.supplier} onChange={e => setStockInForm({...stockInForm, supplier: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm" />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-[var(--color-text-secondary)] mb-1">备注</label>
                   <textarea value={stockInForm.remark} onChange={e => setStockInForm({...stockInForm, remark: e.target.value})}
                     className="w-full px-3 py-1.5 border rounded text-sm" rows={2} />

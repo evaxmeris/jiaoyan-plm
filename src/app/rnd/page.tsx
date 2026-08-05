@@ -229,7 +229,7 @@ export default function RndPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowSampleForm(false)}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editSample ? '编辑打样任务' : '新建打样任务'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 {!editSample && (
                   <div className="col-span-2">
                     <label className="block text-[var(--color-text-secondary)] mb-1">关联产品 *</label>

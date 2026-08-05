@@ -505,7 +505,7 @@ export default function DashboardPage() {
           <Shield className="w-4 h-4 text-[var(--color-primary)]" />
           合规状态概览
         </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 备案总数 */}
           <ComplianceCard
             label="备案总数"

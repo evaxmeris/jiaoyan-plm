@@ -264,7 +264,7 @@ export default function LogisticsShippingPage() {
             <button onClick={() => router.push('/distribution')} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]">&larr; 返回</button>
             <h1 className="text-xl font-bold text-[var(--color-text)]">物流发运管理</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button onClick={openProviderCreate} className="px-3 py-2 border rounded-lg text-sm hover:bg-[var(--color-bg)]">
               管理物流商
             </button>
@@ -290,7 +290,7 @@ export default function LogisticsShippingPage() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setEditingId(null) }}>
             <div className="bg-[var(--color-card)] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑发货单' : '新建发货单'}</h2>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 {!editingId && (
                   <div className="col-span-2">
                     <label className="block text-[var(--color-text-secondary)] mb-1">选择销售订单 *</label>
