@@ -55,7 +55,10 @@ export default function PurchaseDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: action, comment: comment.trim() || undefined }),
       })
-      const json = await res.json()
+      // 兼容非 JSON 响应（如服务器 500 HTML 页），避免误导性的解析错误提示
+      const text = await res.text()
+      let json: any = {}
+      try { json = JSON.parse(text) } catch { json = { error: `服务器错误（HTTP ${res.status}），请稍后重试` } }
       if (!res.ok) throw new Error(json.error || '操作失败')
       setComment('')
       fetchData()
@@ -153,7 +156,13 @@ export default function PurchaseDetailPage() {
               rows={2}
               className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm mb-3"
             />
-            <div className="flex gap-2">
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => router.push('/purchase')}
+                className="px-5 py-2 bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded-lg text-sm hover:bg-[var(--color-bg)]"
+              >
+                返回
+              </button>
               <button
                 onClick={() => handleApproval('APPROVED')}
                 disabled={submitting}
