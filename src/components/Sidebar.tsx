@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/useAuth'
 import {
   LayoutDashboard, FlaskConical, ClipboardCheck, Package,
   Landmark, Receipt, ChevronLeft, ChevronDown,
@@ -25,6 +26,51 @@ interface MenuGroup {
   group: string
   icon: React.ElementType
   items: MenuItem[]
+}
+
+// 菜单 → 所需查看权限（对齐后端 auth.ts OPERATION_ROLES；未映射的菜单仅 CEO 可见；仪表盘无映射=所有登录用户可见）
+const MENU_PERMS: Record<string, string> = {
+  materials: 'material.view',
+  formulas: 'formula.view',
+  products: 'product.view',
+  samples: 'sample.view',
+  costing: 'costing.view',
+  trademarks: 'trademark.view',
+  patents: 'patent.view',
+  'trade-secrets': 'trade_secret.view',
+  purchase: 'purchase.view',
+  'purchase-orders': 'purchase.view',
+  suppliers: 'supplier.view',
+  quality: 'ipqc.view',
+  inventory: 'inventory.view',
+  'product-inventory': 'inventory.view',
+  supplies: 'supply.view',
+  oem: 'oem.view',
+  traceability: 'traceability.view',
+  'compliance-overview': 'registration.view',
+  registrations: 'registration.view',
+  'test-entrustments': 'test_entrustment.view',
+  'compliance-scan': 'registration.view',
+  'efficacy-claims': 'efficacy_claim.view',
+  regulations: 'registration.view',
+  standards: 'registration.view',
+  distribution: 'distribution_channel.view',
+  'distribution-orders': 'sales_order.view',
+  logistics: 'shipping.view',
+  addresses: 'logistics_provider.view',
+  warehouse: 'supply.view',
+  'anti-counterfeit': 'anti_counterfeit.view',
+  'finance-dashboard': 'budget.view',
+  'service-contracts': 'service_contract.view',
+  budget: 'budget.view',
+  'budget-categories': 'budget.view',
+  reimbursement: 'reimbursement.view',
+  approvals: 'approval.view',
+  permissions: 'user.view',
+  'approval-flow': 'approval_flow.view',
+  users: 'user.view',
+  backup: 'settings.backup',
+  'audit-log': 'audit_log.view',
 }
 
 const menuConfig: MenuGroup[] = [
@@ -126,7 +172,27 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMob
   const pathname = usePathname()
   const router = useRouter()
   const navRef = useRef<HTMLDivElement>(null)
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(menuConfig.map(g => g.group)))
+  const { user } = useAuth()
+  // 按用户权限过滤菜单：CEO 全显示；其余按 MENU_PERMS 匹配后端下发的 permissions
+  const visibleMenu = menuConfig
+    .map(g => ({
+      ...g,
+      items: g.items.filter(i => {
+        const perm = MENU_PERMS[i.key]
+        if (!perm) return true
+        if (user?.role === 'CEO') return true
+        return (user as any)?.permissions?.includes(perm)
+      }),
+    }))
+    .filter(g => g.items.length > 0)
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(visibleMenu.map(g => g.group)))
+  // user 异步加载完成后（权限就绪），重新展开全部可见分组
+  useEffect(() => {
+    if (user) {
+      setExpandedGroups(new Set(visibleMenu.map(g => g.group)))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
   const effectiveCollapsed = mobileOpen ? false : collapsed
   const [complianceAlertCount, setComplianceAlertCount] = useState<number>(0)
 
@@ -164,7 +230,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMob
   // 初始展开：手机只展开当前分组
   useEffect(() => {
     const isMobile = window.innerWidth < 768
-    const activeGroup = menuConfig.find(g => g.items.some(i => pathname === i.href || pathname.startsWith(i.href + '/')))
+    const activeGroup = visibleMenu.find(g => g.items.some(i => pathname === i.href || pathname.startsWith(i.href + '/')))
     if (isMobile && activeGroup) {
       setExpandedGroups(new Set([activeGroup.group]))
     }
@@ -172,7 +238,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMob
 
   // 路由变化：自动展开当前分组
   useEffect(() => {
-    const activeGroup = menuConfig.find(g => g.items.some(i => pathname === i.href || pathname.startsWith(i.href + '/')))
+    const activeGroup = visibleMenu.find(g => g.items.some(i => pathname === i.href || pathname.startsWith(i.href + '/')))
     if (activeGroup) {
       setExpandedGroups(prev => { const n = new Set(prev); n.add(activeGroup.group); return n })
       setTimeout(() => {
@@ -183,7 +249,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMob
   }, [pathname])
 
   // 所有菜单项的 href 列表，用于判断是否有子菜单项匹配
-  const allHrefs = menuConfig.flatMap(g => g.items.map(i => i.href))
+  const allHrefs = visibleMenu.flatMap(g => g.items.map(i => i.href))
 
   const isActive = (href: string) => {
     if (pathname === href) return true
@@ -231,7 +297,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMob
         </button>
 
         <nav ref={navRef} className="flex-1 overflow-y-auto py-4 px-3 h-full">
-          {menuConfig.map(group => {
+          {visibleMenu.map(group => {
             const isExpanded = expandedGroups.has(group.group)
             const hasActive = group.items.some(i => isActive(i.href))
             const GroupIcon = group.icon

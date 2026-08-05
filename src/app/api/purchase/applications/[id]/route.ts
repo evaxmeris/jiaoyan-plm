@@ -62,7 +62,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     _fromApprovalRequest: true,
   }))
 
-  return NextResponse.json(successResponse({ application, auditLogs, approvals }))
+  // 审批流程配置（前端判断当前审批人）
+  const approvalFlow = await prisma.approvalFlow.findFirst({
+    where: { module: 'purchase', isActive: true },
+  })
+
+  return NextResponse.json(successResponse({ application, auditLogs, approvals, approvalFlow }))
 }
 
 // 生成内部批次号: JY-RM-YYYYMMDD-XXX
@@ -356,6 +361,62 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   })
 
   return NextResponse.json(successResponse({ application: result }))
+}
+
+// DELETE /api/purchase/applications/[id] — 删除采购申请（软删）
+// 权限：CEO 可删任意；创建者仅可删「未走流程」（审批尚未开始）或被驳回（REJECTED）的申请
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await verifyAuth()
+  if (!user) return errorResponse('未登录', 401)
+  if (!await verifyPermission(user.role, 'purchase.delete', user.id)) {
+    return errorResponse('权限不足', 403)
+  }
+
+  const { id } = await params
+
+  const app = await prisma.purchaseApplication.findFirst({
+    where: { id, isDeleted: false },
+  })
+  if (!app) return errorResponse('采购申请不存在', 404)
+
+  // 权限：CEO 可删任意；创建者按状态限制
+  const isCreator = app.applicantId === user.id
+  if (user.role !== 'CEO' && !isCreator) {
+    return errorResponse('仅创建者或 CEO 可删除该申请', 403)
+  }
+  if (isCreator && user.role !== 'CEO') {
+    // 未走流程 = 审批尚未开始（无任何审批人处理记录）；或已被驳回回到创建者
+    const approvalRequest = await prisma.approvalRequest.findFirst({
+      where: { entityType: 'PurchaseApplication', entityId: id },
+      include: { approvals: true },
+    })
+    const processed = (approvalRequest?.approvals || []).some(a => a.action === 'APPROVED' || a.action === 'REJECTED')
+    const isRejected = app.status === 'REJECTED'
+    const notStarted = app.status === 'PENDING' && !processed
+    if (!isRejected && !notStarted) {
+      return errorResponse('审批流程已开始或已完成，创建者不能删除', 400)
+    }
+  }
+
+  // 软删
+  const updated = await prisma.purchaseApplication.update({
+    where: { id },
+    data: { isDeleted: true, deletedAt: new Date() },
+  })
+
+  // 审计日志
+  const { writeAuditLog, extractIp } = await import('@/lib/audit')
+  await writeAuditLog({
+    userId: user.id,
+    userName: user.name,
+    action: 'DELETE',
+    entity: 'PurchaseApplication',
+    entityId: id,
+    detail: { code: updated.code, title: updated.title, status: updated.status, by: isCreator ? 'creator' : 'CEO' },
+    ip: extractIp(req),
+  })
+
+  return NextResponse.json(successResponse({ ok: true }))
 }
 
 // 评估条件表达式如: amount<=5000, amount>5000

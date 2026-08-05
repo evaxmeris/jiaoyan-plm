@@ -300,3 +300,32 @@ export function verifyRoleHierarchy(role: string, minRole: string): boolean {
   const requiredLevel = ROLE_HIERARCHY[minRole] ?? 99
   return userLevel >= requiredLevel
 }
+
+/**
+ * 计算用户当前可见的全部操作列表（供前端菜单/按钮过滤）
+ * 规则：CEO 全量；普通角色取 OPERATION_ROLES 中角色命中项，再应用 UserPermission 覆盖（拒绝移除、允许补充）
+ */
+export async function getUserPermissionList(user: { id: string; role: string }): Promise<string[]> {
+  if (user.role === 'CEO') return Object.keys(OPERATION_ROLES)
+
+  const granted = new Set<string>()
+  for (const [op, roles] of Object.entries(OPERATION_ROLES)) {
+    if (roles.includes(user.role)) granted.add(op)
+  }
+
+  // 应用用户级覆盖（仅当表存在时；查询失败降级为角色默认）
+  try {
+    const overrides = await prisma.userPermission.findMany({
+      where: { userId: user.id },
+      select: { operation: true, granted: true },
+    })
+    for (const o of overrides) {
+      if (o.granted) granted.add(o.operation)
+      else granted.delete(o.operation)
+    }
+  } catch {
+    // 忽略覆盖查询失败，使用角色默认
+  }
+
+  return [...granted]
+}

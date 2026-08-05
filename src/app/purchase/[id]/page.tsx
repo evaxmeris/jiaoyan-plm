@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
+import { useAuth } from '@/lib/useAuth'
 
 const STATUS: Record<string, string> = { PENDING: '待审批', APPROVED: '已通过', REJECTED: '已驳回', ORDERED: '已采购', RECEIVED: '已到货', REIMBURSED: '已报销' }
 const STATUS_COLORS: Record<string, string> = { PENDING: 'bg-yellow-100 text-yellow-700', APPROVED: 'bg-green-100 text-green-700', REJECTED: 'bg-red-100 text-red-600', ORDERED: 'bg-blue-100 text-blue-700', RECEIVED: 'bg-emerald-100 text-emerald-700', REIMBURSED: 'bg-purple-100 text-purple-700' }
@@ -17,7 +18,11 @@ export default function PurchaseDetailPage() {
   const router = useRouter()
   const [data, setData] = useState<any>(null)
   const [auditLogs, setAuditLogs] = useState<any[]>([])
+  const [approvalFlow, setApprovalFlow] = useState<any>(null)
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -25,10 +30,41 @@ export default function PurchaseDetailPage() {
     const json = await res.json()
     setData(json.data?.application || json.application)
     setAuditLogs(json.data?.auditLogs || json.auditLogs || [])
+    setApprovalFlow(json.data?.approvalFlow || json.approvalFlow || null)
     setLoading(false)
   }, [id])
 
   useEffect(() => { fetchData().catch(() => {}) }, [fetchData])
+
+  // 审批进度与当前审批人判断
+  const approvedLevels = (data?.approvals || []).filter((a: any) => a.action === 'APPROVED').length
+  const stages = approvalFlow?.stages || []
+  const currentStage = data?.status === 'PENDING' ? stages[approvedLevels] : null
+  const isCurrentApprover = !!currentStage && !!user && (
+    user.role === 'CEO'
+    || (currentStage.approverId && currentStage.approverId === user.id)
+    || (!currentStage.approverId && currentStage.role === user.role)
+  )
+
+  // 审批操作（通过/驳回，可附意见）
+  const handleApproval = async (action: 'APPROVED' | 'REJECTED') => {
+    setSubmitting(true)
+    try {
+      const res = await apiFetch(`/api/purchase/applications/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: action, comment: comment.trim() || undefined }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || '操作失败')
+      setComment('')
+      fetchData()
+    } catch (e: any) {
+      alert(e.message || '操作失败')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   if (loading) return <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center text-[var(--color-text-secondary)]">加载中...</div>
   if (!data) return <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center text-[var(--color-text-secondary)]">采购申请不存在</div>
@@ -101,6 +137,40 @@ export default function PurchaseDetailPage() {
           </div>
           ) : <p className="text-sm text-[var(--color-text-secondary)]">暂无明细</p>}
         </div>
+
+        {/* 审批操作区（仅当前审批人可见） */}
+        {isCurrentApprover && data.status === 'PENDING' && (
+          <div className="bg-[var(--color-card)] rounded-xl border p-6 border-emerald-200 dark:border-emerald-800">
+            <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-1">审批操作</h2>
+            <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+              当前第 {approvedLevels + 1} 级审批（共 {stages.length} 级）
+              {currentStage?.label ? ` · ${currentStage.label}` : ''}
+            </p>
+            <textarea
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              placeholder="审批意见（可选）"
+              rows={2}
+              className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm mb-3"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleApproval('APPROVED')}
+                disabled={submitting}
+                className="px-5 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {submitting ? '处理中...' : '确认通过'}
+              </button>
+              <button
+                onClick={() => handleApproval('REJECTED')}
+                disabled={submitting}
+                className="px-5 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
+              >
+                驳回
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 审批历程 */}
         <div className="bg-[var(--color-card)] rounded-xl border p-6">

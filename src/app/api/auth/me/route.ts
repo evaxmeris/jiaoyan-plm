@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken, getUserPermissionList } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { successResponse } from '@/lib/api-response'
 import { AppError, withErrorHandler } from '@/lib/api-error'
@@ -28,8 +28,12 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 
   if (!user || !user.isActive) throw new AppError('用户不存在或已禁用', 401)
 
+  // 用户可见操作列表（前端菜单/按钮过滤用）
+  const permissions = await getUserPermissionList(user)
+
   return NextResponse.json(successResponse({
     user,
+    permissions,
     token, // 返回 token 供前端 localStorage 刷新
   }))
 })

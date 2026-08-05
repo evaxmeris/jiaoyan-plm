@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
 import { useToast } from '@/components/Toast'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { apiFetch, isUnauthorizedError } from '@/lib/api-client'
 
 interface PurchaseApp {
@@ -16,9 +17,9 @@ interface PurchaseApp {
   category: string
   purpose: string
   supplier: string | null
-  applicant: { name: string }
+  applicant: { id: string; name: string }
   items: { id: string; name: string; quantity: number; unit: string }[]
-  approvals: { id: string; action: string; level: number; applicant: { name: string } }[]
+  approvals: { id: string; action: string; level: number; applicant: { id: string; name: string } }[]
   createdAt: string
   purchaseOrder?: { id: string; poNo: string; status: string } | null
 }
@@ -186,6 +187,29 @@ export default function PurchasePage() {
     return userRole === stage.role
   }
 
+  // ===== 列表按当前用户视角分区 =====
+  // 待审批：状态 PENDING 且（我创建的 或 审批流程当前到我）——未完成的都在这里
+  const myPending = apps.filter(a =>
+    a.status === 'PENDING' && (a.applicant?.id === userId || canCurrentUserApprove(a))
+  )
+  // 我已审批：我作为审批人处理过（通过/驳回）的申请
+  const myHandled = apps.filter(a =>
+    !myPending.includes(a) &&
+    (a.approvals || []).some((ap: any) => ap.applicant?.id === userId && (ap.action === 'APPROVED' || ap.action === 'REJECTED'))
+  )
+  // 我创建的：其余我创建的申请（已通过/已驳回/已采购等，跟踪状态用）
+  const myCreated = apps.filter(a =>
+    !myPending.includes(a) && !myHandled.includes(a) && a.applicant?.id === userId
+  )
+  const applyFilters = (list: PurchaseApp[]) => list
+    .filter(a => !filterCategory || a.category === filterCategory)
+    .filter(a => !filterStatus || a.status === filterStatus)
+  const visibleSections = [
+    { title: '待审批', count: myPending.length, items: applyFilters(myPending), empty: '暂无待审批的申请' },
+    { title: '我已审批', count: myHandled.length, items: applyFilters(myHandled), empty: '暂无你审批过的申请' },
+    { title: '我创建的', count: myCreated.length, items: applyFilters(myCreated), empty: '暂无你创建的申请' },
+  ]
+
   const handleCreate = async () => {
     const items = formItems.map(i => ({
       name: i.name,
@@ -249,6 +273,150 @@ export default function PurchasePage() {
   const showConfirm = (id: string, action: string) => {
     setConfirmId(id)
     setConfirmAction(action)
+  }
+
+  // 删除申请（创建者：仅未走流程或被驳回可删；CEO：任意）
+  const [deleteTarget, setDeleteTarget] = useState<PurchaseApp | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const canDeleteApp = (a: PurchaseApp): boolean => {
+    if (user?.role === 'CEO') return true
+    if (a.applicant?.id !== userId) return false
+    const processed = (a.approvals || []).some((ap: any) => ap.action === 'APPROVED' || ap.action === 'REJECTED')
+    return a.status === 'REJECTED' || (a.status === 'PENDING' && !processed)
+  }
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await apiFetch(`/api/purchase/applications/${deleteTarget.id}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || '删除失败')
+      showToast('success', '申请已删除')
+      setDeleteTarget(null)
+      fetchData()
+    } catch (e: any) {
+      showToast('error', e.message || '删除失败')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  // 申请卡片（列表分区共用）
+  const renderAppCard = (a: PurchaseApp) => {
+    const progress = getApprovalProgress(a)
+    const canApprove = canCurrentUserApprove(a)
+    const po = a.purchaseOrder
+    return (
+      <div key={a.id} className="bg-[var(--color-card)] rounded-xl border p-4 cursor-pointer" onClick={() => router.push(`/purchase/${a.id}`)}>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium">{a.title}</h3>
+              <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColor(a.status)}`}>{statusLabel(a.status)}</span>
+              {urgencyBadge(a.urgency)}
+              <span className={`px-2 py-0.5 rounded text-xs font-medium ${CATEGORY_COLORS[a.category] || ''}`}>{CATEGORY_LABELS[a.category] || a.category}</span>
+            </div>
+            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
+              {a.code} · {a.applicant.name} · ¥{Number(a.totalAmount).toFixed(2)} · {a.items.length} 项
+              {a.supplier && <span> · {a.supplier}</span>}
+            </div>
+
+            {/* 审批进度条 */}
+            {progress && (a.status === 'PENDING' || a.status === 'APPROVED') && (
+              <div className="mt-2 flex items-center gap-2">
+                {Array.from({ length: progress.totalLevels }, (_, i) => {
+                  const stage = approvalFlow?.stages?.filter(s =>
+                    evaluateCondition(s.condition, Number(a.totalAmount))
+                  ).sort((a, b) => a.level - b.level)[i]
+                  const isApproved = i < progress.approvedLevels
+                  const isCurrent = i === progress.approvedLevels
+                  return (
+                    <div key={i} className="flex items-center gap-1">
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] ${
+                        isApproved
+                          ? 'bg-green-100 text-green-700'
+                          : isCurrent
+                          ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
+                          : 'bg-[var(--color-card)] text-[var(--color-text-secondary)]'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          isApproved ? 'bg-green-500' : isCurrent ? 'bg-yellow-500' : 'bg-[var(--color-border)]'
+                        }`} />
+                        {stage?.label || `第${i + 1}级`}
+                      </div>
+                      {i < progress.totalLevels - 1 && (
+                        <span className="text-xs text-[var(--color-text-secondary)]">→</span>
+                      )}
+                    </div>
+                  )
+                })}
+                {a.status === 'APPROVED' && (
+                  <span className="text-xs text-green-600 font-medium ml-1">✓ 全部通过</span>
+                )}
+                {a.status === 'PENDING' && progress.isComplete && (
+                  <span className="text-xs text-[var(--color-text-secondary)] ml-1">等待后续操作</span>
+                )}
+                {a.status === 'PENDING' && !progress.isComplete && progress.currentStage && (
+                  <span className="text-xs text-[var(--color-text-secondary)] ml-1">
+                    等待{ROLE_LABELS[progress.currentStage.role] || progress.currentStage.role}审批
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 flex-shrink-0 ml-4" onClick={e => e.stopPropagation()}>
+            {/* 待审批状态 - 显示审批按钮 */}
+            {a.status === 'PENDING' && canApprove && (
+              <button onClick={() => router.push(`/purchase/${a.id}`)} className="px-3 py-1 text-xs bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200">审批</button>
+            )}
+            {a.status === 'PENDING' && !canApprove && (
+              <span className="px-3 py-1 text-xs text-[var(--color-text-secondary)] italic">等待审批</span>
+            )}
+            {a.status === 'APPROVED' && po && (
+              <button
+                onClick={() => router.push(`/purchase/orders/${po.id}`)}
+                className="px-3 py-1 text-xs bg-teal-100 text-teal-700 rounded hover:bg-teal-200"
+              >
+                查看PO ({po.poNo})
+              </button>
+            )}
+            {a.status === 'APPROVED' && !po && (
+              <button
+                onClick={() => handleGeneratePO(a.id)}
+                className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              >
+                生成PO
+              </button>
+            )}
+            {a.status === 'ORDERED' && a.purchaseOrder && (
+              <button
+                onClick={() => router.push(`/purchase/orders/${a.purchaseOrder!.id}`)}
+                className="px-3 py-1 text-xs bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200"
+              >
+                到货登记
+              </button>
+            )}
+            {a.status === 'RECEIVED' && (
+              <button
+                onClick={() => router.push('/reimbursement')}
+                className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+              >
+                去报销
+              </button>
+            )}
+            {canDeleteApp(a) && (
+              <button
+                onClick={() => setDeleteTarget(a)}
+                className="px-3 py-1 text-xs bg-red-50 text-red-600 rounded hover:bg-red-100"
+              >
+                删除
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const statusLabel = (s: string) => {
@@ -461,134 +629,35 @@ export default function PurchasePage() {
 
         {loading ? (
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="bg-[var(--color-card)] rounded-xl border p-4"><div className="flex gap-4"><div className="skeleton h-5 w-48" /><div className="skeleton h-5 w-20" /></div></div>)}</div>
+        ) : apps.length === 0 ? (
+          <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125V9M17.25 6v6m2-3v6m-10.5 4.5h7.5" /></svg><div className="empty-state-title">还没有采购申请</div><div className="empty-state-desc">点击右上角"新建采购申请"开始</div></div>
         ) : (
-          <div className="space-y-3">
-            {apps
-              .filter(a => !filterCategory || a.category === filterCategory)
-              .filter(a => !filterStatus || a.status === filterStatus)
-              .map(a => {
-            const progress = getApprovalProgress(a)
-            const canApprove = canCurrentUserApprove(a)
-            const po = a.purchaseOrder
-            return (
-                <div key={a.id} className="bg-[var(--color-card)] rounded-xl border p-4 cursor-pointer" onClick={() => router.push(`/purchase/${a.id}`)}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium">{a.title}</h3>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColor(a.status)}`}>{statusLabel(a.status)}</span>
-                        {urgencyBadge(a.urgency)}
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${CATEGORY_COLORS[a.category] || ''}`}>{CATEGORY_LABELS[a.category] || a.category}</span>
-                      </div>
-                      <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-                        {a.code} · {a.applicant.name} · ¥{Number(a.totalAmount).toFixed(2)} · {a.items.length} 项
-                        {a.supplier && <span> · {a.supplier}</span>}
-                      </div>
-
-                      {/* 审批进度条 */}
-                      {progress && (a.status === 'PENDING' || a.status === 'APPROVED') && (
-                        <div className="mt-2 flex items-center gap-2">
-                          {/* 进度点 */}
-                          {Array.from({ length: progress.totalLevels }, (_, i) => {
-                            const stage = approvalFlow?.stages?.filter(s =>
-                              evaluateCondition(s.condition, Number(a.totalAmount))
-                            ).sort((a, b) => a.level - b.level)[i]
-                            const isApproved = i < progress.approvedLevels
-                            const isCurrent = i === progress.approvedLevels
-                            return (
-                              <div key={i} className="flex items-center gap-1">
-                                <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] ${
-                                  isApproved
-                                    ? 'bg-green-100 text-green-700'
-                                    : isCurrent
-                                    ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
-                                    : 'bg-[var(--color-card)] text-[var(--color-text-secondary)]'
-                                }`}>
-                                  <span className={`w-1.5 h-1.5 rounded-full ${
-                                    isApproved ? 'bg-green-500' : isCurrent ? 'bg-yellow-500' : 'bg-[var(--color-border)]'
-                                  }`} />
-                                  {stage?.label || `第${i + 1}级`}
-                                </div>
-                                {i < progress.totalLevels - 1 && (
-                                  <span className="text-xs text-[var(--color-text-secondary)]">→</span>
-                                )}
-                              </div>
-                            )
-                          })}
-                          {a.status === 'APPROVED' && (
-                            <span className="text-xs text-green-600 font-medium ml-1">✓ 全部通过</span>
-                          )}
-                          {a.status === 'PENDING' && progress.isComplete && (
-                            <span className="text-xs text-[var(--color-text-secondary)] ml-1">等待后续操作</span>
-                          )}
-                          {a.status === 'PENDING' && !progress.isComplete && progress.currentStage && (
-                            <span className="text-xs text-[var(--color-text-secondary)] ml-1">
-                              等待{ROLE_LABELS[progress.currentStage.role] || progress.currentStage.role}{progress.currentStage.condition ? '审批' : '审批'}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 flex-shrink-0 ml-4" onClick={e => e.stopPropagation()}>
-                      {/* 待审批状态 - 显示审批按钮 */}
-                      {a.status === 'PENDING' && canApprove && (
-                        <>
-                          <button onClick={() => showConfirm(a.id, 'APPROVED')} className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">通过</button>
-                          <button onClick={() => showConfirm(a.id, 'REJECTED')} className="px-3 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">驳回</button>
-                        </>
-                      )}
-                      {a.status === 'PENDING' && !canApprove && (
-                        <span className="px-3 py-1 text-xs text-[var(--color-text-secondary)] italic">等待审批</span>
-                      )}
-                      {a.status === 'APPROVED' && po && (
-                        <button
-                          onClick={() => router.push(`/purchase/orders/${po.id}`)}
-                          className="px-3 py-1 text-xs bg-teal-100 text-teal-700 rounded hover:bg-teal-200"
-                        >
-                          查看PO ({po.poNo})
-                        </button>
-                      )}
-                      {a.status === 'APPROVED' && !po && (
-                        <button
-                          onClick={() => handleGeneratePO(a.id)}
-                          className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                        >
-                          生成PO
-                        </button>
-                      )}
-                      {a.status === 'ORDERED' && a.purchaseOrder && (
-                        <button
-                          onClick={() => router.push(`/purchase/orders/${a.purchaseOrder!.id}`)}
-                          className="px-3 py-1 text-xs bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200"
-                        >
-                          到货登记
-                        </button>
-                      )}
-                      {a.status === 'RECEIVED' && (
-                        <button
-                          onClick={() => router.push('/reimbursement')}
-                          className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
-                        >
-                          去报销
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+          <div className="space-y-6">
+            {visibleSections.map(section => (
+              <div key={section.title}>
+                <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-3">
+                  {section.title}（{section.items.length}）
+                </h2>
+                {section.items.length > 0 ? (
+                  <div className="space-y-3">{section.items.map(renderAppCard)}</div>
+                ) : (
+                  <div className="bg-[var(--color-card)] rounded-xl border p-4 text-center text-sm text-[var(--color-text-secondary)]">{section.empty}</div>
+                )}
+              </div>
+            ))}
           </div>
         )}
-
-        {/* 空状态：无数据或筛选无结果 */}
-        {!loading && apps.length === 0 && (
-          <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125V9M17.25 6v6m2-3v6m-10.5 4.5h7.5" /></svg><div className="empty-state-title">还没有采购申请</div><div className="empty-state-desc">点击右上角"新建采购申请"开始</div></div>
-        )}
-        {!loading && apps.length > 0 && apps.filter(a => !filterCategory || a.category === filterCategory).filter(a => !filterStatus || a.status === filterStatus).length === 0 && (
-          <div className="empty-state"><svg className="empty-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg><div className="empty-state-title">筛选无结果</div><div className="empty-state-desc">尝试调整筛选条件</div></div>
-        )}
       </main>
+
+      {/* 删除申请确认 */}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="确认删除申请"
+        message={deleteTarget ? `确定删除「${deleteTarget.title}」吗？此操作将软删除该申请，可恢复。` : ''}
+        confirmLabel={deleting ? '删除中...' : '删除'}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

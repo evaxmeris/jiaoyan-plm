@@ -8,6 +8,8 @@ export interface AuthUser {
   email: string
   role: string
   department: string | null
+  /** 当前用户可见操作列表（/api/auth/me 返回，菜单/按钮过滤用） */
+  permissions?: string[]
 }
 
 const TOKEN_KEY = 'jy_token'
@@ -31,7 +33,8 @@ export function useAuth() {
       const res = await fetch('/api/auth/me', { headers })
       if (res.ok) {
         const data = await res.json()
-        setUser((data as any).data?.user || data.user)
+        const userData = (data as any).data?.user || data.user
+        setUser(userData ? { ...userData, permissions: (data as any).data?.permissions || data.permissions || [] } : null)
         // 如果 API 返回了新 token，存到 localStorage
         if ((data as any).data?.token) {
           localStorage.setItem(TOKEN_KEY, (data as any).data.token)
