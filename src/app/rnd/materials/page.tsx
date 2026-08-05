@@ -258,7 +258,7 @@ export default function MaterialsPage() {
                   { label: 'INCI 英文名', key: 'nameEn' }, { label: 'INCI 名(规范)', key: 'inciName' }, { label: 'CAS 号', key: 'casNo' },
                   { label: '备案码', key: 'filingNo' },
                   { label: '原料报送码', key: 'filingCode' },
-                  { label: '采购单价', key: 'latestPrice' },
+                  { label: '采购单价 (元/kg)', key: 'latestPrice' },
                   { label: '功能分类', key: 'function' }, { label: '规格参数', key: 'specification' },
                   { label: '单位', key: 'unit' }, { label: '中国限量', key: 'limitChina' },
                   { label: '欧盟限量', key: 'limitEu' },

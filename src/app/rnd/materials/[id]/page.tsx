@@ -255,7 +255,7 @@ export default function MaterialDetailPage() {
               {editInput('casNo', 'CAS 号')}
               {editInput('filingNo', '备案码')}
               {editInput('filingCode', '原料报送码')}
-              {editInput('latestPrice', '采购单价')}
+              {editInput('latestPrice', '采购单价 (元/kg)')}
               <div>
                 <label className="block text-xs text-[var(--color-text-secondary)] mb-1">备案状态</label>
                 <select
