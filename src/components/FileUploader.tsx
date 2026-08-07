@@ -318,6 +318,7 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(function 
         compact ? (
           <input
             id={inputId}
+            ref={inputRef}
             type="file"
             className="hidden"
             onChange={handleFileSelect}
@@ -350,6 +351,7 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(function 
             )}
             <input
               id={inputId}
+              ref={inputRef}
               type="file"
               className="hidden"
               onChange={handleFileSelect}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { Upload, X } from 'lucide-react'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import FileUploader, { type FileUploaderHandle } from '@/components/FileUploader'
@@ -32,6 +33,8 @@ export default function InventoryPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({ rawMaterialId: '', batchNo: '', quantity: '', receiptDate: '', supplier: '', remark: '' })
+  // 入库弹窗预选的批次 COA 文件（入库成功后自动上传到新批次）
+  const [draftCoa, setDraftCoa] = useState<File[]>([])
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   // 批次 COA 管理弹窗（当前批次）
   const [coaBatch, setCoaBatch] = useState<{ id: string; label: string } | null>(null)
@@ -69,6 +72,7 @@ export default function InventoryPage() {
   const openCreate = () => {
     setEditingId(null)
     setForm({ ...defaultForm })
+    setDraftCoa([])
     setShowForm(true)
   }
 
@@ -94,8 +98,29 @@ export default function InventoryPage() {
       body: JSON.stringify(form),
     })
     if (res.ok) {
+      const json = await res.json().catch(() => ({}))
+      const savedId = editingId || json?.data?.id || json?.id
       setShowForm(false)
       setEditingId(null)
+      // 新增入库：预选的批次 COA 文件自动上传到新批次（先建批次后传文件）
+      if (!editingId && savedId && draftCoa.length > 0) {
+        for (const file of draftCoa) {
+          try {
+            const fd = new FormData()
+            fd.append('file', file)
+            fd.append('entityType', 'RawMaterialBatch')
+            fd.append('entityId', savedId)
+            fd.append('fileType', 'COA')
+            await apiFetch('/api/files', { method: 'POST', body: fd })
+          } catch {
+            /* 单个文件失败不阻断其余上传 */
+          }
+        }
+        showToast('success', '入库成功，批次 COA 已上传')
+      } else {
+        showToast('success', editingId ? '修改成功' : '入库成功')
+      }
+      setDraftCoa([])
       fetchData()
     } else {
       const err = await res.json()
@@ -165,20 +190,63 @@ export default function InventoryPage() {
                   <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑库存批次' : '原料入库'}</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">原料 *</label>
-                      <select value={form.rawMaterialId} onChange={e => setForm({...form, rawMaterialId: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm">
+                      <select value={form.rawMaterialId} onChange={e => {
+                        const m = materials.find((x: any) => x.id === e.target.value)
+                        // 原料管理按「行=原料×厂家」建模，选中原料即确定厂家，供应商自动带出
+                        setForm({...form, rawMaterialId: e.target.value, supplier: m?.supplier || ''})
+                      }} className="w-full px-3 py-1.5 border rounded text-sm">
                         <option value="">选择原料</option>
-                        {materials.map((m: any) => <option key={m.id} value={m.id}>{m.nameCn}</option>)}
+                        {/* 同一原料不同厂家分别建档，下拉显示「原料名-厂家名」便于区分 */}
+                        {materials.map((m: any) => <option key={m.id} value={m.id}>{m.nameCn}{m.supplier ? `-${m.supplier}` : ''}</option>)}
                       </select>
+                      <p className="text-[11px] text-[var(--color-text-secondary)] mt-1">原料按厂家分别建档，选择原料后自动带出对应厂家</p>
                     </div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商批次号 *</label><input type="text" value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                     <div><label className="block text-[var(--color-text-secondary)] mb-1">数量 *</label><input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
-                    <div><label className="block text-[var(--color-text-secondary)] mb-1">入库日期 *</label><input type="date" value={form.receiptDate} onChange={e => setForm({...form, receiptDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
-                    <div><label className="block text-[var(--color-text-secondary)] mb-1">供应商</label><input type="text" value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
+                    <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">供应商（自动带出）</label>
+                      <input type="text" value={form.supplier} readOnly placeholder="选择原料后自动带出厂家"
+                        className="w-full px-3 py-1.5 border rounded text-sm bg-[var(--color-bg)] text-[var(--color-text-secondary)] cursor-not-allowed" />
+                      {!form.supplier && form.rawMaterialId && (
+                        <p className="text-[11px] text-red-500 mt-1">该原料未关联供应商，请先在原料管理中完善</p>
+                      )}
+                    </div>
+                    {/* 批次检验证书（COA）：入库时预选，入库成功后自动上传到本批次 */}
+                    {!editingId && (
+                      <div className="sm:col-span-2">
+                        <label className="block text-[var(--color-text-secondary)] mb-1">批次检验证书 (COA)</label>
+                        <div className="border border-[var(--color-border)] rounded-lg px-3 py-2">
+                          {draftCoa.length > 0 && (
+                            <div className="space-y-1 mb-2">
+                              {draftCoa.map((f, i) => (
+                                <div key={i} className="flex items-center gap-1">
+                                  <span className="text-xs text-[var(--color-text-secondary)] truncate max-w-[220px]">{f.name}</span>
+                                  <button type="button" title="移除已选文件" onClick={() => setDraftCoa(prev => prev.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500 transition-colors">
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <label className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 rounded border border-[var(--color-border)] hover:border-emerald-300 hover:text-emerald-600 text-xs text-[var(--color-text-secondary)]">
+                            <Upload className="w-3.5 h-3.5" />
+                            {draftCoa.length ? '继续选择' : '选择文件'}
+                            <input type="file" multiple className="hidden" onChange={e => {
+                              const files = Array.from(e.target.files || [])
+                              if (files.length > 0) setDraftCoa(prev => [...prev, ...files])
+                              e.target.value = ''
+                            }} />
+                          </label>
+                          <p className="text-[11px] text-[var(--color-text-secondary)] mt-1">厂家随批次提供的 COA 检验证书，入库后自动关联到本批次，溯源可查</p>
+                        </div>
+                      </div>
+                    )}
                     <div className="sm:col-span-2"><label className="block text-[var(--color-text-secondary)] mb-1">备注</label><textarea value={form.remark} onChange={e => setForm({...form, remark: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" rows={2} /></div>
+                    {/* 入库日期放最后靠右，紧邻入库按钮，操作顺畅 */}
+                    <div className="sm:col-start-2"><label className="block text-[var(--color-text-secondary)] mb-1">入库日期 *</label><input type="date" value={form.receiptDate} onChange={e => setForm({...form, receiptDate: e.target.value})} className="w-full px-3 py-1.5 border rounded text-sm" /></div>
                   </div>
                   <div className="flex gap-2 mt-4 justify-end">
                     <button onClick={() => { setShowForm(false); setEditingId(null) }} className="px-4 py-2 text-[var(--color-text-secondary)] text-sm">取消</button>
-                    <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm" disabled={!form.rawMaterialId || !form.batchNo}>
+                    <button onClick={handleSave} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm" disabled={!form.rawMaterialId || !form.batchNo || !form.supplier}>
                       {editingId ? '保存修改' : '入库'}
                     </button>
                   </div>

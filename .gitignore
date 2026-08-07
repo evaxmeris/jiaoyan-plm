@@ -30,6 +30,7 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.debug-credentials.md
 
 # bun
 bun.lock

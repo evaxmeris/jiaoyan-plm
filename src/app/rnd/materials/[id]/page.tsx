@@ -363,9 +363,14 @@ export default function MaterialDetailPage() {
                   <div className="flex items-center gap-0.5 flex-shrink-0">
                     <button
                       type="button"
-                      title="上传文件（可拖拽到此处）"
-                      onClick={() => uploaderRefs.current[doc.type]?.triggerUpload()}
-                      className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-blue-500 transition-colors"
+                      title={editing ? '上传文件（可拖拽到此处）' : '点击右上角「编辑」后可上传'}
+                      onClick={() => editing && uploaderRefs.current[doc.type]?.triggerUpload()}
+                      disabled={!editing}
+                      className={`p-1.5 rounded transition-colors ${
+                        editing
+                          ? 'hover:bg-gray-100 text-gray-400 hover:text-blue-500'
+                          : 'text-gray-300 cursor-not-allowed'
+                      }`}
                     >
                       <Upload className="w-4 h-4" />
                     </button>
@@ -387,6 +392,8 @@ export default function MaterialDetailPage() {
                   uploadFileType={doc.type}
                   compact
                   hideHeader
+                  allowUpload={editing}
+                  allowDelete={editing}
                 />
               </div>
             ))}
