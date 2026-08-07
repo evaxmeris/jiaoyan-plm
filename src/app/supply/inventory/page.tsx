@@ -48,21 +48,31 @@ export default function InventoryPage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     if (activeTab === 'raw') {
+      // 各数据源独立加载：单模块失败(如权限不足/网络)不拖垮整页
       const [iRes, mRes] = await Promise.all([
-        apiFetch(`/api/supply/inventory?q=${search}`),
-        apiFetch('/api/rnd/materials?q='),
+        apiFetch(`/api/supply/inventory?q=${search}`).catch(() => null),
+        apiFetch('/api/rnd/materials?q=').catch(() => null),
       ])
-      const iData = await iRes.json()
-      if (!iRes.ok) throw new Error(iData.error || '加载库存失败')
-      setItems(iData.data || iData.items || [])
-      const mData = await mRes.json()
-      if (!mRes.ok) throw new Error(mData.error || '加载原料失败')
-      setMaterials(mData.rawMaterials || [])
+      if (iRes && iRes.ok) {
+        const iData = await iRes.json().catch(() => ({ data: [] }))
+        setItems(iData.data || iData.items || [])
+      } else {
+        setItems([])
+      }
+      if (mRes && mRes.ok) {
+        const mData = await mRes.json().catch(() => ({ rawMaterials: [] }))
+        setMaterials(mData.rawMaterials || [])
+      } else {
+        setMaterials([])
+      }
     } else {
-      const res = await apiFetch(`/api/supply/supplies?q=${search}`)
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '加载物资失败')
-      setSupplies(data.data || data.supplies || [])
+      const res = await apiFetch(`/api/supply/supplies?q=${search}`).catch(() => null)
+      const data = res && res.ok ? await res.json().catch(() => ({ data: [] })) : { data: [] }
+      if (!res || !res.ok) {
+        setSupplies([])
+      } else {
+        setSupplies(data.data || data.supplies || [])
+      }
     }
     setLoading(false)
   }, [search, activeTab])

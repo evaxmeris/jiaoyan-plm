@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { verifyAuth, verifyPermission } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { writeAuditLog, extractIp } from '@/lib/audit'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 // PUT: 修改密码
@@ -46,11 +47,22 @@ export async function PUT(request: Request) {
       return errorResponse('旧密码错误', 403)
     }
 
-    // 加密新密码并更新
+    // 加密新密码并保存
     const passwordHash = await bcrypt.hash(newPassword, 12)
     await prisma.user.update({
       where: { id: currentUser.id },
       data: { passwordHash },
+    })
+
+    // 改密审计（个人改密同样留痕，保证安全审计完整）
+    await writeAuditLog({
+      userId: currentUser.id,
+      userName: currentUser.name,
+      action: 'CHANGE_PASSWORD',
+      entity: 'User',
+      entityId: currentUser.id,
+      detail: { email: currentUser.email, via: 'profile' },
+      ip: extractIp(request),
     })
 
     return NextResponse.json(successResponse({ ok: true, message: '密码修改成功' }))
